@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'openc_bot/version'
 require 'json'
 require 'scraperwiki'
@@ -57,6 +58,12 @@ module OpencBot
   def self.extended(obj)
     path, = caller[0].partition(":")
     @@app_directory = File.dirname(path)
+  end
+
+  private
+  def normalise_utf8_spaces(raw_text)
+    raw_text&&raw_text.gsub(/\xC2\xA0/, ' ')
+    # raw_text&&raw_text.gsub(/&nbsp;|\xC2\xA0/, ' ')
   end
 
 end

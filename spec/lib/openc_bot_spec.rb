@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require_relative '../spec_helper'
 require 'openc_bot'
 require_relative '../dummy_classes/foo_bot'
@@ -84,9 +85,17 @@ describe "A module that extends OpencBot" do
 
   end
 
-  describe "normalise_utf8_spaces" do
+  describe "normalise_utf8_spaces private method" do
     it "should convert UTF-8 spaces to normal spaces" do
-
+      raw_and_normalised_text = {
+        "Hello World" => "Hello World",
+        '' => '',
+        nil => nil,
+        " \xC2\xA0\xC2\xA0 Mr Fred Flintstone  \xC2\xA0" => '    Mr Fred Flintstone   ',
+                                  }
+      raw_and_normalised_text.each do |raw_text, normalised_text|
+        FooBot.send(:normalise_utf8_spaces, raw_text).should == normalised_text
+      end
     end
   end
 end
