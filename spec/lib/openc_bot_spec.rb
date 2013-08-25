@@ -82,7 +82,6 @@ describe "A module that extends OpencBot" do
       FooBot.should_receive(:save_data).with([:run_at], anything, anything)
       FooBot.save_run_report(:foo => 'bar')
     end
-
   end
 
   describe "normalise_utf8_spaces private method" do
@@ -98,4 +97,15 @@ describe "A module that extends OpencBot" do
       end
     end
   end
+
+  describe "#sqlite_magic_connection" do
+    it "should override default ScraperWiki#sqlite_magic_connection to use module name and adjacent db directory" do
+      FooBot.unstub(:sqlite_magic_connection)
+      expected_db_loc = File.expand_path(File.join(File.dirname(__FILE__),'..','db','foobot.db'))
+      SqliteMagic::Connection.should_receive(:new).with(expected_db_loc).and_return(@dummy_sqlite_magic_connection)
+      FooBot.sqlite_magic_connection
+    end
+  end
+
+
 end

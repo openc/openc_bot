@@ -12,12 +12,8 @@ module OpencBot
 
   include ScraperWiki
 
-  # def database_file
+  # def default_database_file
   #   File.join(@@app_directory, '..','db', "#{self.name.downcase}.db")
-  # end
-  #
-  # def database
-  #   @db ||= SQLite3::Database.new database_file
   # end
 
   def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
@@ -58,6 +54,12 @@ module OpencBot
   def self.extended(obj)
     path, = caller[0].partition(":")
     @@app_directory = File.dirname(path)
+  end
+
+  # Override default in ScraperWiki gem
+  def sqlite_magic_connection
+    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, '..','db', "#{self.name.downcase}.db"))
+    @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
   private
