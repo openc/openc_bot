@@ -15,7 +15,7 @@ be seamlessly able to be imported into OpenCorporates.
     cd my_bot
     bundle init
     # Add the openc_bot to the Gemfile:
-    echo "gem 'openc_bot', :git => 'git@github.com:openc/openc_bot.git'" > Gemfile
+    echo "gem 'openc_bot', :git => 'git@github.com:openc/openc_bot.git'" >> Gemfile
     bundle install
     # create your bot
     bundle exec openc_bot rake bot:create
