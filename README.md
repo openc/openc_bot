@@ -41,9 +41,9 @@ A bot module or class should look like this:
 If you follow the conventions and use these methods (and you must do in order for this to validate)
 there are several tasks available to you to run and test the data
 
-bundle exec openc_bot rake bot:create # creates the bot in the first place
-bundle exec openc_bot rake bot:run # runs the #update_data method
-bundle exec openc_bot rake bot:test # validates that the exported data conforms to the basic data structure expected
+    bundle exec openc_bot rake bot:create # creates the bot in the first place
+    bundle exec openc_bot rake bot:run # runs the #update_data method
+    bundle exec openc_bot rake bot:test # validates that the exported data conforms to the basic data structure expected
 
 ## Format of exported data
 
