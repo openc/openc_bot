@@ -7,12 +7,12 @@ namespace :bot do
     %w(db data lib spec tmp).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper','spec/bot_spec','lib/bot']
+    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md']
     templates.each do |template_location|
-      template = File.open(File.join(File.dirname(__FILE__), 'templates',"#{template_location}_template.txt")).read
+      template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyModule',new_module_name)
       template.gsub!('my_module',bot_name)
-      new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/bot/,bot_name)}.rb")
+      new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/bot/,bot_name)}")
       File.open(new_file, 'w') { |f| f.puts template }
       puts "Created #{new_file}"
     end
