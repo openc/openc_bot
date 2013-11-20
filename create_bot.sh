@@ -10,8 +10,7 @@ if [ "$BOTPATH" != "" ]; then
 fi
 # Add the openc_bot to the Gemfile:
 echo "source 'https://rubygems.org'" >> Gemfile
-#echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
-echo "gem 'openc_bot', :path => '/home/seb/Code/openc_bot'" >> Gemfile
+echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
 bundle install
 # create the bot
 bundle exec openc_bot rake bot:create
