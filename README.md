@@ -12,14 +12,7 @@ be seamlessly able to be imported into OpenCorporates.
 (This assumes you're using bundler. If not YMMV)
 
     mkdir my_bot # the bot will be named after the name of this directory
-    cd my_bot
-    bundle init
-    # Add the openc_bot to the Gemfile:
-    echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
-    bundle install
-    # create your bot
-    bundle exec openc_bot rake bot:create
-
+    /path/to/this/gem/create_bot.sh
 
 ##Usage
 
@@ -52,7 +45,7 @@ there are several tasks available to you to run and test the data
       |_lib # for the code itself
       |_spec # for the specs
       |_tmp # temporary store. Will not be persisted through deployments
- 
+
 ## Format of exported data
 
  To be written
@@ -64,4 +57,3 @@ there are several tasks available to you to run and test the data
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
-
