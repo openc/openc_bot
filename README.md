@@ -11,7 +11,6 @@ be seamlessly able to be imported into OpenCorporates.
 
 (This assumes you're using bundler. If not YMMV)
 
-    mkdir my_bot # the bot will be named after the name of this directory
     /path/to/this/gem/create_bot.sh
 
 ##Usage
