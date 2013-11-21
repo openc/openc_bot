@@ -4,7 +4,7 @@ namespace :bot do
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
-    %w(db data lib spec tmp).each do |new_dir|
+    %w(db data lib spec spec/dummy_responses tmp).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
     templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md']

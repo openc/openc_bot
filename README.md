@@ -1,6 +1,9 @@
 # OpencBot
 
-This is a gem to allow bots to be written to fetch and make available data that can easily be imported into OpenCorporates, the largest openly licensed database of companies in the world.
+## Overview
+
+This is a gem to allow bots to be written to fetch and make available data that can easily be imported into 
+OpenCorporates, the largest openly licensed database of companies in the world.
 
 By including OpencBot you have access to a number of methods for setting up and writing to/reading
 from a local SQLite database in which the data can be stored. It is expected to expose two class or module
@@ -13,7 +16,7 @@ be seamlessly able to be imported into OpenCorporates.
 
     /path/to/this/gem/create_bot.sh
 
-##Usage
+##Required methods
 
 A bot module or class should look like this:
 
@@ -45,9 +48,80 @@ there are several tasks available to you to run and test the data
       |_spec # for the specs
       |_tmp # temporary store. Will not be persisted through deployments
 
+## Helper methods
+By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
+saving and transforming data. More detailed usage is found in the generated code and README for new 
+bots.
+
+### Relating to sqlite
+`save_data` 
+
+    eg: MyBot.save_data([:unique_key, :other_unique_key], data, 'ocdata')
+    The primary method of saving to the sqlite db. 
+    Params: uniq\_keys, values\_array, db\_name
+  
+`insert_or_update`
+
+    Similar but attempts to update the row based on the unique_key
+
+`get_var`
+`save_var`
+
+    Allows bot authors to store small bits of information between runs e.g. where a counter was
+    up to in a search in case of needing to restart.
+
+`select`
+
+    Convenience method for selecting records for the sqlite db
+
+`save_run_report`
+
+    Used by Open corporates to monitor the status of the bot
+
+### Other
+* scrape
+
+    Retrieves a resource from the web and returns a string eg.
+    `MyBot.scrape("https://google.com") # returns a string of the page source`
+
 ## Format of exported data
 
  To be written
+
+## General tips on writing a bot
+
+All data sources are different, so the following are just pointers as opposed to rules.
+
+### Break it into stages
+
+Think about breaking the scraping process down into three stages. This is sometimes referred to 
+as "Extract, Transform, Load"
+
+"Extract" would mean saving the pages/data to the data folder. "Transform" means loading these files from the 
+data folder and parsing them into the right format (probably a hash). The final step, "Load", simply means saving them 
+the the database using the `save_data` method.
+
+Saving to disk first provides some benefits in terms of being able to re-run a scraper on failure. It also makes it 
+easier to trace if there have been problems with the data.
+
+### Write some specs
+
+Specs aren't 100% required but they can help. Seeing as scraping involves retrieving resources it's best to be careful 
+when writing specs that you don't request files every time they run, otherwise you might find yourself getting blocked!
+You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder 
+(see `spec_helper.rb` for details).
+
+### Check with your own eyes
+
+It's always a good idea to look at the data you've collected to see if you're happy with it. There are several good 
+sqlite clients available, or alternatively you can use the command line - `sqlite3 path/to/my/database.db`
+Check to see for any obvious issues before submitting your bot.
+
+### Documentation, documentation, documentation
+
+You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot. 
+Follow the instructions in the generated `README` file and you should be off to a good start. It's important for others 
+to be able to review and understand what you've written in case they need to work on it in future.
 
 ## Contributing
 

@@ -12,10 +12,6 @@ module OpencBot
 
   include ScraperWiki
 
-  # def default_database_file
-  #   File.join(@@app_directory, '..','db', "#{self.name.downcase}.db")
-  # end
-
   def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
@@ -63,6 +59,7 @@ module OpencBot
   end
 
   private
+  # TODO: Move to helper class
   def normalise_utf8_spaces(raw_text)
     raw_text&&raw_text.gsub(/\xC2\xA0/, ' ')
     # raw_text&&raw_text.gsub(/&nbsp;|\xC2\xA0/, ' ')
