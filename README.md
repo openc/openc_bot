@@ -34,16 +34,18 @@ If you follow the conventions and use these methods (and you must do in order fo
 there are several tasks available to you to run and test the data
 
     bundle exec openc_bot rake bot:create # creates the bot in the first place
-    bundle exec openc_bot rake bot:run # runs the #update_data method
+    bundle exec openc_bot rake bot:scrape # runs the #update_data method
+    bundle exec openc_bot rake bot:export # runs the #export_data method and outputs data to stdout as JSON
     bundle exec openc_bot rake bot:test # validates that the exported data conforms to the basic data structure expected
 
 ## Directory structure
     root
-      |_data # put persistent data in here
-      |_db # this is where the sqlite database will be stored. Note that it should not be committed to git, and will be symlinked to a shared directory in production, allowing the database to be persisted thorugh deployments
-      |_lib # for the code itself
-      |_spec # for the specs
-      |_tmp # temporary store. Will not be persisted through deployments
+      |_config.yml  # A YAML file with configuration for the bot.
+      |_data/       # Put persistent data in here
+      |_db/         # This is where the sqlite database will be stored. Note that it should not be committed to git, and will be symlinked to a shared directory in production, allowing the database to be persisted thorugh deployments
+      |_lib/        # For the code itself
+      |_spec/       # For the specs
+      |_tmp/        # Temporary store. Will not be persisted through deployments
 
 ## Format of exported data
 

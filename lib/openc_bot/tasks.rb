@@ -7,7 +7,7 @@ namespace :bot do
     %w(db data lib spec tmp).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md']
+    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyModule',new_module_name)
@@ -25,7 +25,7 @@ namespace :bot do
   end
 
   desc 'Scrape target'
-  task :run do
+  task :scrape do
     bot_name = get_bot_name
     require_relative File.join(Dir.pwd,'lib', bot_name)
     bot_klass = klass_from_file_name(bot_name)
