@@ -40,12 +40,14 @@ there are several tasks available to you to run and test the data
 
 ## Directory structure
     root
-      |_config.yml  # A YAML file with configuration for the bot.
+      |_config.yml  # A YAML file with configuration for the bot
       |_data/       # Put persistent data in here
-      |_db/         # This is where the sqlite database will be stored. Note that it should not be committed to git, and will be symlinked to a shared directory in production, allowing the database to be persisted thorugh deployments
+      |_db/         # This is where the sqlite database will be stored
       |_lib/        # For the code itself
       |_spec/       # For the specs
-      |_tmp/        # Temporary store. Will not be persisted through deployments
+      |_tmp/        # Temporary store
+
+data/, db/, and tmp/ should not be committed to version control.  Data in data/ and db/ will be persisted through deployments, but tmp/ will not be persisted.
 
 ## Format of exported data
 
