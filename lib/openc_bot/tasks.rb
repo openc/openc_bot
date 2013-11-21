@@ -24,8 +24,8 @@ namespace :bot do
     puts "Please run 'bundle install'"
   end
 
-  desc 'Scrape target'
-  task :scrape do
+  desc 'Get data from target'
+  task :run do
     bot_name = get_bot_name
     require_relative File.join(Dir.pwd,'lib', bot_name)
     bot_klass = klass_from_file_name(bot_name)

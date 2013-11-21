@@ -34,9 +34,9 @@ If you follow the conventions and use these methods (and you must do in order fo
 there are several tasks available to you to run and test the data
 
     bundle exec openc_bot rake bot:create # creates the bot in the first place
-    bundle exec openc_bot rake bot:scrape # runs the #update_data method
+    bundle exec openc_bot rake bot:run    # runs the #update_data method
     bundle exec openc_bot rake bot:export # runs the #export_data method and outputs data to stdout as JSON
-    bundle exec openc_bot rake bot:test # validates that the exported data conforms to the basic data structure expected
+    bundle exec openc_bot rake bot:test   # validates that the exported data conforms to the basic data structure expected
 
 ## Directory structure
     root
