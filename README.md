@@ -69,10 +69,6 @@ there are several tasks available to you to run and test the data
       |_spec # for the specs
       |_tmp # temporary store. Will not be persisted through deployments
 
-## Why sqlite?
-
-It's important to be able to view and query any data you gather in order to check it's accuracy and quality. We use sqlite as an interim storage method because it has very few external dependencies and works well in this single user environment. See the tips on scraping for more details on how to query/check data with sqlite See the tips on scraping for more details on how to query/check data with sqlite.
-
 ## Helper methods
 By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
 saving and transforming data. More detailed usage is found in the generated code and README for new 
@@ -80,9 +76,7 @@ bots.
 
 ### Relating to sqlite
 
-**save_data(uniq_keys, values_array, db_name (optional))** - The primary method of saving to the sqlite db.
-
-#### example usage
+**save_data(uniq_keys, values_array, table_name='ocdata')** - The primary method of saving to the sqlite db.
 
 ```ruby
 data = [
@@ -98,20 +92,31 @@ The first parameter are names of unique keys, and the data element should be an 
 If the table has not been created or field names are given that are not in the table, they will be created
 The save_data method currently saves all values as strings.
 
-  
-`insert_or_update`
+**insert_or_update(uniq_keys, values_array, table_name='ocdata')** - Update/insert data based on existing key sqlite db.
 
-    Similar but attempts to update the row based on the unique_key
+Similar to `save_data` but attempts to update the row based on the unique_key
 
-`get_var`
-`save_var`
+**save_var(name, value))** - save a value to the database
+**get_var(name, default=nil))** - retrive a value, with a fallback if it doesn't exist
 
-    Allows bot authors to store small bits of information between runs e.g. where a counter was
-    up to in a search in case of needing to restart.
+```ruby
+current_id = MyBot.get_var('current_id', 1) # get the last good id, otherwise return 1
+long_scraping_process.each do |page|
+  save_to_disk(page)
+  MyBot.save_var(current_id)
+  current_id += 1
+end
+```
 
-`select`
+Allows bot authors to store small bits of information between runs. Unfortunately long running bots tend
+to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
+useful in picking up where you left off.
 
-    Convenience method for selecting records for the sqlite db
+**select(sqlquery, data=nil)** - Convenience method for selecting records for the sqlite db
+
+```ruby
+MyBot.select('* from ocdata') # return everything
+```
 
 `save_run_report`
 
@@ -161,6 +166,12 @@ Check to see for any obvious issues before submitting your bot.
 You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot. 
 Follow the instructions in the generated `README` file and you should be off to a good start. It's important for others 
 to be able to review and understand what you've written in case they need to work on it in future.
+
+## FAQs
+
+#### Why sqlite?
+
+It's important to be able to view and query any data you gather in order to check it's accuracy and quality. We use sqlite as an interim storage method because it has very few external dependencies and works well in this single user environment. See the tips on scraping for more details on how to query/check data with sqlite See the tips on scraping for more details on how to query/check data with sqlite.
 
 ## Contributing
 
