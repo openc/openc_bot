@@ -35,19 +35,15 @@ module MyModule
   end
 
   def update_data
-    # write code here (using other methods if necessary) for updating your local database with data from
-    # the source that you are scraping or fetching from
-    # For example
-    # my_data = data_fetched_from(http://foo.gov/cool_data)
-    # You can then save that using the save_data convenience method, which saves it in an sqlite database
-    # named after the name of this class or module. If no table-name is given the ocdata table will be used/created.
-    # The first parameter are names of unique keys, and the data element should be an array of hashes, with keys
-    # for the field names and values as, er, the values. If the table has not been created or field names are
-    # given that are not in the table, they will be created
-    # The save_data method currently saves all values as strings.
+    # write code here (using other methods if necessary) for 
+    # updating your local database with data from the source 
+    # that you are scraping or fetching from
+    #
+    # # See https://github.com/openc/openc_bot README for details
     # save_data([:uid,:date], my_data, sometablename)
-    # After updating the data you should run this method, which saves the status (and other data, if applicable)
-    # along with the current time
+    #
+    # After updating the data you should run save_run_report, which 
+    # saves the status (and other data, if applicable)
     save_run_report(:status => 'success')
   end
 
