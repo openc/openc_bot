@@ -14,7 +14,9 @@ be seamlessly able to be imported into OpenCorporates.
 
 (This assumes you're using bundler. If not YMMV)
 
-    /path/to/this/gem/create_bot.sh
+    mkdir your_bot_name
+    cd your_bot_name
+    curl -s https://raw.github.com/openc/openc_bot/master/create_bot.sh | bash
 
 ##Required methods
 
