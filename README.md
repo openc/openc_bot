@@ -1,13 +1,5 @@
 # OpencBot
 
-#TODO:
--[x] specs required - walk through
--[] consider renaming methods to ETL
--[x] consider this the canonical source for docs - point template here
--[x] placeholder helper modules
--[x] sqlite method examples need expansion
--[x] explain why sqlite
-
 ## Overview
 
 This is a gem to allow bots to be written to fetch and format data that can be easily imported into 
@@ -73,7 +65,7 @@ bots.
 
 ### Relating to sqlite
 
-**save_data(uniq_keys, values_array, table_name='ocdata')** - The primary method of saving to the sqlite db.
+**save_data ( uniq_keys, values_array, table_name='ocdata' )** - The primary method of saving to the sqlite db.
 
 ```ruby
 data = [
@@ -89,12 +81,13 @@ The first parameter are names of unique keys, and the data element should be an 
 If the table has not been created or field names are given that are not in the table, they will be created
 The save_data method currently saves all values as strings.
 
-**insert_or_update(uniq_keys, values_array, table_name='ocdata')** - Update/insert data based on existing key sqlite db.
+**insert_or_update ( uniq_keys, values_array, table_name='ocdata' )** - Update/insert data based on existing key sqlite db.
 
 Similar to `save_data` but attempts to update the row based on the unique_key
 
-**save_var(name, value))** - save a value to the database
-**get_var(name, default=nil))** - retrive a value, with a fallback if it doesn't exist
+**save_var ( name, value )** - save a value to the database
+
+**get_var ( name, default=nil )** - retrive a value, with a fallback if it doesn't exist
 
 ```ruby
 current_id = MyBot.get_var('current_id', 1) # get the last good id, otherwise return 1
@@ -109,13 +102,13 @@ Allows bot authors to store small bits of information between runs. Unfortunatel
 to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
 useful in picking up where you left off.
 
-**select(sqlquery)** - Convenience method for selecting records for the sqlite db
+**select ( sqlquery )** - Convenience method for selecting records for the sqlite db
 
 ```ruby
 MyBot.select('* from ocdata') # return everything
 ```
 
-**save_run_report(reporthash)** - To be called at the end of each run
+**save_run_report ( reporthash )** - To be called at the end of each run
 
 ```ruby
 MyBot.update_data
@@ -129,7 +122,7 @@ Please include relevant information such as failures and error messages in the r
 `Time.now` is added to the output automatically.
 
 ### Other
-**scrape(url, params=nil, agent=nil)** - fetches content from a webserver
+**scrape ( url, params=nil, agent=nil )** - fetches content from a webserver
 
 ```ruby
 MyBot.scrape("https://google.com") # returns a string of the page source
@@ -178,6 +171,49 @@ end
 Saving to disk first provides some benefits in terms of being able to re-run a scraper on failure. It also makes it 
 easier to trace if there have been problems with the data.
 
+#### Example: Transform
+
+```ruby
+module MyBot
+  extend self
+
+  # ... 
+
+  def transform
+    src_path =  File.expand_path("../data/utah_institutions_file.txt", File.dirname(__FILE__))
+    src = IO.read(src_path)
+
+    CSV.parse(src, :headers => true).collect do |row|
+      new_row = row.merge(:retrieved_at => Time.now)
+      new_row[:company_name] = row[:name].gsub(/[[:space:]]+/, ' ') # for example
+      new_row # this is now a data hash ready for import
+    end
+  end
+
+  # ...
+end
+```
+
+This is a very simple example. You will probably need to break out the process into more methods, but 
+consider keeping them "wrapped" in a transform method so that you and other scraper authors can see what 
+is going on in future.
+
+#### Example: Load
+
+```ruby
+module MyBot
+  extend self
+
+  # ... 
+
+  def load
+    data = transform # from our previous example
+    save_data([:uniq_id_field], data)
+  end
+
+end
+```
+
 ### Write some specs
 
 Specs aren't 100% required but they can help. Seeing as scraping involves retrieving resources it's best to be careful 
@@ -191,7 +227,7 @@ You can achieve this by stubbing out the `scrape` method and returning content f
 describe MyBot do
 
   it "should parse a HTML file" do
-    response = MyModule.scrape(http://my-interesting-data-source.com)
+    response = MyModule.scrape("http://my-interesting-data-source.com")
     MyBot.parse(response).should_not be_empty
   end
 
@@ -212,7 +248,7 @@ describe MyBot do
   end
 
   it "should parse a HTML file" do
-    response = MyModule.scrape(http://my-interesting-data-source.com)
+    response = MyModule.scrape("http://my-interesting-data-source.com")
     MyBot.parse(response).should_not be_empty
   end
 
