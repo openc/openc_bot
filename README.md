@@ -49,7 +49,7 @@ there are several tasks available to you to run and test the data
 
 ## Directory structure
 
-####NB the `data` and `db` directories should not be committed to your bot's Git repo
+####NB the `data` and `db` directories are excluded by default in .gitignore
 
     root
       |_data # put persistent data in here
@@ -58,81 +58,11 @@ there are several tasks available to you to run and test the data
       |_spec # for the specs
       |_tmp # temporary store. Will not be persisted through deployments
 
-## Helper methods
-By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
-saving and transforming data. More detailed usage is found in the generated code and README for new 
-bots.
+## How to export the data
 
-### Relating to sqlite
-
-**save_data ( uniq_keys, values_array, table_name='ocdata' )** - The primary method of saving to the sqlite db.
-
-```ruby
-data = [
-  {:name => "Acme Corporation Ltd.", :type => "Investment Bank"},
-  {:name => "Acme Holdings Ltd.", :type => "Bank Holding Company"}
-]
-MyBot.save_data([:unique_key, :other_unique_key], data, 'ocdata')
-```
-
-This method saves data in an sqlite database named after the name of this class or module.
-If no table-name is given the `ocdata` table will be used/created.
-The first parameter are names of unique keys, and the data element should be an array of hashes, with keys becoming the field names. 
-If the table has not been created or field names are given that are not in the table, they will be created
-The save_data method currently saves all values as strings.
-
-**insert_or_update ( uniq_keys, values_array, table_name='ocdata' )** - Update/insert data based on existing key sqlite db.
-
-Similar to `save_data` but attempts to update the row based on the unique_key
-
-**save_var ( name, value )** - save a value to the database
-
-**get_var ( name, default=nil )** - retrive a value, with a fallback if it doesn't exist
-
-```ruby
-current_id = MyBot.get_var('current_id', 1) # get the last good id, otherwise return 1
-long_scraping_process.each do |page|
-  save_to_disk(page)
-  MyBot.save_var(current_id)
-  current_id += 1
-end
-```
-
-Allows bot authors to store small bits of information between runs. Unfortunately long running bots tend
-to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
-useful in picking up where you left off.
-
-**select ( sqlquery )** - Convenience method for selecting records for the sqlite db
-
-```ruby
-MyBot.select('* from ocdata') # return everything
-```
-
-**save_run_report ( reporthash )** - To be called at the end of each run
-
-```ruby
-MyBot.update_data
-  super_complicated_scrape_task
-  save_run_report(:status => 'success')
-end
-```
-
-Used by Open corporates to monitor the status of the bot. 
-Please include relevant information such as failures and error messages in the report hash.
-`Time.now` is added to the output automatically.
-
-### Other
-**scrape ( url, params=nil, agent=nil )** - fetches content from a webserver
-
-```ruby
-MyBot.scrape("https://google.com") # returns a string of the page source
-```
-
-Retrieves a resource from the web and returns a string. Uses the HTTPClient gem internally which 
-handles SSL and gzipped content.
-
-## Format of exported data
-
+### Description of output format
+### Description of output format
+### What to do when data no longer exists
  To be written
 
 ## General tips on writing a bot
@@ -214,9 +144,18 @@ module MyBot
 end
 ```
 
+This is fairly straightforward using one of the included helper methods (see ["Helper methods"](#helper-methods)).
+
+*Why sqlite?* It's important to be able to view and query any data you gather in order to check it's 
+accuracy and quality. We use sqlite as an interim storage method because it has very few external 
+dependencies and works well in this single user environment. See the ["Working with sqlite"](#working-with-sqlite) section for more details 
+on how to query/check data with sqlite See the tips on scraping for more details on how to query/check data with sqlite.
+
 ### Write some specs
 
-Specs aren't 100% required but they can help. Seeing as scraping involves retrieving resources it's best to be careful 
+*Specs are 100% required* :smiley_cat:. If nothing else, specs help to explain what you were trying to do with a particular method.
+
+Seeing as scraping involves retrieving resources it's best to be careful 
 when writing specs that you *don't request files from the web every time they run*, otherwise you might find yourself getting blocked!
 You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder 
 (see `spec_helper.rb` for details).
@@ -281,15 +220,147 @@ Follow the instructions in the generated `README` file and you should be off to 
 to be able to review and understand what you've written in case they need to work on it in future.
 
 ## Other things to consider
--[] explain about data that stops existing
+
+### What category is your scraper?
+
+**Simple** - retrieving a static file in a standard format (e.g. CSV)
+
+**Incremental** - scraping a site by incrementing some id parameter eg. a query string param `?id=47`
+
+**Iterative** - working over a range of possible inputs eg. searching for all the letters from `a..z`
+
+Each of these have their separate challenges and some data sources require a combination of all three. With the 
+incremental and iterative steps, it's a good idea to keep track of where you are up to in case you need to stop/restart 
+the bot (see the `get_var` and `save_var` example in [Helper methods](#helper-methods)).
+
 -[] Notes on incremental search vs iterative search
--[] example sqlite for checking data
+-[] explain about data that stops existing
 
-## FAQs
+## Working with sqlite
 
-#### Why sqlite?
+This bot includes a copy of the sqlite3 *gem*, but you might need to install the sqlite3 program using your 
+package manage (`brew`, `apt-get`, `yum` etc.)
 
-It's important to be able to view and query any data you gather in order to check it's accuracy and quality. We use sqlite as an interim storage method because it has very few external dependencies and works well in this single user environment. See the tips on scraping for more details on how to query/check data with sqlite See the tips on scraping for more details on how to query/check data with sqlite.
+In the root folder of your bot, you should be able to run 
+
+```bash
+sqlite3 db/mybotname.db
+```
+
+where `mybotname` is the name of your bot. This will open up an sql prompt. A few useful commands:
+
+#### .help
+#### .tables
+
+These will let you know what to do in most cases. Commands beginning with a dot (`.`) have a special meaning 
+in the sqlite prompt.
+
+#### .mode line
+
+Nice format for reviewing records at the shell
+
+```sql
+sqlite> SELECT * FROM us_nj_banks ORDER BY RANDOM() LIMIT 2;
+```
+
+```
+        licensee_name = RICHARDSON IMPORTS INC
+              ref_num = 8901006
+business_name_address = RICHARDSON IMPORTS INC1230 ROUTE 73MOUNT LAUREL, NJ 08054
+         license_type = MOTOR VEHICLE INSTALLMENT SELLER (CORPORATION)
+               status = ACTIVELY LICENSED
+
+        licensee_name = ISAAC,RHONDA
+              ref_num = 0805480
+business_name_address = EMPIRE TODAY LLC1200 TAYLORS LANESUITE 2BCINNAMINSON, NJ 08077
+         license_type = HOME REPAIR SALESMAN
+               status = ACTIVELY LICENSED
+```
+
+#### .output result.html
+#### .mode html
+
+Potentially useful way of reviewing larger numbers of records without a dedicated sqlite program. You have to 
+add in the opening and closing table tags yourself though.
+
+```sql
+sqlite> SELECT * FROM us_nj_banks ORDER BY RANDOM() LIMIT 100;
+
+-- This would output 100x <tr> tags into a file called result.html in the project root
+```
+
+## Helper methods
+By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
+saving and transforming data. More detailed usage is found in the generated code and README for new 
+bots.
+
+### Relating to sqlite
+
+**save_data ( uniq_keys, values_array, table_name='ocdata' )** - The primary method of saving to the sqlite db.
+
+```ruby
+data = [
+  {:name => "Acme Corporation Ltd.", :type => "Investment Bank"},
+  {:name => "Acme Holdings Ltd.", :type => "Bank Holding Company"}
+]
+MyBot.save_data([:unique_key, :other_unique_key], data, 'ocdata')
+```
+
+This method saves data in an sqlite database named after the name of this class or module.
+If no table-name is given the `ocdata` table will be used/created.
+The first parameter are names of unique keys, and the data element should be an array of hashes, with keys becoming the field names. 
+If the table has not been created or field names are given that are not in the table, they will be created
+The save_data method currently saves all values as strings.
+
+**insert_or_update ( uniq_keys, values_array, table_name='ocdata' )** - Update/insert data based on existing key sqlite db.
+
+Similar to `save_data` but attempts to update the row based on the unique_key
+
+**save_var ( name, value )** - save a value to the database
+
+**get_var ( name, default=nil )** - retrive a value, with a fallback if it doesn't exist
+
+```ruby
+current_id = MyBot.get_var('current_id', 1) # get the last good id, otherwise return 1
+long_scraping_process.each do |page|
+  save_to_disk(page)
+  MyBot.save_var(current_id)
+  current_id += 1
+end
+```
+
+Allows bot authors to store small bits of information between runs. Unfortunately long running bots tend
+to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
+useful in picking up where you left off.
+
+**select ( sqlquery )** - Convenience method for selecting records for the sqlite db
+
+```ruby
+MyBot.select('* from ocdata') # return everything
+```
+
+**save_run_report ( reporthash )** - To be called at the end of each run
+
+```ruby
+MyBot.update_data
+  super_complicated_scrape_task
+  save_run_report(:status => 'success')
+end
+```
+
+Used by Open corporates to monitor the status of the bot. 
+Please include relevant information such as failures and error messages in the report hash.
+`Time.now` is added to the output automatically.
+
+### Other
+**scrape ( url, params=nil, agent=nil )** - fetches content from a webserver
+
+```ruby
+MyBot.scrape("https://google.com") # returns a string of the page source
+```
+
+Retrieves a resource from the web and returns a string. Uses the HTTPClient gem internally which 
+handles SSL and gzipped content.
 
 ## Contributing
 
