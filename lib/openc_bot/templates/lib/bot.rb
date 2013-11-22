@@ -1,7 +1,4 @@
 # encoding: UTF-8
-# NB You should run the bot in a directory containing a Gemfile, which should contain the following line:
-# gem 'openc_bot', :git => 'git@github.com:openc/openc_bot.git'
-# so that you can, collect the gems using bundler.
 require 'openc_bot'
 
 # you may need to require other libraries here
@@ -21,13 +18,11 @@ module MyModule
     sql_query = "ocdata.* from ocdata LIMIT 200 OFFSET #{params[:offset]}"
     select(sql_query).collect do |raw_datum|
       # raw_datum will be a Hash of field names (as symbols) for the keys and the values for each field.
-      # It should be converted to the format necessary for importing into OpenCorporates, perhaps by
-      # using a prepare_for_export method.
+      # It should be converted to the format necessary for importing into OpenCorporates by using a 
+      # prepare_for_export method.
       prepare_for_export(raw_datum)
     end
   end
-
-
 
   def prepare_for_export(raw_data)
     # do something here to convert the raw data from the database (if you are using one) into

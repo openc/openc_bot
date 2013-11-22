@@ -1,15 +1,12 @@
 # OpencBot
 
 #TODO:
--[] specs required - walk through
--[] Notes on incremental search vs iterative search
+-[x] specs required - walk through
 -[] consider renaming methods to ETL
--[] consider this the canonical source for docs - point template here
--[] example sqlite for checking data
--[] placeholder helper modules
--[] sqlite method examples need expansion
+-[x] consider this the canonical source for docs - point template here
+-[x] placeholder helper modules
+-[x] sqlite method examples need expansion
 -[x] explain why sqlite
--[] explain about data that stops existing
 
 ## Overview
 
@@ -112,21 +109,34 @@ Allows bot authors to store small bits of information between runs. Unfortunatel
 to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
 useful in picking up where you left off.
 
-**select(sqlquery, data=nil)** - Convenience method for selecting records for the sqlite db
+**select(sqlquery)** - Convenience method for selecting records for the sqlite db
 
 ```ruby
 MyBot.select('* from ocdata') # return everything
 ```
 
-`save_run_report`
+**save_run_report(reporthash)** - To be called at the end of each run
 
-    Used by Open corporates to monitor the status of the bot
+```ruby
+MyBot.update_data
+  super_complicated_scrape_task
+  save_run_report(:status => 'success')
+end
+```
+
+Used by Open corporates to monitor the status of the bot. 
+Please include relevant information such as failures and error messages in the report hash.
+`Time.now` is added to the output automatically.
 
 ### Other
-* scrape
+**scrape(url, params=nil, agent=nil)** - fetches content from a webserver
 
-    Retrieves a resource from the web and returns a string eg.
-    `MyBot.scrape("https://google.com") # returns a string of the page source`
+```ruby
+MyBot.scrape("https://google.com") # returns a string of the page source
+```
+
+Retrieves a resource from the web and returns a string. Uses the HTTPClient gem internally which 
+handles SSL and gzipped content.
 
 ## Format of exported data
 
@@ -145,15 +155,82 @@ as "Extract, Transform, Load"
 data folder and parsing them into the right format (probably a hash). The final step, "Load", simply means saving them 
 the the database using the `save_data` method.
 
+#### Example: Extract
+
+```ruby
+module MyBot
+  extend self
+  SOURCE_FILE_URL = 'http://www.dfi.utah.gov/Download/INSTADDR.TXT'
+
+  # ... other methods
+
+  def extract
+    src = MyBot.scrape(SOURCE_FILE_URL)
+    outfile =  File.expand_path("../data/utah_institutions_file.txt", File.dirname(__FILE__))
+
+    File.open(outfile, "w") {|f| f.write src}
+  end
+
+  # ... other methods
+end
+```
+
 Saving to disk first provides some benefits in terms of being able to re-run a scraper on failure. It also makes it 
 easier to trace if there have been problems with the data.
 
 ### Write some specs
 
 Specs aren't 100% required but they can help. Seeing as scraping involves retrieving resources it's best to be careful 
-when writing specs that you don't request files every time they run, otherwise you might find yourself getting blocked!
+when writing specs that you *don't request files from the web every time they run*, otherwise you might find yourself getting blocked!
 You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder 
 (see `spec_helper.rb` for details).
+
+#### BAD spec
+
+```ruby
+describe MyBot do
+
+  it "should parse a HTML file" do
+    response = MyModule.scrape(http://my-interesting-data-source.com)
+    MyBot.parse(response).should_not be_empty
+  end
+
+  # NO - this will hit the network every time you run the test
+  # not only is this slow, but you're putting unnecessary load
+  # on the data source
+
+end
+```
+
+#### GOOD spec
+
+```ruby
+describe MyBot do
+
+  before :each do
+    MyBot.stub(:scrape).and_return(dummy_reponse('path/to/saved/html/response/in/spec/dummy_responses/sample.html'))
+  end
+
+  it "should parse a HTML file" do
+    response = MyModule.scrape(http://my-interesting-data-source.com)
+    MyBot.parse(response).should_not be_empty
+  end
+
+  # YES - this only uses a file on your local disk
+  # This makes for a very fast test - the only downside is
+  # that you have to keep your sample responses up to date
+  # if they change (html layout for example) on the data source.
+  # `stub` will change the method that you pass in, making sure that
+  # it's original doesn't get called, but also checking that the new 
+  # dummy method will.
+  # `and_return` is a way of simulating what that method would have responded with
+  # `dummy_response` is defined in the sample spec_helper.rb file
+
+end
+```
+
+For general advice on using RSpec, there is a good slide deck here: [http://kerryb.github.io/iprug-rspec-presentation/](http://kerryb.github.io/iprug-rspec-presentation/)
+For general RSpec style guidelines, [http://betterspecs.org/](http://betterspecs.org/) is worth a read.
 
 ### Check with your own eyes
 
@@ -166,6 +243,11 @@ Check to see for any obvious issues before submitting your bot.
 You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot. 
 Follow the instructions in the generated `README` file and you should be off to a good start. It's important for others 
 to be able to review and understand what you've written in case they need to work on it in future.
+
+## Other things to consider
+-[] explain about data that stops existing
+-[] Notes on incremental search vs iterative search
+-[] example sqlite for checking data
 
 ## FAQs
 
