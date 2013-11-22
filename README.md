@@ -61,7 +61,6 @@ there are several tasks available to you to run and test the data
 ## How to export the data
 
 ### Description of output format
-### Description of output format
 ### What to do when data no longer exists
  To be written
 
