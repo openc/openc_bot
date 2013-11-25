@@ -64,6 +64,9 @@ Data in data/ and db/ will be persisted through deployments, but tmp/ will not b
 
 ### Description of output format
 
+#### The following info is specific to Finance Licenses
+#### This is still under discussion and is likely to change within the next 24 hours. Please ask if unsure.
+
 We expect licence data as a hash with the following keys:
 
     :sample_date
