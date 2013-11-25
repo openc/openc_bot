@@ -61,8 +61,69 @@ there are several tasks available to you to run and test the data
 ## How to export the data
 
 ### Description of output format
+
+We expect licence data as a hash with the following keys:
+
+    :sample_date
+        required (if end_date is not provided)
+    :start_date
+        optional
+    :start_date_type
+        required if :start_date is present
+        one of "at", "before", or "after"
+    :end_date
+        optional (if sample_date is provided)
+    :end_date_type
+        required if :end_date is present
+        one of "at", "before", or "after"
+    :company
+        required
+        a hash with the following keys:
+            :name
+                required
+                a string of the name of the company
+            :jurisdiction
+                required
+                a string of the jurisdiction
+                    eg "us_ca"
+    :source_url
+        required
+        a string of the URL of the data
+    :data
+        required
+        an array with a single hash, with the following keys:
+            :data_type
+                required
+                must be :licence
+            :properties
+                required
+                a hash with the following keys:
+                    :category
+                        required
+                        should be "Financial" -- contact OC if this doesn't apply
+                    :jurisdiction_role
+                        required
+                        a string describing the role of the licensed company within the jurisdiction
+                            for instance "Bank", "Insurer", "Trust Company"
+                    :description
+                        optional
+                        a string with a description of the licence from the data source
+                    :permissions
+                        optional
+                        an array of strings listing the permissions that are granted by the licence
+
 ### What to do when data no longer exists
- To be written
+
+At the moment, we deal with a range of data sets that change with varying frequencies. As such, it is difficult to 
+accomodate every type of variation in how data can be classified as 'fresh' or 'out of date' and so on. This means 
+that we need help from bot authors in identifying when data is no longer valid, which does unfortunately mean extra work 
+is required.
+
+This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of 
+records that are still available but haven't changed. After each run you may find that some records have "dropped off" 
+the source and are no longer available/valid. *For these records* the thing to do when something stops being true 
+is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`, 
+*INSTEAD* of a `sample date`.
 
 ## General tips on writing a bot
 
