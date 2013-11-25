@@ -296,9 +296,6 @@ Each of these have their separate challenges and some data sources require a com
 incremental and iterative steps, it's a good idea to keep track of where you are up to in case you need to stop/restart 
 the bot (see the `get_var` and `save_var` example in [Helper methods](#helper-methods)).
 
--[] Notes on incremental search vs iterative search
--[] explain about data that stops existing
-
 ## Working with sqlite
 
 This bot includes a copy of the sqlite3 *gem*, but you might need to install the sqlite3 program using your 
