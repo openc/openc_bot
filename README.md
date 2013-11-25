@@ -64,9 +64,6 @@ Data in data/ and db/ will be persisted through deployments, but tmp/ will not b
 
 ### Description of output format
 
-#### The following info is specific to Finance Licenses
-#### This is still under discussion and is likely to change within the next 24 hours. Please ask if unsure.
-
 We expect licence data as a hash with the following keys:
 
     :sample_date
@@ -103,21 +100,19 @@ We expect licence data as a hash with the following keys:
             :properties
                 required
                 a hash with the following keys:
-                    :category
-                        required
-                        should be "Financial" -- contact OC if this doesn't apply
-                    :jurisdiction_role
-                        required
-                        a string describing the role of the licensed company within the jurisdiction
-                            for instance "Bank", "Insurer", "Trust Company"
                     :licence_number
                         optional
-                    :description
-                        optional
-                        a string with a description of the licence from the data source
-                    :permissions
-                        optional
-                        an array of strings listing the permissions that are granted by the licence
+                    :jurisdiction_tags
+                        required
+                        an array of strings that describe the licence or the licenced company, using the vocabulary of the data source
+                        examples might be:
+                            foreign bank branch
+                            co-operative credit
+                            motor vehicle finance
+                            trust company
+                    :oc_tags
+                        not required yet
+                        an array of strings that describe the licence or the licenced company, taken from a vocabulary list provided by OpenCorporates
 
 ### What to do when data no longer exists
 
