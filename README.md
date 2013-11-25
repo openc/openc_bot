@@ -116,16 +116,17 @@ We expect licence data as a hash with the following keys:
 
 ### What to do when data no longer exists
 
-At the moment, we deal with a range of data sets that change with varying frequencies. As such, it is difficult to 
-accomodate every type of variation in how data can be classified as 'fresh' or 'out of date' and so on. This means 
-that we need help from bot authors in identifying when data is no longer valid, which does unfortunately mean extra work 
-is required.
+It is difficult to  accomodate every type of variation in how data can be classified as 'fresh' or 'out of date' and 
+so on. This means that we need help from bot authors in identifying when data is no longer valid.
 
 This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of 
 records that are still available but haven't changed. After each run you may find that some records have "dropped off" 
 the source and are no longer available/valid. *For these records* the thing to do when something stops being true 
 is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`, 
 *INSTEAD* of a `sample date`.
+
+*For all the current records that are otherwise unchanged* you should still submit them with a new `sample_date` so 
+that we know they are still current.
 
 ## General tips on writing a bot
 
