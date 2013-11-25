@@ -7,7 +7,7 @@ namespace :bot do
     %w(db data lib spec spec/dummy_responses tmp).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md']
+    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyModule',new_module_name)
@@ -24,11 +24,20 @@ namespace :bot do
     puts "Please run 'bundle install'"
   end
 
+  desc 'Get data from target'
   task :run do
     bot_name = get_bot_name
     require_relative File.join(Dir.pwd,'lib', bot_name)
     bot_klass = klass_from_file_name(bot_name)
     bot_klass.update_data
+  end
+
+  desc 'Export data to stdout'
+  task :export do
+    bot_name = get_bot_name
+    require_relative File.join(Dir.pwd,'lib', bot_name)
+    bot_klass = klass_from_file_name(bot_name)
+    bot_klass.export
   end
 
   task :test do
@@ -49,7 +58,7 @@ namespace :bot do
   end
 
   def get_bot_name
-    puts "No bot_name given. Using name of current_directory" unless bot_name = ENV['BOT']
+    #puts "No bot_name given. Using name of current_directory" unless bot_name = ENV['BOT']
     bot_name ||= Dir.pwd.split('/').last
   end
 

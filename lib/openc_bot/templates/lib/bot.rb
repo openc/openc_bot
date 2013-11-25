@@ -9,13 +9,11 @@ module MyModule
   extend OpencBot
   extend self # make these methods as Module methods, rather than instance ones
 
-  def export_data(params={:offset => 0})
+  def export_data
     # This is the basic functionality for exporting the data from the database. By default the data
     # table (what is created when you save_data) is called ocdata, but it can be called anything else,
     # and the query can be more complex, returning, for example, only the most recent results.
-    # By default the importer will page through the data, supplying an offset equal to the aggregate
-    # number of results already received. It will stop requesting data when an empty array is returned
-    sql_query = "ocdata.* from ocdata LIMIT 200 OFFSET #{params[:offset]}"
+    sql_query = "ocdata.* from ocdata"
     select(sql_query).collect do |raw_datum|
       # raw_datum will be a Hash of field names (as symbols) for the keys and the values for each field.
       # It should be converted to the format necessary for importing into OpenCorporates by using a 

@@ -40,6 +40,13 @@ module OpencBot
     ENV['VERBOSE']
   end
 
+  def export
+    export_data.each do |record|
+      $stdout.puts record.to_json
+      $stdout.flush
+    end
+  end
+
   # When deciding on the location of the SQLite databases we need to set the directory relative to the directory
   # of the file/app that includes the gem, not the gem itself.
   # Doing it this way, and setting a class variable feels ugly, but this appears to be difficult in Ruby, esp as the
