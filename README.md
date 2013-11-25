@@ -105,6 +105,8 @@ We expect licence data as a hash with the following keys:
                         required
                         a string describing the role of the licensed company within the jurisdiction
                             for instance "Bank", "Insurer", "Trust Company"
+                    :licence_number
+                        optional
                     :description
                         optional
                         a string with a description of the licence from the data source
