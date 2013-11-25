@@ -280,6 +280,9 @@ It's always a good idea to look at the data you've collected to see if you're ha
 sqlite clients available, or alternatively you can use the command line - `sqlite3 path/to/my/database.db`
 Check to see for any obvious issues before submitting your bot.
 
+See the [Working with sqlite](#working-with-sqlite) section for examples on how you can analyse and agregate your data 
+to check for issues.
+
 ### Documentation, documentation, documentation
 
 You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot. 
