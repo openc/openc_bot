@@ -13,8 +13,6 @@ be seamlessly able to be imported into OpenCorporates.
 
 ##How to install/create a bot
 
-(This assumes you're using bundler. If not YMMV)
-
 ```bash
 mkdir your_bot_name
 cd your_bot_name
@@ -23,7 +21,7 @@ curl -s https://raw.github.com/openc/openc_bot/master/create_bot.sh | bash
 
 ##Required methods
 
-A bot module or class should look like this:
+A bot module should look like this:
 
 ```ruby
 Module MyBot
@@ -31,7 +29,7 @@ Module MyBot
   extend self
 
   def update_data
-    # fetch or scrape data and store in local SQLite database
+    # fetch or scrape data and store (possibly in local SQLite database)
   end
 
   def export_data(options={})
@@ -50,7 +48,7 @@ there are several tasks available to you to run and test the data
 
 ## Directory structure
 
-####NB the `data`, `db` and `tmp` directories are excluded by default in .gitignore
+####NB the `data`, `db` and `tmp` directories should not be committed to git
 
     root
       |_config.yml  # A YAML file with configuration for the bot
@@ -60,7 +58,7 @@ there are several tasks available to you to run and test the data
       |_spec/       # For the specs
       |_tmp/        # Temporary store
 
-data/, db/, and tmp/ should not be committed to version control.  Data in data/ and db/ will be persisted through deployments, but tmp/ will not be persisted.
+Data in data/ and db/ will be persisted through deployments, but tmp/ will not be persisted.
 
 ## How to export the data
 
@@ -120,7 +118,7 @@ We expect licence data as a hash with the following keys:
 
 ### What to do when data no longer exists
 
-It is difficult to  accomodate every type of variation in how data can be classified as 'fresh' or 'out of date' and 
+It is difficult to  accommodate every type of variation in how data can be classified as 'fresh' or 'out of date' and 
 so on. This means that we need help from bot authors in identifying when data is no longer valid.
 
 This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of 
@@ -220,9 +218,10 @@ on how to query/check data with sqlite See the tips on scraping for more details
 
 ### Write some specs
 
-*Specs are 100% required* :smiley_cat:. If nothing else, specs help to explain what you were trying to do with a particular method.
+*Specs are required* :smiley_cat:. If nothing else, specs help to explain what you were trying to do with a particular 
+method. We encourage all Bot authors to take the time to write specs, as it pays off in the long run.
 
-Seeing as scraping involves retrieving resources it's best to be careful 
+Given scraping involves retrieving resources you should be careful 
 when writing specs that you *don't request files from the web every time they run*, otherwise you might find yourself getting blocked!
 You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder 
 (see `spec_helper.rb` for details).
@@ -356,6 +355,13 @@ sqlite> SELECT * FROM us_nj_banks ORDER BY RANDOM() LIMIT 100;
 -- This would output 100x <tr> tags into a file called result.html in the project root
 ```
 
+#### GUIs and other clients
+
+There are lots of useful GUI clients for Sqlite3. We've used the following with some success:
+
+* [Navicat Lite (Firefox addon)](https://addons.mozilla.org/en-US/firefox/addon/sqlite-manager/)
+* [Navicat Essentials (Desktop app)](http://www.navicat.com/products/navicat-essentials)
+
 ## Helper methods
 By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
 saving and transforming data. More detailed usage is found in the generated code and README for new 
@@ -370,11 +376,11 @@ data = [
   {:name => "Acme Corporation Ltd.", :type => "Investment Bank"},
   {:name => "Acme Holdings Ltd.", :type => "Bank Holding Company"}
 ]
-MyBot.save_data([:unique_key, :other_unique_key], data, 'ocdata')
+MyBot.save_data([:name], data, 'ocdata')
 ```
 
 This method saves data in an sqlite database named after the name of this class or module.
-If no table-name is given the `ocdata` table will be used/created.
+If no table name is given, `ocdata` will be used. The table will be created if it doesn't already exist.
 The first parameter are names of unique keys, and the data element should be an array of hashes, with keys becoming the field names. 
 If the table has not been created or field names are given that are not in the table, they will be created
 The save_data method currently saves all values as strings.
@@ -415,7 +421,7 @@ MyBot.update_data
 end
 ```
 
-Used by Open corporates to monitor the status of the bot. 
+Used by Open Corporates to monitor the status of the bot. 
 Please include relevant information such as failures and error messages in the report hash.
 `Time.now` is added to the output automatically.
 
