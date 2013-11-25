@@ -103,6 +103,9 @@ We expect licence data as a hash with the following keys:
             :properties
                 required
                 a hash with the following keys:
+                    :category
+                        optional
+                        should be "Financial" -- contact OC if this doesn't apply
                     :licence_number
                         optional
                     :jurisdiction_tags
