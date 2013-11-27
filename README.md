@@ -117,6 +117,9 @@ We expect licence data as a hash with the following keys:
                         not required yet
                         an array of strings that describe the licence or the licenced company, taken from a vocabulary list provided by OpenCorporates
 
+#### About the date fields
+
+
 ### What to do when data no longer exists
 
 It is difficult to  accommodate every type of variation in how data can be classified as 'fresh' or 'out of date' and 
@@ -128,8 +131,8 @@ the source and are no longer available/valid. *For these records* the thing to d
 is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`, 
 *INSTEAD* of a `sample date`.
 
-*For all the current records that are otherwise unchanged* you should still submit them with a new `sample_date` so 
-that we know they are still current.
+*For all the current records that are otherwise unchanged* you can still submit them with a new `sample_date` so 
+that we know they are still current. After 15 months we assume this is no longer the case, so your code should consider resubmitting unchanged records at least once every 15 months.
 
 ## General tips on writing a bot
 
