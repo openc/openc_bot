@@ -62,7 +62,6 @@ namespace :bot do
   end
 
   def get_bot_name
-    #puts "No bot_name given. Using name of current_directory" unless bot_name = ENV['BOT']
     bot_name ||= Dir.pwd.split('/').last
   end
 
