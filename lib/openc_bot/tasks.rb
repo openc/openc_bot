@@ -99,7 +99,7 @@ namespace :bot do
   end
 
   def write_pid_file(pid_path)
-    File.open(pid_path) {|file| file.write(Process.pid)}
+    File.open(pid_path, 'w') {|file| file.write(Process.pid)}
   end
 
   def remove_pid_file(pid_path)
