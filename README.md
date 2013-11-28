@@ -277,6 +277,10 @@ end
 For general advice on using RSpec, there is a good slide deck here: [http://kerryb.github.io/iprug-rspec-presentation/](http://kerryb.github.io/iprug-rspec-presentation/)
 For general RSpec style guidelines, [http://betterspecs.org/](http://betterspecs.org/) is worth a read.
 
+### Expect it to be interrupted
+
+It's not unusual for scrapes to take several days. Power cuts and accidental keypresses do happen. Your script should contain code that allows it to resume where it left off if interrupted; for example, storing the latest value of a counter, or logging some identifier for each record which allows it to be re-got. The `save_var` and `get_var` methods documented below are useful for this; or you can log identifiers to a sqlite table.
+
 ### Check with your own eyes
 
 It's always a good idea to look at the data you've collected to see if you're happy with it. There are several good 
