@@ -107,5 +107,10 @@ describe "A module that extends OpencBot" do
     end
   end
 
+  describe "#root_directory" do
+    it "should return directory one up from that containing module" do
+      FooBot.root_directory.should == File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    end
+  end
 
 end

@@ -25,11 +25,11 @@ module OpencBot
     save_data([:run_at], { :report => json_report, :run_at => Time.now.to_s }, :ocrunreports)
   end
 
-  # def select_data(query_partial)
-  #   raw_response = database.execute2('SELECT ' + query_partial)
-  #   keys = raw_response.shift.map(&:to_sym) # get the keys
-  #   raw_response.map{|e| Hash[keys.zip(e)] }
-  # end
+  # Returns the root directory of the bot (not this gem).
+  # Assumes the bot file that extends its functionality using this bot is in a directory (lib) inside the root directory
+  def root_directory
+    @@app_directory
+  end
 
   def unlock_database
     sqlite_magic_connection.execute("BEGIN TRANSACTION; END;")
@@ -56,12 +56,12 @@ module OpencBot
   # @app_directory class variable
   def self.extended(obj)
     path, = caller[0].partition(":")
-    @@app_directory = File.dirname(path)
+    @@app_directory = File.expand_path(File.join(File.dirname(path),'..'))
   end
 
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
-    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, '..','db', "#{self.name.downcase}.db"))
+    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', "#{self.name.downcase}.db"))
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
