@@ -90,9 +90,11 @@ namespace :bot do
       Process.getpgid(pid)
     rescue Errno::ESRCH
       # Process with PID doesn't exist
+      # TODO Log this
       return
     else
       # Process with PID does exist
+      # TODO Log this
       raise 'Already running'
     end
   end
