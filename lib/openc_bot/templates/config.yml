@@ -1,10 +1,11 @@
 # This is a short description of the kind of data the bot handles.
 description: ''
 
+# This is your confidence, between 0 and 100, in the accuracy of the data
+# provided by the data source.  It is suggested that you do not change this
+# without first discussing with OpenCorporates.
+default_confidence: 80
+
 # Don't change this.  OpenCorporates will bump this version number when the bot
 # is running in production.
 version: 0
-
-# Don't change this.  This will be set by OpenCorporates based on an assessment
-# of the nature of the data source.
-default_confidence: 80

@@ -4,7 +4,7 @@ namespace :bot do
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
-    %w(db data lib spec spec/dummy_responses tmp).each do |new_dir|
+    %w(db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
     templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
@@ -26,18 +26,22 @@ namespace :bot do
 
   desc 'Get data from target'
   task :run do
-    bot_name = get_bot_name
-    require_relative File.join(Dir.pwd,'lib', bot_name)
-    bot_klass = klass_from_file_name(bot_name)
-    bot_klass.update_data
+    only_process_running('run') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      bot_klass = klass_from_file_name(bot_name)
+      bot_klass.update_data
+    end
   end
 
   desc 'Export data to stdout'
   task :export do
-    bot_name = get_bot_name
-    require_relative File.join(Dir.pwd,'lib', bot_name)
-    bot_klass = klass_from_file_name(bot_name)
-    bot_klass.export
+    only_process_running('export') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      bot_klass = klass_from_file_name(bot_name)
+      bot_klass.export
+    end
   end
 
   task :test do
@@ -58,8 +62,48 @@ namespace :bot do
   end
 
   def get_bot_name
-    #puts "No bot_name given. Using name of current_directory" unless bot_name = ENV['BOT']
     bot_name ||= Dir.pwd.split('/').last
   end
 
+  def only_process_running(task_name)
+    pid_path = File.join(Dir.pwd, 'pids', task_name)
+
+    raise_if_already_running(pid_path)
+    write_pid_file(pid_path)
+
+    begin
+      yield
+    ensure
+      remove_pid_file(pid_path)
+    end
+  end
+
+  def raise_if_already_running(pid_path)
+    begin
+      pid = File.open(pid_path).read.to_i
+    rescue Errno::ENOENT
+      # PID file doesn't exist
+      return
+    end
+
+    begin
+      Process.getpgid(pid)
+    rescue Errno::ESRCH
+      # Process with PID doesn't exist
+      # TODO Log this
+      return
+    else
+      # Process with PID does exist
+      # TODO Log this
+      raise 'Already running'
+    end
+  end
+
+  def write_pid_file(pid_path)
+    File.open(pid_path, 'w') {|file| file.write(Process.pid)}
+  end
+
+  def remove_pid_file(pid_path)
+    File.delete(pid_path)
+  end
 end
