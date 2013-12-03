@@ -2,8 +2,8 @@
 
 ## Overview
 
-This is a gem to allow bots to be written to fetch and format data that can be easily imported into 
-OpenCorporates, the largest openly licensed database of companies in the world. It also aims to be a curated 
+This is a gem to allow bots to be written to fetch and format data that can be easily imported into
+OpenCorporates, the largest openly licensed database of companies in the world. It also aims to be a curated
 set of tools to allow data to be retrieved, formatted and imported on a regular basis.
 
 By including OpencBot you have access to a number of methods for setting up and writing to/reading
@@ -119,19 +119,59 @@ We expect licence data as a hash with the following keys:
 
 #### About the date fields
 
+Imagine you are interested in mining licenses in Liliput and
+Brobdingnag, and you want to provide this data to OpenCorporates. You
+find a website that lists mining licenses for these jurisdictions, so
+you write a bot that can submit each license.
+
+You find that Liliputian licenses have a definied start date and a
+definied end date, which mean you can explicitly say "this license is
+valid between 1 June 2012 and 31 Aug 2013" for a particular license.
+
+In this case, you would submit the data with a `start_date` of
+`2012-06-01` and an `end_date` of `2013-08-31`; and a
+`start_date_type` of `at` and an `end_date_type` of `at`. You would
+also submit a `sample_date` for that document, which is the date on
+which the license was known to be current (often today's date, but
+sometimes the reporting date given in the source).
+
+However, you find that Brobdingnagian licenses only tell you currently
+issued licenses. As a bot writer, all you can say of a particular
+license is "I saw this license when we ran the bot on 15 January
+2012". In this case, you would leave `start_date` and `end_date`
+blank, and submit a `sample_date` of `2012-01-15` instead.
+
+If you subsequently see the license on 15 February, you'd submit
+exactly the same data with a new `sample_date`.
+
+This means OpenCorporates can infer, based on the running schedule of
+the bot, and the `sample_date`s of its data, the dates between which a
+license was valid (in this case, between 15 January and 15 February).
+
+To summarise, there are three kinds of dates that OpenCorporates deals with:
+
+1. The date on which an observation was true: the `sample_date`. This
+is the date of a bot run, or a reporting date given in the source
+document. Every observation should have a sample date.
+2. A `start_date` and/or `end_date` defined explicitly in the source
+document
+3. A `start_date` or `end_date` that has not been provided by the
+source, but which OpenCorporates can infer from one or more sample
+dates.
+
 
 ### What to do when data no longer exists
 
-It is difficult to  accommodate every type of variation in how data can be classified as 'fresh' or 'out of date' and 
+It is difficult to  accommodate every type of variation in how data can be classified as 'fresh' or 'out of date' and
 so on. This means that we need help from bot authors in identifying when data is no longer valid.
 
-This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of 
-records that are still available but haven't changed. After each run you may find that some records have "dropped off" 
-the source and are no longer available/valid. *For these records* the thing to do when something stops being true 
-is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`, 
+This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of
+records that are still available but haven't changed. After each run you may find that some records have "dropped off"
+the source and are no longer available/valid. *For these records* the thing to do when something stops being true
+is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`,
 *INSTEAD* of a `sample date`.
 
-*For all the current records that are otherwise unchanged* you can still submit them with a new `sample_date` so 
+*For all the current records that are otherwise unchanged* you can still submit them with a new `sample_date` so
 that we know they are still current. After 15 months we assume this is no longer the case, so your code should consider resubmitting unchanged records at least once every 15 months.
 
 ## General tips on writing a bot
@@ -140,11 +180,11 @@ All data sources are different, so the following are just pointers as opposed to
 
 ### Break it into stages
 
-Think about breaking the scraping process down into three stages. This is sometimes referred to 
+Think about breaking the scraping process down into three stages. This is sometimes referred to
 as "Extract, Transform, Load"
 
-"Extract" would mean saving the pages/data to the data folder. "Transform" means loading these files from the 
-data folder and parsing them into the right format (probably a hash). The final step, "Load", simply means saving them 
+"Extract" would mean saving the pages/data to the data folder. "Transform" means loading these files from the
+data folder and parsing them into the right format (probably a hash). The final step, "Load", simply means saving them
 the the database using the `save_data` method.
 
 #### Example: Extract
@@ -167,7 +207,7 @@ module MyBot
 end
 ```
 
-Saving to disk first provides some benefits in terms of being able to re-run a scraper on failure. It also makes it 
+Saving to disk first provides some benefits in terms of being able to re-run a scraper on failure. It also makes it
 easier to trace if there have been problems with the data.
 
 #### Example: Transform
@@ -176,7 +216,7 @@ easier to trace if there have been problems with the data.
 module MyBot
   extend self
 
-  # ... 
+  # ...
 
   def transform
     src_path =  File.expand_path("../data/utah_institutions_file.txt", File.dirname(__FILE__))
@@ -193,8 +233,8 @@ module MyBot
 end
 ```
 
-This is a very simple example. You will probably need to break out the process into more methods, but 
-consider keeping them "wrapped" in a transform method so that you and other scraper authors can see what 
+This is a very simple example. You will probably need to break out the process into more methods, but
+consider keeping them "wrapped" in a transform method so that you and other scraper authors can see what
 is going on in future.
 
 #### Example: Load
@@ -203,7 +243,7 @@ is going on in future.
 module MyBot
   extend self
 
-  # ... 
+  # ...
 
   def load
     data = transform # from our previous example
@@ -215,19 +255,19 @@ end
 
 This is fairly straightforward using one of the included helper methods (see ["Helper methods"](#helper-methods)).
 
-*Why sqlite?* It's important to be able to view and query any data you gather in order to check it's 
-accuracy and quality. We use sqlite as an interim storage method because it has very few external 
-dependencies and works well in this single user environment. See the ["Working with sqlite"](#working-with-sqlite) section for more details 
+*Why sqlite?* It's important to be able to view and query any data you gather in order to check it's
+accuracy and quality. We use sqlite as an interim storage method because it has very few external
+dependencies and works well in this single user environment. See the ["Working with sqlite"](#working-with-sqlite) section for more details
 on how to query/check data with sqlite See the tips on scraping for more details on how to query/check data with sqlite.
 
 ### Write some specs
 
-*Specs are required* :smiley_cat:. If nothing else, specs help to explain what you were trying to do with a particular 
+*Specs are required* :smiley_cat:. If nothing else, specs help to explain what you were trying to do with a particular
 method. We encourage all Bot authors to take the time to write specs, as it pays off in the long run.
 
-Given scraping involves retrieving resources you should be careful 
+Given scraping involves retrieving resources you should be careful
 when writing specs that you *don't request files from the web every time they run*, otherwise you might find yourself getting blocked!
-You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder 
+You can achieve this by stubbing out the `scrape` method and returning content from the `spec/dummy_responses` folder
 (see `spec_helper.rb` for details).
 
 #### BAD spec
@@ -266,7 +306,7 @@ describe MyBot do
   # that you have to keep your sample responses up to date
   # if they change (html layout for example) on the data source.
   # `stub` will change the method that you pass in, making sure that
-  # it's original doesn't get called, but also checking that the new 
+  # it's original doesn't get called, but also checking that the new
   # dummy method will.
   # `and_return` is a way of simulating what that method would have responded with
   # `dummy_response` is defined in the sample spec_helper.rb file
@@ -283,17 +323,17 @@ It's not unusual for scrapes to take several days. Power cuts and accidental key
 
 ### Check with your own eyes
 
-It's always a good idea to look at the data you've collected to see if you're happy with it. There are several good 
+It's always a good idea to look at the data you've collected to see if you're happy with it. There are several good
 sqlite clients available, or alternatively you can use the command line - `sqlite3 path/to/my/database.db`
 Check to see for any obvious issues before submitting your bot.
 
-See the [Working with sqlite](#working-with-sqlite) section for examples on how you can analyse and agregate your data 
+See the [Working with sqlite](#working-with-sqlite) section for examples on how you can analyse and agregate your data
 to check for issues.
 
 ### Documentation, documentation, documentation
 
-You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot. 
-Follow the instructions in the generated `README` file and you should be off to a good start. It's important for others 
+You often learn a lot about a domain whilst working on a scraper and it's important that this is saved with the bot.
+Follow the instructions in the generated `README` file and you should be off to a good start. It's important for others
 to be able to review and understand what you've written in case they need to work on it in future.
 
 ## Other things to consider
@@ -306,16 +346,16 @@ to be able to review and understand what you've written in case they need to wor
 
 **Iterative** - working over a range of possible inputs eg. searching for all the letters from `a..z`
 
-Each of these have their separate challenges and some data sources require a combination of all three. With the 
-incremental and iterative steps, it's a good idea to keep track of where you are up to in case you need to stop/restart 
+Each of these have their separate challenges and some data sources require a combination of all three. With the
+incremental and iterative steps, it's a good idea to keep track of where you are up to in case you need to stop/restart
 the bot (see the `get_var` and `save_var` example in [Helper methods](#helper-methods)).
 
 ## Working with sqlite
 
-This bot includes a copy of the sqlite3 *gem*, but you might need to install the sqlite3 program using your 
+This bot includes a copy of the sqlite3 *gem*, but you might need to install the sqlite3 program using your
 package manage (`brew`, `apt-get`, `yum` etc.)
 
-In the root folder of your bot, you should be able to run 
+In the root folder of your bot, you should be able to run
 
 ```bash
 sqlite3 db/mybotname.db
@@ -326,7 +366,7 @@ where `mybotname` is the name of your bot. This will open up an sql prompt. A fe
 #### .help
 #### .tables
 
-These will let you know what to do in most cases. Commands beginning with a dot (`.`) have a special meaning 
+These will let you know what to do in most cases. Commands beginning with a dot (`.`) have a special meaning
 in the sqlite prompt.
 
 #### .mode line
@@ -354,7 +394,7 @@ business_name_address = EMPIRE TODAY LLC1200 TAYLORS LANESUITE 2BCINNAMINSON, NJ
 #### .output result.html
 #### .mode html
 
-Potentially useful way of reviewing larger numbers of records without a dedicated sqlite program. You have to 
+Potentially useful way of reviewing larger numbers of records without a dedicated sqlite program. You have to
 add in the opening and closing table tags yourself though.
 
 ```sql
@@ -371,8 +411,8 @@ There are lots of useful GUI clients for Sqlite3. We've used the following with 
 * [Navicat Essentials (Desktop app)](http://www.navicat.com/products/navicat-essentials)
 
 ## Helper methods
-By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining, 
-saving and transforming data. More detailed usage is found in the generated code and README for new 
+By extending OpencBot, you'll have access to the following methods which may be helpful in obtaining,
+saving and transforming data. More detailed usage is found in the generated code and README for new
 bots.
 
 ### Relating to sqlite
@@ -389,7 +429,7 @@ MyBot.save_data([:name], data, 'ocdata')
 
 This method saves data in an sqlite database named after the name of this class or module.
 If no table name is given, `ocdata` will be used. The table will be created if it doesn't already exist.
-The first parameter are names of unique keys, and the data element should be an array of hashes, with keys becoming the field names. 
+The first parameter are names of unique keys, and the data element should be an array of hashes, with keys becoming the field names.
 If the table has not been created or field names are given that are not in the table, they will be created
 The save_data method currently saves all values as strings.
 
@@ -411,7 +451,7 @@ end
 ```
 
 Allows bot authors to store small bits of information between runs. Unfortunately long running bots tend
-to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are 
+to get stopped unexpectedly in development (power cuts, connectivity failures etc.) so these methods are
 useful in picking up where you left off.
 
 **select ( sqlquery )** - Convenience method for selecting records for the sqlite db
@@ -429,7 +469,7 @@ MyBot.update_data
 end
 ```
 
-Used by Open Corporates to monitor the status of the bot. 
+Used by Open Corporates to monitor the status of the bot.
 Please include relevant information such as failures and error messages in the report hash.
 `Time.now` is added to the output automatically.
 
@@ -440,7 +480,7 @@ Please include relevant information such as failures and error messages in the r
 MyBot.scrape("https://google.com") # returns a string of the page source
 ```
 
-Retrieves a resource from the web and returns a string. Uses the HTTPClient gem internally which 
+Retrieves a resource from the web and returns a string. Uses the HTTPClient gem internally which
 handles SSL and gzipped content.
 
 ## Contributing
