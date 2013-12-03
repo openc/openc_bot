@@ -9,3 +9,9 @@ default_confidence: 80
 # Don't change this.  OpenCorporates will bump this version number when the bot
 # is running in production.
 version: 0
+
+# If this flag is true, our deployment script will set up the bot to
+# be run on OpenCorporates servers (specifically, deploy the bot and
+# allow it to be executed from the data pipeline). Please don't change
+# this; we'll change it when we're ready to test the bot.
+enabled: false
