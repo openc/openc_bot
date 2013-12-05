@@ -2,6 +2,7 @@
 require 'openc_bot/version'
 require 'json'
 require 'scraperwiki'
+require 'nokogiri'
 require_relative 'openc_bot/bot_data_validator'
 
 module OpencBot
@@ -64,6 +65,33 @@ module OpencBot
     db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', "#{self.name.downcase}.db"))
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
+
+  ## Extend method for extracting text from a single Nokogiri Node
+  def s_text(node)
+    return node.text.strip
+  end
+
+  ## Extend method for extracting text from a particular tree of Nokogiri Node(s)
+  def a_text(node)
+    ret = []
+    if node.kind_of? (Nokogiri::XML::Element)
+      tmp = []
+      node.children().each{|nd|
+        tmp << a_text(nd)
+      }
+      ret << tmp
+    elsif node.kind_of? (Nokogiri::XML::NodeSet)
+      node.collect().each{|nd|
+        ret << a_text(nd)
+      }
+    elsif node.kind_of? (Nokogiri::XML::Text)
+      ret << s_text(node)
+    else
+      raise "Invalid element found while processing innert text #{node}"
+    end
+    return ret.flatten
+  end
+
 
   private
   # TODO: Move to helper class

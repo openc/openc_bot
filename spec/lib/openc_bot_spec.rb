@@ -6,7 +6,7 @@ require_relative '../dummy_classes/foo_bot'
 describe "A module that extends OpencBot" do
 
   before do
-    @dummy_connection = stub('database_connection')
+    @dummy_connection = double('database_connection')
     FooBot.stub(:sqlite_magic_connection).and_return(@dummy_connection)
   end
 
@@ -95,6 +95,22 @@ describe "A module that extends OpencBot" do
       raw_and_normalised_text.each do |raw_text, normalised_text|
         FooBot.send(:normalise_utf8_spaces, raw_text).should == normalised_text
       end
+    end
+  end
+
+  describe "extract context from Nokogiri nodes" do
+    before do
+      @body = dummy_response('README.md')
+    end
+
+    it "should extract string from a single node" do
+      FooBot.s_text(Nokogiri::HTML(@body).xpath(".//h1[a[@name='opencbot']]/text()")).should == "OpencBot"
+      FooBot.s_text(Nokogiri::HTML(@body).xpath(".//h2[a[@name='overview']]/text()")).should == "Overview"
+      FooBot.s_text(Nokogiri::HTML(@body).xpath(".//div[@class='flash flash-error']/text()")).should == "Something went wrong with that request. Please try again."
+    end
+
+    it "should extract to array of strings from a nodeset" do
+      FooBot.a_text(Nokogiri::HTML(@body).xpath(".//h3[a[@name='break-it-into-stages']]/following-sibling::*[following-sibling::*[self::h4[a[@name='example-extract']]]]")).should == ["Think about breaking the scraping process down into three stages. This is sometimes referred to \nas \"Extract, Transform, Load\"", "\"Extract\" would mean saving the pages/data to the data folder. \"Transform\" means loading these files from the \ndata folder and parsing them into the right format (probably a hash). The final step, \"Load\", simply means saving them \nthe the database using the", "save_data", "method."]
     end
   end
 
