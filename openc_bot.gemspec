@@ -13,11 +13,13 @@ Gem::Specification.new do |gem|
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
+
   gem.executables   = ['openc_bot']
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
+  gem.add_dependency "activesupport"
   gem.add_dependency "nokogiri"
   # gem.add_dependency "sqlite3"
   gem.add_dependency "json"
