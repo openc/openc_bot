@@ -74,5 +74,9 @@ module SimpleOpencBot
         send("#{k}=", v)
       end
     end
+
+    def to_hash
+      Hash[_fields.map{|field| [field, send(field)]}]
+    end
   end
 end
