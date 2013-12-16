@@ -56,4 +56,43 @@ describe TestLicenceBot::LicenceRecord do
       @record.to_hash.should ==  @initial_values_hash
     end
   end
+
+  describe "#prepare_for_export" do
+    it "should return fields in a hash as expected by license data_delegate" do
+    end
+  end
+end
+
+
+
+describe SimpleOpencBot do
+  before do
+  end
+
+  describe ".update_data" do
+    it "should call save_data with correct unique fields" do
+
+    end
+
+    it "should call save_data with all records in a hash" do
+    end
+  end
+
+
+  describe ".export_data" do
+    it "should return an array of hashes" do
+
+    end
+
+    context "individual record" do
+    end
+
+    it "should return an array of hashes" do
+
+    end
+
+    it "should call save_data with all records in a hash" do
+    end
+  end
+
 end
