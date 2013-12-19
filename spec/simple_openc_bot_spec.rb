@@ -31,7 +31,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
           jurisdiction_classification: [jurisdiction_classification],
         }
       }]
-    }.to_json
+    }
   end
 
 end
@@ -163,7 +163,7 @@ describe SimpleOpencBot do
 
       context "invalid data" do
         it "should return an array of hashes with errors" do
-          LicenceRecord.any_instance.stub(:to_pipeline).and_return("{}")
+          LicenceRecord.any_instance.stub(:to_pipeline).and_return({})
           result = @bot.validate_data
           result.count.should == 2
           result[0][:errors].should_not be_empty
