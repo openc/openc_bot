@@ -56,6 +56,7 @@ namespace :bot do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       runner.update_data
+      puts "Got #{runner.count_stored_records} records"
     end
   end
 
