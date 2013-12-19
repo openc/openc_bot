@@ -25,17 +25,20 @@
     "data": {
       "type": "array",
       "items" : [ {
+        "type": "object",
         "properties": {
           "data_type": { "type": "string" },
           "properties": {
             "type": "object",
             "properties": {
-              "category": "string",
-              "jurisdiction_classification": "string"
+              "category": {
+                "type": "string"},
+              "jurisdiction_classification": {
+                "type": "array"}
             }
           }
         },
-        "required": [ "data_type", "properties" ]x
+        "required": [ "data_type", "properties" ]
       } ],
       "additionalItems": false
     }
