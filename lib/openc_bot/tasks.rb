@@ -75,7 +75,9 @@ namespace :bot do
     runner = callable_from_file_name(bot_name)
     if runner.respond_to?(:validate_data)
       results = runner.validate_data
-      raise OpencBot::InvalidDataError.new(results) if results
+      if !results.empty?
+        raise OpencBot::InvalidDataError.new(results)
+      end
     else
       results = runner.export_data
       results.each do |datum|
@@ -94,8 +96,8 @@ namespace :bot do
   # At the moment, we have simple bots and bots; the former expect to
   # be instances, the latter modules with class methods.
   def callable_from_file_name(underscore_file_name)
-    bot_klass = klass_from_file_name
-    if bot_klass.is_a?(SimpleOpencBot)
+    bot_klass = klass_from_file_name(underscore_file_name)
+    if bot_klass.respond_to?(:new)
       callable = bot_klass.new
     else
       callable = bot_klass

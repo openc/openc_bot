@@ -58,7 +58,7 @@ class MyLicenceBot < SimpleOpencBot
     data = [{:name => "foo", :type => "bar"}]
 
     data.map do |datum|
-      LicenceRecord.new({
+      MyLicenceRecord.new({
         :name => datum[:name],
         :type => datum[:type],
       })
