@@ -25,8 +25,13 @@ class SimpleOpencBot
     end
   end
 
-  def all_stored_records
-    select_records("ocdata.* from ocdata")
+  def all_stored_records(opts={})
+    if opts[:limit]
+      sql = "ocdata.* from ocdata LIMIT #{opts[:limit]}"
+    else
+      sql = "ocdata.* from ocdata"
+    end
+    select_records(sql)
   end
 
   def unexported_stored_records
@@ -57,10 +62,13 @@ class SimpleOpencBot
     end
   end
 
-  def validate_data
-    all_stored_records.map do |record|
+  def validate_data(opts={})
+    opts = {:limit => 1000}.merge(opts)
+    errors = all_stored_records(opts).map do |record|
       record.errors
     end.compact
+    puts "NOTICE: only validated first #{opts[:limit]} records"
+    errors
   end
 
 
