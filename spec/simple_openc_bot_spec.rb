@@ -149,7 +149,7 @@ describe SimpleOpencBot do
     describe "#export_data" do
       it "should return an array of hashes" do
         result = @bot.export_data
-        result.should be_a Array
+        result.should be_a Enumerable
         result.count.should == @properties.count
       end
 
