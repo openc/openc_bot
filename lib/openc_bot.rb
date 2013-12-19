@@ -12,6 +12,10 @@ module OpencBot
 
   include ScraperWiki
 
+  def thing_from_openc_bot
+    puts "ribbit"
+  end
+
   def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
@@ -55,13 +59,30 @@ module OpencBot
   # we know about the directory is when the module is called to extend the file, and we capture that in the
   # @app_directory class variable
   def self.extended(obj)
+    self.set_app_directory
+  end
+
+  def self.included(obj)
+    self.set_app_directory
+  end
+
+  def self.set_app_directory
     path, = caller[0].partition(":")
     @@app_directory = File.expand_path(File.join(File.dirname(path),'..'))
   end
 
+  def db_name
+    # XXX ugly, but self.is_a? Class doesn't work
+    begin
+      "#{self.class.name.downcase}.db"
+    rescue NoMethodError
+      "#{self.name.downcase}.db"
+    end
+  end
+
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
-    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', "#{self.name.downcase}.db"))
+    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
