@@ -82,12 +82,6 @@ describe LicenceRecord do
       @record.to_hash.should include(@initial_values_hash)
     end
   end
-
-  describe "#prepare_for_export" do
-    it "should return fields in a hash as expected by license data_delegate" do
-      puts @record.to_pipeline
-    end
-  end
 end
 
 describe SimpleOpencBot do
@@ -163,7 +157,6 @@ describe SimpleOpencBot do
       context "valid data" do
         it "should return empty array" do
           result = @bot.validate_data
-          puts result
           result.should be_empty
         end
       end
