@@ -27,9 +27,15 @@
       "items" : [ {
         "properties": {
           "data_type": { "type": "string" },
-          "properties": { "type": "object" }
+          "properties": {
+            "type": "object",
+            "properties": {
+              "category": "string",
+              "jurisdiction_classification": "string"
+            }
+          }
         },
-        "required": [ "data_type", "properties" ]
+        "required": [ "data_type", "properties" ]x
       } ],
       "additionalItems": false
     }
