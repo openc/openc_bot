@@ -25,6 +25,10 @@ class SimpleOpencBot
     end
   end
 
+  def count_stored_records
+    sqlite_magic_connection.execute("select count(*) as count from ocdata").first["count"]
+  end
+
   def all_stored_records(opts={})
     if opts[:limit]
       sql = "ocdata.* from ocdata LIMIT #{opts[:limit]}"
@@ -67,7 +71,9 @@ class SimpleOpencBot
     errors = all_stored_records(opts).map do |record|
       record.errors
     end.compact
-    puts "NOTICE: only validated first #{opts[:limit]} records"
+    total = count_stored_records
+    selected = [opts[:limit], total].min
+    puts "NOTICE: only validated first #{selected} of #{total} records"
     errors
   end
 
