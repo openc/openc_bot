@@ -105,8 +105,9 @@ class SimpleOpencBot
     # return a structure including errors if invalid; otherwise return nil
     def errors
       data = self.to_pipeline
+      schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
       errors = JSON::Validator.fully_validate(
-        'schemas/licence-schema.json',
+        schema,
         data.to_json,
         {:errors_as_objects => true, :validate_schema => true})
       if !errors.empty?
