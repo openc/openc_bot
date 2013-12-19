@@ -50,7 +50,7 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
 
 end
 
-class MyLicenceBot < SimpleOpencBot
+class MyLicence < SimpleOpencBot
   # This method should return an array of MyLicenceRecords. It must be defined.
   def fetch_records
     # Here we are iterating over an array. Normally you would scrape

@@ -88,7 +88,7 @@ class SimpleOpencBot
       self._unique_fields
     end
 
-    def initialize(attrs)
+    def initialize(attrs={})
       attrs = attrs.with_indifferent_access
       self._type = self.class.name
       self._store_fields.each do |k|
