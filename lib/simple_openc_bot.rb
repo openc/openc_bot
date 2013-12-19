@@ -98,7 +98,7 @@ class SimpleOpencBot
     def errors
       data = self.to_pipeline
       errors = JSON::Validator.fully_validate(
-        'pipeline-schema.json',
+        'schemas/licence-schema.json',
         data.to_json,
         {:errors_as_objects => true, :validate_schema => true})
       if !errors.empty?
