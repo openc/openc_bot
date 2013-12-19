@@ -1,5 +1,6 @@
 require 'active_support/core_ext'
 require 'openc_bot'
+require 'json-schema'
 
 class SimpleOpencBot
   include OpencBot
@@ -11,22 +12,39 @@ class SimpleOpencBot
   end
 
   def all_stored_records
-    sql_query = "ocdata.* from ocdata"
-    select(sql_query).map { |record| record['_type'].constantize.new(record) }
+    select_records("ocdata.* from ocdata")
   end
 
   def unexported_stored_records
-    sql_query = "ocdata.* from ocdata"
-    select(sql_query).map { |record| record['_type'].constantize.new(record) }
+    select_records("ocdata.* from ocdata WHERE last_exported_date IS NULL")
+  end
+
+  def select_records(sql)
+    select(sql).map { |record| record['_type'].constantize.new(record) }
   end
 
   def export_data
-    all_stored_records.each do |record|
-      #record.mark_as_exported!
-
-      save_data(record.class.unique_fields, record.to_hash)
+    unexported_stored_records.map do |record|
+      save_data(record.class.unique_fields,
+        record.to_hash.merge(:last_exported_date => Time.now.to_i))
       record.to_pipeline
     end
+  end
+
+  def validate_data
+    all_stored_records.map do |record|
+      # first check they're JSON!
+      errors = JSON::Validator.fully_validate(
+        'pipeline-schema.json',
+        record.to_pipeline,
+        {:errors_as_objects => true, :validate_schema => true})
+      #identifier = Hash[record.class.unique_fields.map{|field| [field, record.send(field)]}]
+      identifier = JSON.parse(record.to_pipeline)
+      if !errors.empty?
+        identifier[:errors] = errors
+        identifier
+      end
+    end.compact
   end
 
   def prepare_for_export(raw_data)
@@ -52,7 +70,7 @@ class SimpleOpencBot
     }
     # XXX all the other dates
     # XXX mark as exported
-    output
+    output.to_json
   end
 
   def validate
@@ -126,9 +144,10 @@ class SimpleOpencBot
     end
 
     def initialize(attrs)
+      attrs = attrs.with_indifferent_access
       self._type = self.class.name
-      attrs.each do |k, v|
-        send("#{k}=", v)
+      self._store_fields.each do |k|
+        send("#{k}=", attrs[k])
       end
     end
 

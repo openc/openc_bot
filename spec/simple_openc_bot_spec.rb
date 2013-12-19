@@ -2,12 +2,15 @@ require 'rspec'
 require 'simple_openc_bot'
 
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
-  # responsibilities:
-  # 1. declaratively show fields that are to be saved, fields that are unique, fields that are to be exported
-  # 2. Validate
   JURISDICTION = "uk"
-  store_fields :name, :type, :retrieved_at, :url
+  store_fields :name, :type
   unique_fields :name
+
+  URL = "http://foo.com"
+
+  def sample_date
+    Time.now.iso8601(2)
+  end
 
   def jurisdiction_classification
     type
@@ -15,12 +18,12 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 
   def to_pipeline
     {
-      sample_date: retrieved_at,
+      sample_date: sample_date,
       company: {
         name: name,
         jurisdiction: JURISDICTION,
       },
-      source_url: url,
+      source_url: URL,
       data: [{
         data_type: :licence,
         properties: {
@@ -28,7 +31,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
           jurisdiction_classification: [jurisdiction_classification],
         }
       }]
-    }
+    }.to_json
   end
 
 end
@@ -86,8 +89,6 @@ describe LicenceRecord do
     end
   end
 end
-
-
 
 describe SimpleOpencBot do
   before do
@@ -152,20 +153,28 @@ describe SimpleOpencBot do
         result.count.should == @properties.count
       end
 
-      it "should mark individual records as exported" do
-
+      it "should not re-export data twice" do
+        @bot.export_data.count.should_not == 0
+        @bot.export_data.count.should == 0
       end
     end
 
     describe "#validate_data" do
-      it "should return an array of hashes" do
-        result = @bot.export_data
-        result.should be_a Array
-        result.count.should == @properties.count
+      context "valid data" do
+        it "should return empty array" do
+          result = @bot.validate_data
+          puts result
+          result.should be_empty
+        end
       end
 
-      it "should mark individual records as exported" do
-
+      context "invalid data" do
+        it "should return an array of hashes with errors" do
+          LicenceRecord.any_instance.stub(:to_pipeline).and_return("{}")
+          result = @bot.validate_data
+          result.count.should == 2
+          result[0][:errors].should_not be_empty
+        end
       end
     end
   end
