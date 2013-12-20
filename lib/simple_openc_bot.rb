@@ -20,12 +20,32 @@ class SimpleOpencBot
   include OpencBot
 
   def update_data
+    saves_by_class = {}
     fetch_records.each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       fetch_records.each do |record|
         save_data(record.class.unique_fields, record.to_hash)
+        saves_by_class[record.class] ||= 0
+        saves_by_class[record.class] += 1
+        if saves_by_class[record.class] == 1
+          check_unique_index(record.class)
+        end
       end
       sqlite_magic_connection.execute("COMMIT")
+    end
+  end
+
+  def check_unique_index(record_class)
+    indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
+    db_unique_fields = indexes.map do |i|
+      next if i["unique"] != 1
+      info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
+      info[0]["name"]
+    end.compact
+    record_unique_fields = record_class.unique_fields.map(&:to_s)
+    if !(record_unique_fields - db_unique_fields).empty?
+      sqlite_magic_connection.execute("ROLLBACK")
+      raise "Unique fields #{record_unique_fields} are not unique indices in database!"
     end
   end
 

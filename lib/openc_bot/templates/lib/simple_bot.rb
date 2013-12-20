@@ -51,7 +51,7 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class MyLicence < SimpleOpencBot
-  # This method should return an array of MyLicenceRecords. It must be defined.
+  # This method should return an array of Records. It must be defined.
   def fetch_records
     # Here we are iterating over an array. Normally you would scrape
     # things from a website and construct LicenceRecords from that.

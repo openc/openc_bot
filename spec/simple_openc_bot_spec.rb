@@ -1,6 +1,5 @@
 require 'rspec'
 require 'simple_openc_bot'
-
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
   JURISDICTION = "uk"
   store_fields :name, :type
@@ -37,6 +36,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class TestLicenceBot < SimpleOpencBot
+
   def initialize(data={})
     @data = data
   end
@@ -110,6 +110,20 @@ describe SimpleOpencBot do
       @bot.should_receive(:save_data).with(
         LicenceRecord._unique_fields, anything).twice()
       @bot.update_data
+    end
+
+    it "should update rather than insert rows the second time" do
+      @bot.update_data
+      @bot.update_data
+      @bot.count_stored_records.should == 2
+    end
+
+    it "should raise an error if the unique index has changed" do
+      @bot.update_data
+      LicenceRecord.stub(:unique_fields).and_return([:type])
+      lambda do
+        @bot.update_data
+      end.should raise_error
     end
 
     it "should call save_data with all records in a hash" do
