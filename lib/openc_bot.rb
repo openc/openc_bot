@@ -51,24 +51,24 @@ module OpencBot
     end
   end
 
-  # When deciding on the location of the SQLite databases we need to set the directory relative to the directory
-  # of the file/app that includes the gem, not the gem itself.
-  # Doing it this way, and setting a class variable feels ugly, but this appears to be difficult in Ruby, esp as the
-  # file may ultimately be called by another process, e.g. the main OpenCorporates app or the console, whose main
-  # directory is unrelated to where the databases are stored (which means we can't use Dir.pwd etc). The only time
-  # we know about the directory is when the module is called to extend the file, and we capture that in the
-  # @app_directory class variable
+  # When deciding on the location of the SQLite databases we need to
+  # set the directory relative to the directory of the file/app that
+  # includes the gem, not the gem itself.  Doing it this way, and
+  # setting a class variable feels ugly, but this appears to be
+  # difficult in Ruby, esp as the file may ultimately be called by
+  # another process, e.g. the main OpenCorporates app or the console,
+  # whose main directory is unrelated to where the databases are
+  # stored (which means we can't use Dir.pwd etc). The only time we
+  # know about the directory is when the module is called to extend
+  # the file, and we capture that in the @app_directory class variable
   def self.extended(obj)
-    self.set_app_directory
-  end
-
-  def self.included(obj)
-    self.set_app_directory
-  end
-
-  def self.set_app_directory
     path, = caller[0].partition(":")
-    @@app_directory = File.expand_path(File.join(File.dirname(path),'..'))
+    path = File.expand_path(File.join(File.dirname(path),'..'))
+    self.set_app_directory(path)
+  end
+
+  def self.set_app_directory(path)
+    @@app_directory = path
   end
 
   def db_name

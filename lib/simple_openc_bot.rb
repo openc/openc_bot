@@ -19,6 +19,12 @@ end
 class SimpleOpencBot
   include OpencBot
 
+  def self.inherited(subclass)
+    path, = caller[0].partition(":")
+    path = File.expand_path(File.join(File.dirname(path),'..'))
+    OpencBot.set_app_directory(path)
+  end
+
   def update_data
     saves_by_class = {}
     fetch_records.each_slice(500) do |records|
