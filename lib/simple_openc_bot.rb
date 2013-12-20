@@ -20,8 +20,12 @@ class SimpleOpencBot
   include OpencBot
 
   def update_data
-    fetch_records.each do |record|
-      save_data(record.class.unique_fields, record.to_hash)
+    fetch_records.each_slice(500) do |records|
+      sqlite_magic_connection.execute("BEGIN TRANSACTION")
+      fetch_records.each do |record|
+        save_data(record.class.unique_fields, record.to_hash)
+      end
+      sqlite_magic_connection.execute("COMMIT")
     end
   end
 
