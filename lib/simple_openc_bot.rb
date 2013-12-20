@@ -86,7 +86,8 @@ class SimpleOpencBot
     class_attribute :_store_fields, :_export_fields, :_unique_fields, :_type
 
     def self.store_fields(*fields)
-      self._store_fields = fields
+      self._store_fields ||= []
+      self._store_fields.concat(fields)
       fields << :last_exported_date
       fields.each do |field|
         attr_accessor field
