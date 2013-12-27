@@ -146,7 +146,7 @@ class SimpleOpencBot
       errors = JSON::Validator.fully_validate(
         schema,
         data.to_json,
-        {:errors_as_objects => true, :validate_schema => true})
+        {:errors_as_objects => true})
       if !errors.empty?
         data[:errors] = errors
         data

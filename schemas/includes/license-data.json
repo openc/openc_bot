@@ -1,0 +1,17 @@
+{
+  "name": "License Data",
+  "type": "object",
+  "properties": {
+    "data_type": { "enum": [ "licence" ] },
+    "properties": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"},
+        "jurisdiction_classification": {
+          "type": "array"}
+      }
+    }
+  },
+  "required": [ "data_type", "properties" ]
+}

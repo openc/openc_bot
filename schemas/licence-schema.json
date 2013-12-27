@@ -2,46 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Licence Schema",
   "type": "object",
-  "properties": {
-    "source_url": {
-      "description": "Place where this fact can be verified",
-      "type": "string"
-    },
-    "sample_date": {
-      "description": "Date on which this fact was known to be true",
-      "type": "string"
-    },
-    "company": {
-      "type": "object",
-      "oneOf": [
-        {"type": "object",
-         "properties": {
-           "name": { "type": "string" },
-           "jurisdiction": { "type": "string" }
-         },
-         "required": [ "name", "jurisdiction" ]
-        }]
-    },
-    "data": {
-      "type": "array",
-      "items" : [ {
-        "type": "object",
-        "properties": {
-          "data_type": { "type": "string" },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "category": {
-                "type": "string"},
-              "jurisdiction_classification": {
-                "type": "array"}
-            }
-          }
-        },
-        "required": [ "data_type", "properties" ]
-      } ],
-      "additionalItems": false
-    }
-  },
-  "required": ["source_url", "data", "sample_date", "company"]
+  "allOf" : [
+    { "$ref": "includes/base-statement.json" }
+  ]
 }
