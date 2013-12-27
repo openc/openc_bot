@@ -109,7 +109,7 @@ class SimpleOpencBot
 
 
   class BaseLicenceRecord
-    class_attribute :_store_fields, :_export_fields, :_unique_fields, :_type
+    class_attribute :_store_fields, :_export_fields, :_unique_fields, :_type, :_schema
 
     def self.store_fields(*fields)
       self._store_fields ||= []
@@ -123,6 +123,11 @@ class SimpleOpencBot
     def self.unique_fields(*fields)
       self._unique_fields = fields unless fields.empty?
       self._unique_fields
+    end
+
+    def self.schema(schema)
+      hyphenated_name = schema.to_s.gsub("_", "-")
+      self._schema = File.expand_path("../../schemas/#{hyphenated_name}-schema.json", __FILE__)
     end
 
     def initialize(attrs={})
@@ -142,9 +147,12 @@ class SimpleOpencBot
     # return a structure including errors if invalid; otherwise return nil
     def errors
       data = self.to_pipeline
-      schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
+      if !self._schema
+        # backwards compatibility
+        self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
+      end
       errors = JSON::Validator.fully_validate(
-        schema,
+        self._schema,
         data.to_json,
         {:errors_as_objects => true})
       if !errors.empty?
