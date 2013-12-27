@@ -13,6 +13,10 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # (think primary key in a database)
   unique_fields :name
 
+  # The JSON schema to use to validate records; correspond with files
+  # in `schema/*-schema.json`
+  schema :licence
+
 
   # These are just example methods and constants used by
   # `to_pipeline`, below
