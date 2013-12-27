@@ -13,7 +13,7 @@ namespace :bot do
       template.gsub!('MyModule',new_module_name)
       template.gsub!('my_module',bot_name)
       new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/bot/,bot_name)}")
-      File.open(new_file, 'w') { |f| f.puts template }
+      File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
       puts "Created #{new_file}"
     end
     #Add rspec debugger to gemfile
