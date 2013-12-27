@@ -16,10 +16,6 @@
     },
     "data": {
       "type": "array",
-      "items" : {
-        "allOf": [
-          { "$ref": "../includes/license-data.json" }
-        ]},
       "additionalItems": false
     }
   },

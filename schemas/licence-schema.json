@@ -3,6 +3,19 @@
   "title": "Licence Schema",
   "type": "object",
   "allOf" : [
-    { "$ref": "includes/base-statement.json" }
+    // The following is a basic statement with sample_date, etc
+    { "$ref": "includes/base-statement.json" },
+    // And this overrides it to provide data-type-specific information
+    {
+      "properties": {
+        "data": {
+          "items": {
+            "allOf": [
+              { "$ref": "includes/license-data.json" }
+            ]
+          }
+        }
+      }
+    }
   ]
 }
