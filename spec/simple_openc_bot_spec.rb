@@ -1,15 +1,12 @@
 require 'rspec'
 require 'simple_openc_bot'
+
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
   JURISDICTION = "uk"
-  store_fields :name, :type
+  store_fields :name, :type, :sample_date
   unique_fields :name
 
   URL = "http://foo.com"
-
-  def sample_date
-    Time.now.iso8601(2)
-  end
 
   def jurisdiction_classification
     type
@@ -17,7 +14,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 
   def to_pipeline
     {
-      sample_date: sample_date,
+      sample_date: "",
       company: {
         name: name,
         jurisdiction: JURISDICTION,
@@ -43,10 +40,7 @@ class TestLicenceBot < SimpleOpencBot
 
   def fetch_records
     @data.map do |datum|
-      LicenceRecord.new({
-        :name => datum[:name],
-        :type => datum[:type],
-      })
+      LicenceRecord.new(datum)
     end
   end
 end
@@ -92,7 +86,11 @@ describe SimpleOpencBot do
     table_names = %w(ocdata)
     table_names.each do |table_name|
       # flush table, but don't worry if it doesn't exist
-      TestLicenceBot.new.sqlite_magic_connection.database.execute("DELETE FROM #{table_name}")
+      begin
+        TestLicenceBot.new.sqlite_magic_connection.database.execute("DROP TABLE #{table_name}")
+      rescue SQLite3::SQLException => e
+        raise unless e.message.match(/no such table/)
+      end
     end
   end
 
@@ -128,14 +126,55 @@ describe SimpleOpencBot do
       end.should raise_error
     end
 
-    it "should call save_data with all records in a hash" do
-      @bot.should_receive(:save_data).with(
+    it "should call insert_or_update with all records in a hash" do
+      @bot.stub(:check_unique_index)
+      @bot.sqlite_magic_connection.stub(:add_columns)
+      @bot.should_receive(:insert_or_update).with(
         anything,
         hash_including(@properties.first))
-      @bot.should_receive(:save_data).with(
+      @bot.should_receive(:insert_or_update).with(
         anything,
         hash_including(@properties.last))
       @bot.update_data
+    end
+  end
+
+  describe "export_data" do
+    before do
+      @properties = [
+        {:name => 'Company 1', :type => 'Bank'},
+        {:name => 'Company 2', :type => 'Insurer'}
+      ]
+      @bot = TestLicenceBot.new(@properties)
+      @bot.update_data
+    end
+
+    it "should return all records the first time" do
+      [*@bot.export_data].count.should == 2
+    end
+
+    it "should return records converted to pipeline format" do
+      [*@bot.export_data][0][:company][:name].should == @properties[0][:name]
+    end
+
+    it "should set the last_exported_date on exported records" do
+      [*@bot.export_data]
+      @bot.all_stored_records.
+        map(&:last_exported_date).compact.should_not be_nil
+    end
+
+    it "should not export data which has been exported before and for which the sample data has not changed" do
+      [*@bot.export_data]
+      [*@bot.export_data].count.should == 0
+    end
+
+    it "should export data which has been exported before and for which the sample data has changed" do
+      results = [*@bot.export_data]
+      bot = TestLicenceBot.new([
+        {:name => 'Company 1', :type => 'Bank'},
+        {:name => 'Company 2', :type => 'Insurer', :sample_date => Time.now.iso8601(2)}])
+      bot.update_data
+      [*@bot.export_data].count.should == 1
     end
   end
 

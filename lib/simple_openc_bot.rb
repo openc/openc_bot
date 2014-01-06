@@ -40,6 +40,10 @@ class SimpleOpencBot
       end
       sqlite_magic_connection.execute("COMMIT")
     end
+    if !saves_by_class.empty?
+      # ensure there's a last_exported_date column
+      sqlite_magic_connection.add_columns('ocdata', [:last_exported_date])
+    end
   end
 
   def check_unique_index(record_class)
@@ -52,7 +56,10 @@ class SimpleOpencBot
     record_unique_fields = record_class.unique_fields.map(&:to_s)
     if !(record_unique_fields - db_unique_fields).empty?
       sqlite_magic_connection.execute("ROLLBACK")
-      raise "Unique fields #{record_unique_fields} are not unique indices in database!"
+      error = "Unique fields #{record_unique_fields} are not unique indices in `ocdata` table!"
+      error += "\nThis is usually because the value of unique_fields has changed since the table was automatically created."
+      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
+      raise error
     end
   end
 
@@ -70,7 +77,9 @@ class SimpleOpencBot
   end
 
   def unexported_stored_records
-    select_records("ocdata.* from ocdata WHERE last_exported_date IS NULL LIMIT 1000")
+    select_records("ocdata.* from ocdata "\
+                   "WHERE last_exported_date IS NULL "\
+                   "OR last_exported_date < sample_date")
   end
 
   def select_records(sql)
@@ -88,7 +97,7 @@ class SimpleOpencBot
       updates = {}
       batch.map do |record|
         updates[record.class.name] ||= []
-        updates[record.class.name] << record.to_hash.merge(:last_exported_date => Time.now.to_i)
+        updates[record.class.name] << record.to_hash.merge(:last_exported_date => Time.now.iso8601(2))
         yield record.to_pipeline
       end
       updates.each do |k, v|
@@ -115,7 +124,7 @@ class SimpleOpencBot
     def self.store_fields(*fields)
       self._store_fields ||= []
       self._store_fields.concat(fields)
-      fields << :last_exported_date
+      fields << :last_exported_date unless _store_fields.include?(:last_exported_date)
       fields.each do |field|
         attr_accessor field
       end
@@ -132,6 +141,9 @@ class SimpleOpencBot
     end
 
     def initialize(attrs={})
+      if !_store_fields.include?(:sample_date)
+        raise "Your record must define a sample_date field in store_fields"
+      end
       attrs = attrs.with_indifferent_access
       self._type = self.class.name
       self._store_fields.each do |k|
