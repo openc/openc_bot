@@ -75,12 +75,12 @@ We expect licence data as a hash with the following keys:
         optional
     :start_date_type
         required if :start_date is present
-        one of "at", "before", or "after"
+        one of "=", "<", or ">"
     :end_date
         optional (if sample_date is provided)
     :end_date_type
         required if :end_date is present
-        one of "at", "before", or "after"
+        one of "=", "<", or ">"
     :company
         required
         a hash with the following keys:
