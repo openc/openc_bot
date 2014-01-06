@@ -106,8 +106,10 @@ describe SimpleOpencBot do
       @bot = TestLicenceBot.new(@properties)
     end
 
-    it "should call save_data with correct unique fields" do
-      @bot.should_receive(:save_data).with(
+    it "should call insert_or_update with correct unique fields" do
+      @bot.stub(:check_unique_index)
+      @bot.sqlite_magic_connection.stub(:add_columns)
+      @bot.should_receive(:insert_or_update).with(
         LicenceRecord._unique_fields, anything).twice()
       @bot.update_data
     end

@@ -29,8 +29,9 @@ class SimpleOpencBot
     saves_by_class = {}
     fetch_records.each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
-      fetch_records.each do |record|
-        save_data(record.class.unique_fields, record.to_hash)
+      records.each do |record|
+        insert_or_update(record.class.unique_fields,
+          record.to_hash)
         saves_by_class[record.class] ||= 0
         saves_by_class[record.class] += 1
         if saves_by_class[record.class] == 1
