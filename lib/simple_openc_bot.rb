@@ -44,6 +44,7 @@ class SimpleOpencBot
       # ensure there's a last_exported_date column
       sqlite_magic_connection.add_columns('ocdata', [:last_exported_date])
     end
+    save_run_report(:status => 'success', :completed_at => Time.now)
   end
 
   def check_unique_index(record_class)
