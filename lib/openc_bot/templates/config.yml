@@ -10,6 +10,10 @@ default_confidence: 80
 # is running in production.
 version: 0
 
+# the frequency that updates may happen at the source. One of daily,
+# weekly, monthly or yearly
+frequency: monthly
+
 # If this flag is true, our deployment script will set up the bot to
 # be run on OpenCorporates servers (specifically, deploy the bot and
 # allow it to be executed from the data pipeline). Please don't change
