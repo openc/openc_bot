@@ -23,6 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "nokogiri"
   # gem.add_dependency "sqlite3"
   gem.add_dependency "json"
+  gem.add_dependency "json-schema"
   gem.add_dependency "httpclient"
   gem.add_dependency "sqlite_magic",[">= 0.0.3"]
   gem.add_dependency "scraperwiki"

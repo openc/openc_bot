@@ -170,6 +170,7 @@ describe SimpleOpencBot do
 
     it "should export data which has been exported before and for which the sample data has changed" do
       results = [*@bot.export_data]
+      sleep 0.5 # give sqlite a chance
       bot = TestLicenceBot.new([
         {:name => 'Company 1', :type => 'Bank'},
         {:name => 'Company 2', :type => 'Insurer', :sample_date => Time.now.iso8601(2)}])
@@ -209,6 +210,10 @@ describe SimpleOpencBot do
     end
 
     describe "#validate_data" do
+      before :each do
+        SimpleOpencBot.any_instance.stub(:puts)
+      end
+
       context "valid data" do
         it "should return empty array" do
           result = @bot.validate_data
