@@ -87,7 +87,8 @@ describe SimpleOpencBot do
     table_names.each do |table_name|
       # flush table, but don't worry if it doesn't exist
       begin
-        TestLicenceBot.new.sqlite_magic_connection.database.execute("DROP TABLE #{table_name}")
+        conn = TestLicenceBot.new.sqlite_magic_connection
+        conn.database.execute("DROP TABLE #{table_name}") if conn
       rescue SQLite3::SQLException => e
         raise unless e.message.match(/no such table/)
       end
@@ -102,6 +103,12 @@ describe SimpleOpencBot do
         {:name => 'Company 2', :type => 'Insurer'}
       ]
       @bot = TestLicenceBot.new(@properties)
+    end
+
+    it "should make sqlite database in same directory as bot" do
+      root = File.expand_path(File.join(File.dirname(__FILE__)))
+      path = File.join(root, "db", "testlicencebot.db")
+      SqliteMagic::Connection.should_receive(:new).with(path)
     end
 
     it "should call insert_or_update with correct unique fields" do
