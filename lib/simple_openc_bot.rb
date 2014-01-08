@@ -19,10 +19,11 @@ end
 class SimpleOpencBot
   include OpencBot
 
-  def self.inherited(subclass)
-    path, = caller[0].partition(":")
-    path = File.expand_path(File.join(File.dirname(path),'..'))
-    OpencBot.set_app_directory(path)
+  # Override default in ScraperWiki gem
+  def sqlite_magic_connection
+    path = File.expand_path(File.join(File.dirname(__FILE__),'..'))
+    db = @config ? @config[:db] : File.expand_path(File.join(path, 'db', db_name))
+    @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
   def update_data

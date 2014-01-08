@@ -64,19 +64,14 @@ module OpencBot
   def self.extended(obj)
     path, = caller[0].partition(":")
     path = File.expand_path(File.join(File.dirname(path),'..'))
-    self.set_app_directory(path)
-  end
-
-  def self.set_app_directory(path)
     @@app_directory = path
   end
 
   def db_name
-    # XXX ugly, but self.is_a? Class doesn't work
-    begin
-      "#{self.class.name.downcase}.db"
-    rescue NoMethodError
+    if is_a?(Module)
       "#{self.name.downcase}.db"
+    else
+      "#{self.class.name.downcase}.db"
     end
   end
 
