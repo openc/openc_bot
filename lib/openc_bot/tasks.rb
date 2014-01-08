@@ -70,6 +70,16 @@ namespace :bot do
     end
   end
 
+  desc 'Export 5 records to stdout for manual checking'
+  task :spotcheck do
+    only_process_running('spotcheck') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      runner = callable_from_file_name(bot_name)
+      runner.spotcheck
+    end
+  end
+
   task :test do
     bot_name = get_bot_name
     require_relative File.join(Dir.pwd,'lib', bot_name)

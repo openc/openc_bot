@@ -51,6 +51,10 @@ module OpencBot
     end
   end
 
+  def spotcheck
+    $stdout.puts JSON.pretty_generate(spotcheck_data)
+  end
+
   # When deciding on the location of the SQLite databases we need to
   # set the directory relative to the directory of the file/app that
   # includes the gem, not the gem itself.  Doing it this way, and

@@ -89,6 +89,12 @@ class SimpleOpencBot
                    "OR last_exported_date < sample_date")
   end
 
+  def spotcheck_records(limit = 5)
+    select_records("ocdata.* from ocdata "\
+                   "ORDER BY RANDOM()"\
+                   "LIMIT #{limit}")
+  end
+
   def select_records(sql)
     select(sql).map { |record| record['_type'].constantize.new(record) }
   end
@@ -110,6 +116,13 @@ class SimpleOpencBot
       updates.each do |k, v|
         save_data(k.constantize.unique_fields, v)
       end
+    end
+  end
+
+  def spotcheck_data
+    batch = spotcheck_records
+    batch.collect do |record|
+      record.to_pipeline
     end
   end
 
