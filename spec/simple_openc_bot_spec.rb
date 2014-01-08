@@ -146,6 +146,25 @@ describe SimpleOpencBot do
     end
   end
 
+  describe "spotcheck_data" do
+    before do
+      @properties = [
+        {:name => 'Company 1', :type => 'Bank'},
+        {:name => 'Company 2', :type => 'Insurer'}
+      ]
+      @bot = TestLicenceBot.new(@properties)
+      @bot.update_data
+    end
+
+    it "should return all records the first time" do
+      @bot.spotcheck_data.count.should == 2
+    end
+
+    it "should return records converted to pipeline format" do
+      @bot.spotcheck_data.any? {|c| c[:company][:name] == @properties[0][:name]}.should be_true
+    end
+  end
+
   describe "export_data" do
     before do
       @properties = [
