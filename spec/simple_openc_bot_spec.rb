@@ -3,7 +3,7 @@ require 'simple_openc_bot'
 
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
   JURISDICTION = "uk"
-  store_fields :name, :type, :sample_date
+  store_fields :name, :type, :sample_date, :last_updated_at
   unique_fields :name
 
   URL = "http://foo.com"
@@ -186,7 +186,7 @@ describe SimpleOpencBot do
     it "should set the last_exported_date on exported records" do
       [*@bot.export_data]
       @bot.all_stored_records.
-        map(&:last_exported_date).compact.should_not be_nil
+        map(&:last_exported_at).compact.should_not be_nil
     end
 
     it "should not export data which has been exported before and for which the sample data has not changed" do
@@ -194,12 +194,12 @@ describe SimpleOpencBot do
       [*@bot.export_data].count.should == 0
     end
 
-    it "should export data which has been exported before and for which the sample data has changed" do
+    it "should export data which has been exported before and for which the last_updated_at has changed" do
       results = [*@bot.export_data]
       sleep 0.5 # give sqlite a chance
       bot = TestLicenceBot.new([
         {:name => 'Company 1', :type => 'Bank'},
-        {:name => 'Company 2', :type => 'Insurer', :sample_date => Time.now.iso8601(2)}])
+        {:name => 'Company 2', :type => 'Insurer', :last_updated_at => Time.now.iso8601(2)}])
       bot.update_data
       [*@bot.export_data].count.should == 1
     end
