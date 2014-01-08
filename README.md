@@ -13,6 +13,17 @@ be seamlessly able to be imported into OpenCorporates.
 
 ##How to install/create a bot
 
+For a "simple licence" bot, you might want to try the simple library:
+
+```bash
+mkdir your_bot_name
+cd your_bot_name
+curl -s https://raw.github.com/openc/openc_bot/simple-openc-bot/create_simple_licence_bot.sh | bash
+```
+
+Otherwise, for more control but more code:
+
+
 ```bash
 mkdir your_bot_name
 cd your_bot_name
@@ -21,7 +32,26 @@ curl -s https://raw.github.com/openc/openc_bot/master/create_bot.sh | bash
 
 ##Required methods
 
-A bot module should look like this:
+A *simple licence bot* should be self-explanatory, based on the sample
+file that the above file creates in `lib/`. At a minimum, it must
+implement:
+
+```ruby
+class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
+  def to_pipeline
+    # return a hash suitable for pipeline ingestion
+  end
+end
+
+class MyTestLicenceBot < SimpleOpencBot
+  def fetch_records
+    # Scrape (usually), then
+    # return an array of MyLicenceRecords
+  end
+end
+```
+
+A standard bot module should look like this:
 
 ```ruby
 Module MyBot
@@ -38,13 +68,17 @@ Module MyBot
 end
 ```
 
-If you follow the conventions and use these methods (and you must do in order for this to validate)
-there are several tasks available to you to run and test the data
+If you follow the conventions and use these methods (and you must do
+in order for this to validate) there are several tasks available to
+you to run and test the data:
 
     bundle exec openc_bot rake bot:create # creates the bot in the first place
     bundle exec openc_bot rake bot:run    # runs the #update_data method
     bundle exec openc_bot rake bot:export # runs the #export_data method and outputs data to stdout as JSON
     bundle exec openc_bot rake bot:test   # validates that the exported data conforms to the basic data structure expected
+
+For a simple licence bot, the test is quite thorough and includes
+checking against a JSON schema.
 
 ## Directory structure
 
@@ -105,7 +139,7 @@ We expect licence data as a hash with the following keys:
                 a hash with the following keys:
                     :licence_number
                         optional
-                    :jurisdiction_tags
+                    :jurisdiction_classification
                         required
                         an array of strings that describe the licence or the licenced company, using the vocabulary of the data source
                         examples might be:
@@ -113,7 +147,7 @@ We expect licence data as a hash with the following keys:
                             co-operative credit
                             motor vehicle finance
                             trust company
-                    :oc_tags
+                    :oc_classification
                         not required yet
                         an array of strings that describe the licence or the licenced company, taken from a vocabulary list provided by OpenCorporates
 

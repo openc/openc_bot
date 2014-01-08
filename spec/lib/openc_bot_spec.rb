@@ -6,7 +6,7 @@ require_relative '../dummy_classes/foo_bot'
 describe "A module that extends OpencBot" do
 
   before do
-    @dummy_connection = stub('database_connection')
+    @dummy_connection = double('database_connection')
     FooBot.stub(:sqlite_magic_connection).and_return(@dummy_connection)
   end
 
