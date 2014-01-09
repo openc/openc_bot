@@ -2,14 +2,18 @@
 
 ## Overview
 
-This is a gem to allow bots to be written to fetch and format data that can be easily imported into
-OpenCorporates, the largest openly licensed database of companies in the world. It also aims to be a curated
-set of tools to allow data to be retrieved, formatted and imported on a regular basis.
+This is a gem to allow bots to be written to fetch and format data
+that can be easily imported into OpenCorporates, the largest openly
+licensed database of companies in the world. It also aims to be a
+curated set of tools to allow data to be retrieved, formatted and
+imported on a regular basis.
 
-By including OpencBot you have access to a number of methods for setting up and writing to/reading
-from a local SQLite database in which the data can be stored. It is expected to expose two class or module
-methods: #update\_data and #export\_data. If the exported data is in the correct format it will be able to
-be seamlessly able to be imported into OpenCorporates.
+By including OpencBot you have access to a number of methods for
+setting up and writing to/reading from a local SQLite database in
+which the data can be stored. It is expected to expose two class or
+module methods: #update\_data and #export\_data. If the exported data
+is in the correct format it will be able to be seamlessly able to be
+imported into OpenCorporates.
 
 ##How to install/create a bot
 
@@ -192,21 +196,6 @@ document
 3. A `start_date` or `end_date` that has not been provided by the
 source, but which OpenCorporates can infer from one or more sample
 dates.
-
-
-### What to do when data no longer exists
-
-It is difficult to  accommodate every type of variation in how data can be classified as 'fresh' or 'out of date' and
-so on. This means that we need help from bot authors in identifying when data is no longer valid.
-
-This will usually mean that you will have to timestamp records for each run, making sure to update the timestamp of
-records that are still available but haven't changed. After each run you may find that some records have "dropped off"
-the source and are no longer available/valid. *For these records* the thing to do when something stops being true
-is to post it with an identical `:properties` as above but with an `:end_date` of `today` and `:end_date_type` of `"before"`,
-*INSTEAD* of a `sample date`.
-
-*For all the current records that are otherwise unchanged* you can still submit them with a new `sample_date` so
-that we know they are still current. After 15 months we assume this is no longer the case, so your code should consider resubmitting unchanged records at least once every 15 months.
 
 ## General tips on writing a bot
 
