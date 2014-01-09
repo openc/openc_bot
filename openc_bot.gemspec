@@ -27,7 +27,11 @@ Gem::Specification.new do |gem|
   gem.add_dependency "httpclient"
   gem.add_dependency "sqlite_magic",[">= 0.0.3"]
   gem.add_dependency "scraperwiki"
-
+  gem.add_dependency "json-schema"
+  gem.add_dependency "faraday"
+  gem.add_dependency "faraday_middleware"
+  gem.add_dependency "faraday_csv"
+  gem.add_dependency "faraday-http-cache"
 
   gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "debugger"
