@@ -44,7 +44,7 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # which will validate against a JSON schema.
   def to_pipeline
     {
-      sample_date: reporting_date,
+      sample_date: last_updated_at,
       company: {
         name: name,
         jurisdiction: JURISDICTION,
