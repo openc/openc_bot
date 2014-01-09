@@ -164,7 +164,7 @@ valid between 1 June 2012 and 31 Aug 2013" for a particular license.
 
 In this case, you would submit the data with a `start_date` of
 `2012-06-01` and an `end_date` of `2013-08-31`; and a
-`start_date_type` of `at` and an `end_date_type` of `at`. You would
+`start_date_type` of `=` and an `end_date_type` of `=`. You would
 also submit a `sample_date` for that document, which is the date on
 which the license was known to be current (often today's date, but
 sometimes the reporting date given in the source).
