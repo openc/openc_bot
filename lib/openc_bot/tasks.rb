@@ -4,7 +4,7 @@ namespace :bot do
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
-    %w(db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
+    %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
     templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
@@ -29,17 +29,22 @@ namespace :bot do
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
-    %w(db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
+    %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/simple_bot.rb', 'README.md', 'config.yml']
+    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/simple_bot.rb', 'README.md', 'config.yml', 'bin/export_data', 'bin/fetch_data', 'bin/verify_data']
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyLicence',new_module_name)
       template.gsub!('my_module',bot_name)
-      new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/simple_bot/,bot_name)}")
-      File.open(new_file, 'w') { |f| f.puts template }
-      puts "Created #{new_file}"
+      begin
+        new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/simple_bot/,bot_name)}")
+        File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
+        puts "Created #{new_file}"
+      rescue Errno::EEXIST
+        puts "Skpped created #{new_file} as it already exists"
+      end
+      FileUtils.chmod(0755, Dir.glob("#{working_dir}/bin/*"))
     end
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|

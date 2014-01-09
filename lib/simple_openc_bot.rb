@@ -21,13 +21,13 @@ class SimpleOpencBot
 
   def self.inherited(obj)
     path, = caller[0].partition(":")
-    path = File.expand_path(File.join(File.dirname(path)))
-    @@app_directory = path
+    path = File.expand_path(File.join(File.dirname(path), ".."))
+    @@simple_app_directory = path
   end
 
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
-    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))
+    db = @config ? @config[:db] : File.expand_path(File.join(@@simple_app_directory, 'db', db_name))
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
@@ -47,8 +47,9 @@ class SimpleOpencBot
       sqlite_magic_connection.execute("COMMIT")
     end
     if !saves_by_class.empty?
-      # ensure there's a last_exported_date column
-      sqlite_magic_connection.add_columns('ocdata', [:last_exported_date])
+      # ensure there's internally-used columns
+      sqlite_magic_connection.add_columns(
+        'ocdata', [:_last_exported_at, :_last_updated_at])
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
   end
@@ -85,8 +86,8 @@ class SimpleOpencBot
 
   def unexported_stored_records
     select_records("ocdata.* from ocdata "\
-                   "WHERE last_exported_date IS NULL "\
-                   "OR last_exported_date < sample_date")
+                   "WHERE _last_exported_at IS NULL "\
+                   "OR _last_exported_at < _last_updated_at")
   end
 
   def spotcheck_records(limit = 5)
@@ -109,9 +110,11 @@ class SimpleOpencBot
       break if batch.empty?
       updates = {}
       batch.map do |record|
+        pipeline_data = record.to_pipeline
         updates[record.class.name] ||= []
-        updates[record.class.name] << record.to_hash.merge(:last_exported_date => Time.now.iso8601(2))
-        yield record.to_pipeline
+        updates[record.class.name] << record.to_hash.merge(
+          :_last_exported_at => Time.now.iso8601(2))
+        yield pipeline_data
       end
       updates.each do |k, v|
         save_data(k.constantize.unique_fields, v)
@@ -139,12 +142,13 @@ class SimpleOpencBot
 
 
   class BaseLicenceRecord
-    class_attribute :_store_fields, :_export_fields, :_unique_fields, :_type, :_schema
+    class_attribute :_store_fields, :_unique_fields, :_type, :_schema
 
     def self.store_fields(*fields)
       self._store_fields ||= []
       self._store_fields.concat(fields)
-      fields << :last_exported_date unless _store_fields.include?(:last_exported_date)
+      fields << :_last_exported_at unless _store_fields.include?(:_last_exported_at)
+      fields << :_last_updated_at unless _store_fields.include?(:_last_updated_at)
       fields.each do |field|
         attr_accessor field
       end
@@ -161,9 +165,7 @@ class SimpleOpencBot
     end
 
     def initialize(attrs={})
-      if !_store_fields.include?(:sample_date)
-        raise "Your record must define a sample_date field in store_fields"
-      end
+      validate_instance!
       attrs = attrs.with_indifferent_access
       self._type = self.class.name
       self._store_fields.each do |k|
@@ -171,9 +173,35 @@ class SimpleOpencBot
       end
     end
 
+    def validate_instance!
+      all_errors = []
+      required_functions = [:last_updated_at, :to_pipeline]
+      func_errors = []
+      required_functions.each do |func|
+        if !respond_to?(func)
+          func_errors << func
+        end
+      end
+      if !func_errors.empty?
+        all_errors << "You must define the following functions in your record class: #{func_errors.join(', ')}"
+      end
+      field_errors = []
+      required_fields = [:_store_fields, :_unique_fields, :_schema]
+      required_fields.each do |f|
+        if !send(f)
+          field_errors << f.to_s[1..-1]
+        end
+      end
+      if !field_errors.empty?
+        all_errors << "You must define the following fields on your record class: #{field_errors.join(', ')}"
+      end
+      raise all_errors.join('\n') unless all_errors.empty?
+    end
+
     def to_hash
       hsh = Hash[_store_fields.map{|field| [field, send(field)]}]
       hsh[:_type] = self.class.name
+      hsh[:_last_updated_at] = last_updated_at
       hsh
     end
 

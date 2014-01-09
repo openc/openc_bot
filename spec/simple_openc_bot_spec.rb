@@ -1,15 +1,23 @@
 require 'rspec'
 require 'simple_openc_bot'
 
+class InvalidLicenceRecord < SimpleOpencBot::BaseLicenceRecord
+end
+
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
   JURISDICTION = "uk"
   store_fields :name, :type, :sample_date
   unique_fields :name
+  schema :licence
 
   URL = "http://foo.com"
 
   def jurisdiction_classification
     type
+  end
+
+  def last_updated_at
+    sample_date
   end
 
   def to_pipeline
@@ -45,6 +53,38 @@ class TestLicenceBot < SimpleOpencBot
   end
 end
 
+describe InvalidLicenceRecord do
+  describe '#last_updated_at not defined' do
+    it "should raise an error mentioning to_pipeline" do
+      lambda do
+        InvalidLicenceRecord.new
+      end.should raise_error(/to_pipeline/)
+    end
+
+    it "should raise an error mentioning last_updated_at" do
+      lambda do
+        InvalidLicenceRecord.new
+      end.should raise_error(/last_updated_at/)
+    end
+
+    it "should raise an error mentioning schema" do
+      lambda do
+        InvalidLicenceRecord.new
+      end.should raise_error(/schema/)
+    end
+    it "should raise an error mentioning unique_fields" do
+      lambda do
+        InvalidLicenceRecord.new
+      end.should raise_error(/unique_fields/)
+    end
+    it "should raise an error mentioning store_fields" do
+      lambda do
+        InvalidLicenceRecord.new
+      end.should raise_error(/store_fields/)
+    end
+
+  end
+end
 
 describe LicenceRecord do
   before do
@@ -106,7 +146,7 @@ describe SimpleOpencBot do
     end
 
     it "should make sqlite database in same directory as bot" do
-      root = File.expand_path(File.join(File.dirname(__FILE__)))
+      root = File.expand_path(File.join(File.dirname(__FILE__), ".."))
       path = File.join(root, "db", "testlicencebot.db")
       SqliteMagic::Connection.should_receive(:new).with(path)
     end
@@ -186,7 +226,7 @@ describe SimpleOpencBot do
     it "should set the last_exported_date on exported records" do
       [*@bot.export_data]
       @bot.all_stored_records.
-        map(&:last_exported_date).compact.should_not be_nil
+        map(&:_last_exported_at).compact.should_not be_nil
     end
 
     it "should not export data which has been exported before and for which the sample data has not changed" do
@@ -194,12 +234,12 @@ describe SimpleOpencBot do
       [*@bot.export_data].count.should == 0
     end
 
-    it "should export data which has been exported before and for which the sample data has changed" do
+    it "should export data which has been exported before and for which the last_updated_at has changed" do
       results = [*@bot.export_data]
       sleep 0.5 # give sqlite a chance
+      LicenceRecord.any_instance.stub(:last_updated_at).and_return(Time.now.iso8601(2))
       bot = TestLicenceBot.new([
-        {:name => 'Company 1', :type => 'Bank'},
-        {:name => 'Company 2', :type => 'Insurer', :sample_date => Time.now.iso8601(2)}])
+        {:name => 'Company 2', :type => 'Insurer'}])
       bot.update_data
       [*@bot.export_data].count.should == 1
     end

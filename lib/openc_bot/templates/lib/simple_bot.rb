@@ -5,6 +5,10 @@ require 'simple_openc_bot'
 # require 'nokogiri'
 
 class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
+  # The JSON schema to use to validate records; correspond with files
+  # in `schema/*-schema.json`
+  schema :licence
+
   # Fields you define here will be persisted to a local database when
   # 'fetch_records' (see below) is run.
   store_fields :name, :type, :reporting_date
@@ -12,11 +16,6 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # This is an array of fields which will uniquely define a record
   # (think primary key in a database)
   unique_fields :name
-
-  # The JSON schema to use to validate records; correspond with files
-  # in `schema/*-schema.json`
-  schema :licence
-
 
   # These are just example methods and constants used by
   # `to_pipeline`, below
@@ -27,8 +26,21 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
     type
   end
 
-  # This is the only method you must define. You can test that you're
-  # outputting in the right format with `bundle exec openc_bot rake bot:test`,
+  # This method must be defined, and should return a timestamp in
+  # ISO8601 format. Its value should change when something about
+  # the record has changed. If an explicit reporting date is given in
+  # the source, use that. If the continued existence of a source is a
+  # data point in itself (i.e. indicates the statement still to be
+  # true), then a timestamp of the date the page was updated, or the
+  # the date the page was scraped, would be appropriate. In the
+  # absence of a reporting_date, this will typically be used as the
+  # sample_date in the to_pipeline method.
+  def last_updated_at
+    reporting_date
+  end
+
+  # This method must be defined. You can test that you're outputting
+  # in the right format with `bundle exec openc_bot rake bot:test`,
   # which will validate against a JSON schema.
   def to_pipeline
     {
@@ -65,8 +77,9 @@ class MyLicence < SimpleOpencBot
     ]
 
     # If you scrape using:
-    client = OpencBot::Client.new
-    response = client.get('http://www.google.co.uk/').body
+
+    #client = OpencBot::Client.new
+    # response = client.get('http://www.google.co.uk/').body
     # ... then response will be cached for you automatically for 24
     # hours, which speeds up debugging quite a lot
 
