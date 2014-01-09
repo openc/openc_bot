@@ -17,17 +17,6 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # (think primary key in a database)
   unique_fields :name
 
-  # Mandatory field: a timestamp in ISO8601 format. Its value should
-  # be updated when something about the record has changed. If an
-  # explicit reporting date is given in the source, use that. If the
-  # continued existence of a source is a data point in itself
-  # (i.e. indicates the statement still to be true), then a timestamp
-  # of the date the page was updated, or the the date the page was
-  # scraped, would be appropriate. In the absence of a reporting_date,
-  # this will typically be used as the sample_date in the to_pipeline
-  # method.
-  store_fields :last_updated_at
-
   # These are just example methods and constants used by
   # `to_pipeline`, below
   JURISDICTION = "uk"
@@ -37,8 +26,21 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
     type
   end
 
-  # This is the only method you must define. You can test that you're
-  # outputting in the right format with `bundle exec openc_bot rake bot:test`,
+  # This method must be defined, and should return a timestamp in
+  # ISO8601 format. Its value should change when something about
+  # the record has changed. If an explicit reporting date is given in
+  # the source, use that. If the continued existence of a source is a
+  # data point in itself (i.e. indicates the statement still to be
+  # true), then a timestamp of the date the page was updated, or the
+  # the date the page was scraped, would be appropriate. In the
+  # absence of a reporting_date, this will typically be used as the
+  # sample_date in the to_pipeline method.
+  def last_updated_at
+    reporting_date
+  end
+
+  # This method must be defined. You can test that you're outputting
+  # in the right format with `bundle exec openc_bot rake bot:test`,
   # which will validate against a JSON schema.
   def to_pipeline
     {
