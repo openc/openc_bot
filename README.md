@@ -38,7 +38,7 @@ which we hope will be self-explanatory:
 ```bash
 mkdir your_bot_name
 cd your_bot_name
-curl -s https://raw.github.com/openc/openc_bot/simple-openc-bot/create_simple_licence_bot.sh | bash
+curl -s https://raw.github.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
 ```
 
 The default bot scrapes a dummy page on our website. Examine the bot
