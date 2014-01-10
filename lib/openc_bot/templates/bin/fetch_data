@@ -1,16 +1,23 @@
 #!/usr/bin/env ruby
 require 'trollop'
+require 'open3'
 
 opts = Trollop::options do
   opt :test, "Run in test mode", :short => 't'
 
 end
 
-command = 'bundle exec openc_bot rake bot:run'
-options = { chdir: bot_proxy.directory }
-
+command = "bundle exec openc_bot rake bot:run[#{opts[:test]||''}]"
+options = { chdir: File.join(File.dirname(__FILE__), "..") }
 _, stdout, stderr, wait_thread = Open3::popen3(command, options)
 result = wait_thread.value
-raise stderr.read unless result.success?
-puts stdout.read
-exit 0
+
+puts "Running in test mode" if opts[:test]
+
+if result.success?
+  puts stdout.read
+  exit 0
+else
+  STDERR.puts stderr.read
+  exit 1
+end
