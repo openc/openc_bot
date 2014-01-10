@@ -61,7 +61,7 @@ namespace :bot do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       runner.update_data(:test_mode => !!args[:test_mode])
-      puts "Got #{runner.count_stored_records} records"
+      puts "Got #{runner.count_stored_records} records" if runner.respond_to? :count_stored_records
     end
   end
 
