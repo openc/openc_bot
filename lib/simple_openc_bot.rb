@@ -31,9 +31,9 @@ class SimpleOpencBot
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
   end
 
-  def update_data
+  def update_data(opts={})
     saves_by_class = {}
-    fetch_records.each_slice(500) do |records|
+    fetch_records(opts).each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       records.each do |record|
         insert_or_update(record.class.unique_fields,
