@@ -60,8 +60,12 @@ namespace :bot do
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      runner.update_data(:test_mode => !!args[:test_mode])
-      puts "Got #{runner.count_stored_records} records" if runner.respond_to? :count_stored_records
+      if runner.is_a?(SimpleOpencBot)
+        runner.update_data(:test_mode => !!args[:test_mode])
+        puts "Got #{runner.count_stored_records} records"
+      else
+        runner.update_data
+      end
     end
   end
 
