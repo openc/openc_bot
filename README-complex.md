@@ -1,5 +1,8 @@
 # OpencBot
 
+Warning: this documentation, while probably correct, may be a bit out
+of date.
+
 ## Overview
 
 This is a gem to allow bots to be written to fetch and format data
@@ -17,16 +20,6 @@ imported into OpenCorporates.
 
 ##How to install/create a bot
 
-For a "simple licence" bot, you might want to try the simple library:
-
-```bash
-mkdir your_bot_name
-cd your_bot_name
-curl -s https://raw.github.com/openc/openc_bot/simple-openc-bot/create_simple_licence_bot.sh | bash
-```
-
-Otherwise, for more control but more code:
-
 
 ```bash
 mkdir your_bot_name
@@ -35,25 +28,6 @@ curl -s https://raw.github.com/openc/openc_bot/master/create_bot.sh | bash
 ```
 
 ##Required methods
-
-A *simple licence bot* should be self-explanatory, based on the sample
-file that the above file creates in `lib/`. At a minimum, it must
-implement:
-
-```ruby
-class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
-  def to_pipeline
-    # return a hash suitable for pipeline ingestion
-  end
-end
-
-class MyTestLicenceBot < SimpleOpencBot
-  def fetch_records
-    # Scrape (usually), then
-    # return an array of MyLicenceRecords
-  end
-end
-```
 
 A standard bot module should look like this:
 
