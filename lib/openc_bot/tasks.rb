@@ -1,3 +1,5 @@
+require 'simple_openc_bot'
+
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
   task :create do
