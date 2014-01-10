@@ -1,1 +1,28 @@
-bundle exec openc_bot rake bot:export
+#!/usr/bin/env ruby
+require 'open3'
+require 'fileutils'
+
+command = "bundle exec openc_bot rake bot:export"
+options = { chdir: File.join(File.dirname(__FILE__), "..") }
+_, stdout, stderr, wait_thread = Open3::popen3(command, options)
+result = wait_thread.value
+
+if result.success?
+  data = stdout.read
+  if !data.strip.empty?
+    dir = "data/#{Time.now.strftime('%Y-%m-%d')}"
+    FileUtils.mkdir_p(dir)
+    export_number = Dir.glob("#{dir}/export-*.json").count + 1
+    dest  ="#{dir}/export-#{export_number}.json"
+    File.open(dest, "w") do |f|
+      f.write(data)
+    end
+    puts "Written data to #{dest}"
+  else
+    puts "No new data to export"
+  end
+  exit 0
+else
+  STDERR.puts stderr.read
+  exit 1
+end

@@ -55,13 +55,13 @@ namespace :bot do
   end
 
   desc 'Get data from target'
-  task :run do
+  task :run, :test_mode do |t, args|
     only_process_running('run') do
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      runner.update_data
-      puts "Got #{runner.count_stored_records} records"
+      runner.update_data(:test_mode => !!args[:test_mode])
+      puts "Got #{runner.count_stored_records} records" if runner.respond_to? :count_stored_records
     end
   end
 
