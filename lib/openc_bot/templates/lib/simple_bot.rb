@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'simple_openc_bot'
+require 'mechanize'
 
 # you may need to require other libraries here
 # require 'nokogiri'
@@ -64,27 +65,21 @@ end
 
 class MyLicence < SimpleOpencBot
   # This method should return an array of Records. It must be defined.
-  def fetch_records
-    # Here we are iterating over an array. Normally you would scrape
-    # things from a website and construct LicenceRecords from that.
-    data = [
-      {:name => "foo",
-        :type => "bar",
-        :reporting_date => Time.now.iso8601(2)},
-      {:name => "foo 2",
-        :type => "bar",
-        :reporting_date => Time.now.iso8601(2)}
-    ]
-
-    # If you scrape using:
-
-    #client = OpencBot::Client.new
-    # response = client.get('http://www.google.co.uk/').body
-    # ... then response will be cached for you automatically for 24
-    # hours, which speeds up debugging quite a lot
-
-    data.map do |datum|
-      MyLicenceRecord.new(datum)
+  def fetch_records(opts={})
+    agent = Mechanize.new
+    if opts[:test_mode]
+      # this requires you to have a working proxy set up -- see
+      # README.md for notes. It can speed up development considerably.
+      agent.set_proxy 'localhost', 8123
+    end
+    page = agent.get("http://assets.opencorporates.com/test_bot_page.html")
+    doc = Nokogiri::HTML(page.body)
+    doc.xpath("//li").map do |li|
+      name, type = li.content.split(":")
+      MyLicenceRecord.new(
+        :name => name.strip,
+        :type => type.strip,
+        :reporting_date => Time.now.iso8601(2))
     end
   end
 end
