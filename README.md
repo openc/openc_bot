@@ -6,34 +6,7 @@ This is a gem to allow bots to be written to fetch and format data
 that can be easily imported into OpenCorporates, the largest openly
 licensed database of companies in the world.
 
-The minimum a bot must do is provide four executable files:
-
- * `bin/fetch_data` - this should attempt to fetch all the data from
-   the original source, and store it locally. It should exit with a
-   non-zero code and an error message if it is not possible to fetch
-   all the data.
- * `bin/export_data` - this should write fetched data to
-   `data/<date>/export.json` in the correct JSON format expected by
-   OpenCorporates, documented
-   [on our wiki](http://wiki.opencorporates.com/bot-schemas). It
-   should not re-export data which has previously been exported, but
-   has not changed at all.
- * `bin/send_data` - send the latest `export.json` to OpenCorporates
-   and log the response
- * `bin/verify_data` - checks the latest `export.json` for errors
-   against OpenCorporates' provided JSON schemas
-
-This gem encapsulates a range of functions and utilities to make all
-these easy, including the above executables. It also:
-
- * Persists original response data in a cache, so running your
-   methods a second time doesn't take as long
- * Persists fetched and parsed data in an intermediate format in a
-   local SQLite database, which helps structure your code,
-   particularly when you need to transform it in several steps.
-
-To start writing a new bot, use the following to create stub methods
-which we hope will be self-explanatory:
+To start writing a new bot, run the following to create a skeleton bot:
 
 ```bash
 mkdir your_bot_name
@@ -41,19 +14,50 @@ cd your_bot_name
 curl -s https://raw.github.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
 ```
 
-The default bot scrapes a dummy page on our website. Examine the bot
-code created at `your_bot_name/lib/your_bot_name.rb` and read the
-comments there.  Please also read the rest of this documentation.
+The default bot scrapes a dummy page on OpenCorporates'
+website. Once you've set it up, you can try:
 
-You can write bots for any schemas we have defined - see
-[SCHEMAS.md](./SCHEMAS.md)
+* running the scrape with `bin/fetch_data`
+* testing the validity of the data it will output with
+  `bin/verify_data`
+* writing the data to the `data/` directory as json with
+  `bin/export_data`
 
-You can try running the scraper with `bin/fetch_data`, testing its
-output with `bin/verify_data`, and `bin/export_data` to write the data
-to the `data/` directory.
+Finally, take a look at the bot code created at
+`your_bot_name/lib/your_bot_name.rb` and read the comments there to
+start writing your own bot.  First, get it scraping correctly (which
+you can test by repeatedly running `bin/fetch_data`); second,
+transform the scraped data correctly (which you can test with
+`bin/verify_data`). You can write bots for any schemas we have
+defined - see [SCHEMAS.md](./doc/SCHEMAS.md) for currently supported
+schemas.
+
+When you are happy that your bot is finished, please update its
+`README.md`, change the `enabled` flag in `config.yml` to be `true`,
+and email us.
+
+Please note that dates are a bit complicated, so we ask you to read
+the notes below carefully.
+
+## About fetching and transforming data
+
+As you'll see in the sample bot, bots have separate steps to fetch
+data (the `fetch_records` method) and to transform it to a format
+suitable for OpenCorporates (the `to_pipeline` method).
+
+It is useful to have separate *fetch* and *export* phase for a couple
+of reasons:
+
+* For very large source datasets, it can take months to complete a
+  scrape. It is then useful to verify the data quality before
+  ingesting it in OpenCorporates.
+* Often, datasets may include a load of potentially interesting data
+  which OpenCorporates doesn't yet support.  It's worth storing this
+  data in an intermediate format, to save having to scrape it again in
+  the future.
 
 For more complicated scrapers, you may wish to do things more manually
--- see [README-complex.md](./README-complex.md) for more info.
+-- see [README-complex.md](./doc/README-complex.md) for more info.
 
 # A few words about dates
 
@@ -71,7 +75,7 @@ rest*
 
 All dates should be in ISO8601 format.
 
-## A few more words about dates to explain
+## A few more words about dates
 
 One of the important parts of the data format expected by
 OpenCorporates are the dates a statement is known to be true.
@@ -117,6 +121,8 @@ This means OpenCorporates can infer, based on the running schedule of
 the bot, and the `sample_date`s of its data, the dates between which a
 license was valid (in this case, between 15 January and 15 February).
 
+Hence the above.
+
 # Speeding up your tests
 
 When writing scrapers, it's common to find yourself repeatedly
@@ -126,10 +132,9 @@ speed up this cycle.
 
 If you run `bin/fetch_data --test`, then your `fetch_records` method
 will receive an option `test_mode`; you can use this to turn proxying
-on or off.  The example scraper created by the bot creation script
-shows how you would do this using `mechanize`; if you want to use
-different http client libraries, refer to their documentation
-regarding how to set a proxy.  Here's the mechanize version:
+on or off.  Here's how you can set a proxy using the `mechanize`
+library; if you want to use different http client libraries, refer to
+their documentation regarding how to set a proxy.
 
     agent = Mechanize.new
     if opts[:test_mode]
@@ -137,6 +142,7 @@ regarding how to set a proxy.  Here's the mechanize version:
       # README.md for notes. It can speed up development considerably.
       agent.set_proxy 'localhost', 8123
     end
+    agent.get("http://www.foo.com") # will get it from local cache the second time
 
 To make this work, you will also want to set up a caching proxy
 listening on `localhost:8123`.  One such lightweight proxy is

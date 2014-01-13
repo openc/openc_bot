@@ -27,22 +27,17 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
     type
   end
 
-  # This method must be defined, and should return a timestamp in
-  # ISO8601 format. Its value should change when something about
-  # the record has changed. If an explicit reporting date is given in
-  # the source, use that. If the continued existence of a source is a
-  # data point in itself (i.e. indicates the statement still to be
-  # true), then a timestamp of the date the page was updated, or the
-  # the date the page was scraped, would be appropriate. In the
-  # absence of a reporting_date, this will typically be used as the
-  # sample_date in the to_pipeline method.
+  # This must be defined, and should return a timestamp in ISO8601
+  # format. Its value should change when something about the record
+  # has changed. It doesn't have to be a method - it can also be a
+  # member of `store_fields`, above.
   def last_updated_at
     reporting_date
   end
 
   # This method must be defined. You can test that you're outputting
-  # in the right format with `bundle exec openc_bot rake bot:test`,
-  # which will validate against a JSON schema.
+  # in the right format with `bin/verify_data`, which will validate
+  # any data you've fetched against the relevant schema.
   def to_pipeline
     {
       sample_date: last_updated_at,
@@ -67,11 +62,6 @@ class MyLicence < SimpleOpencBot
   # This method should return an array of Records. It must be defined.
   def fetch_records(opts={})
     agent = Mechanize.new
-    if opts[:test_mode]
-      # this requires you to have a working proxy set up -- see
-      # README.md for notes. It can speed up development considerably.
-      agent.set_proxy 'localhost', 8123
-    end
     page = agent.get("http://assets.opencorporates.com/test_bot_page.html")
     doc = Nokogiri::HTML(page.body)
     doc.xpath("//li").map do |li|
