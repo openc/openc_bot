@@ -17,11 +17,9 @@ curl -s https://raw.github.com/openc/openc_bot/master/create_simple_licence_bot.
 The default bot scrapes a dummy page on OpenCorporates'
 website. Once you've set it up, you can try:
 
-* running the scrape with `bin/fetch_data`
+* running the scrape with `bundle exec openc_bot rake bot:run`
 * testing the validity of the data it will output with
-  `bin/verify_data`
-* writing the data to the `data/` directory as json with
-  `bin/export_data`
+  `bundle exec openc_bot rake bot:test`
 
 Finally, take a look at the bot code created at
 `your_bot_name/lib/your_bot_name.rb` and read the comments there to
