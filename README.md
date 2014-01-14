@@ -129,7 +129,7 @@ scraping data from a source as you iteratively improve your code. It
 can be useful to use a caching proxy on your development machine to
 speed up this cycle.
 
-If you run `bin/fetch_data --test`, then your `fetch_records` method
+If you run `bundle exec openc_bot rake bot:run[test]`, then your `fetch_records` method
 will receive an option `test_mode`; you can use this to turn proxying
 on or off.  Here's how you can set a proxy using the `mechanize`
 library; if you want to use different http client libraries, refer to
