@@ -1,3 +1,5 @@
+require 'backports/2.0.0/enumerable/lazy'
+
 module OpencBot
   class Incrementer
 
@@ -11,7 +13,8 @@ module OpencBot
     def self.new(*args)
       path, = caller[0].partition(":")
       path = File.expand_path(File.join(File.dirname(path), ".."))
-      args[0][:app_path] = path
+      args << {} if args.empty?
+      args[0][:app_path] = path if !args[0][:app_path]
       super(*args)
     end
 
@@ -29,36 +32,46 @@ module OpencBot
         end
         reset_current
       end.lazy
-      if opts[:restart]
-        start_from = read_current
-        if start_from && start_from != ""
-          enum = enum.drop_while do |x|
-            x.to_s != start_from
-          end
+      enum = resuming_enum(enum) unless opts[:reset]
+      enum
+    end
+
+    def resuming_enum(enum)
+      start_from = read_current
+      found_start_point = false
+      if start_from && start_from != ""
+        enum = enum.drop_while do |x|
+          found_start_point = (x.to_s == start_from)
+          !found_start_point
         end
       end
-      return enum
+      enum
     end
 
-    def persistence_file_name
-      "#{@app_path}/db/#{self.class.name.split(':')[-1].downcase}-iterator-position.txt"
+    def position_file_name
+      "#{@app_path}/db/#{db_name}-iterator-position.txt"
     end
 
+    def db_name
+      self.class.name.split(':')[-1].downcase
+    end
+
+    # this is done with a file, rather than SQL, for speed reasons
     def reset_current
-      File.open(persistence_file_name, "w") do |f|
+      File.open(position_file_name, "w") do |f|
         f.write("")
       end
     end
 
     def write_current(val)
-      File.open(persistence_file_name, "w") do |f|
+      File.open(position_file_name, "w") do |f|
         f.write(val.to_s)
       end
     end
 
     def read_current
       begin
-        File.open(persistence_file_name, "r") do |f|
+        File.open(position_file_name, "r") do |f|
           f.read
         end
       rescue Errno::ENOENT
