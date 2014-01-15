@@ -64,7 +64,7 @@ class MyLicence < SimpleOpencBot
   yields MyLicenceRecord
 
   # This method should yield Records. It must be defined.
-  def fetch_records(opts={})
+  def fetch_all_records(opts={})
     agent = Mechanize.new
     page = agent.get("http://assets.opencorporates.com/test_bot_page.html")
     doc = Nokogiri::HTML(page.body)

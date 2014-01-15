@@ -1,4 +1,5 @@
 require 'simple_openc_bot'
+require 'optparse'
 
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
@@ -57,27 +58,52 @@ namespace :bot do
   end
 
   desc 'Get data from target'
-  task :run, :test_mode do |t, args|
-    only_process_running('run') do
+  task :run do |t, args|
+    only_process_running(t.name) do
+      options = {}
+      options[:specific_ids] = []
+      options[:restart] = false
+      OptionParser.new(args) do |opts|
+        opts.banner = "Usage: rake #{t.name} -- [options]"
+        opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
+          "Identifier of specific record to fetch",
+          " (may specify multiple times; refer to bot for its unique_fields)") do |val|
+          options[:specific_ids] << val
+        end
+        opts.on("-t", "--test-mode",
+          "Pass 'test' flag to bot") do |val|
+          options[:test_mode] = true
+        end
+        opts.on("-r", "--restart",
+          "Don't resume incremental bots; restart from the beginning") do |val|
+          options[:restart] = true
+        end
+      end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      if runner.is_a?(SimpleOpencBot)
-        runner.update_data(:test_mode => !!args[:test_mode])
-        puts "Got #{runner.count_stored_records} records"
-      else
-        runner.update_data
-      end
+      count = runner.update_data(options)
+      puts "Got #{count} records"
     end
   end
 
   desc 'Export data to stdout'
-  task :export do
-    only_process_running('export') do
+  task :export do |t, args|
+    only_process_running(t.name) do
+      options = {}
+      options[:specific_ids] = []
+      OptionParser.new(args) do |opts|
+        opts.banner = "Usage: rake #{t.name} -- [options]"
+        opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
+          "Identifier of specific record to export",
+          " (may specify multiple times; refer to bot for its unique_fields)") do |val|
+          options[:specific_ids] << val
+        end
+      end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      runner.export
+      runner.export(options)
     end
   end
 

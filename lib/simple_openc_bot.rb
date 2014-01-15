@@ -26,10 +26,19 @@ class SimpleOpencBot
   end
 
   def update_data(opts={})
-    saves_by_class = {}
-    record_enumerator = Enumerator.new do |yielder|
-      fetch_records(opts) do |result|
-        yielder.yield(result)
+    if opts[:specific_ids].empty?
+      # fetch everything
+      record_enumerator = Enumerator.new do |yielder|
+        fetch_all_records(opts) do |result|
+          yielder.yield(result)
+        end
+      end
+    else
+      # fetch records with specified ids
+      record_enumerator = Enumerator.new do |yielder|
+        fetch_specific_records(opts) do |result|
+          yielder.yield(result)
+        end
       end
     end
     saves_count = 0
@@ -45,12 +54,13 @@ class SimpleOpencBot
       end
       sqlite_magic_connection.execute("COMMIT")
     end
-    if saves_count
+    if saves_count > 0
       # ensure there's internally-used columns
       sqlite_magic_connection.add_columns(
         'ocdata', [:_last_exported_at, :_last_updated_at])
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
+    saves_count
   end
 
   def check_unique_index(record_class)
@@ -85,8 +95,12 @@ class SimpleOpencBot
 
   def unexported_stored_records(opts={})
     sql = "ocdata.* from ocdata "\
-      "WHERE _last_exported_at IS NULL "\
-      "OR _last_exported_at < _last_updated_at"
+      "WHERE (_last_exported_at IS NULL "\
+      "OR _last_exported_at < _last_updated_at)"
+    if !opts[:specific_ids].empty?
+      ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
+      sql += " AND #{_yields[0].unique_fields[0]} IN (#{ids})"
+    end
     sql += " LIMIT #{opts[:batch]}" if opts[:batch]
     select_records(sql)
   end
@@ -101,11 +115,11 @@ class SimpleOpencBot
     select(sql).map { |record| record['_type'].constantize.new(record) }
   end
 
-  def export_data
+  def export_data(opts={})
     Enumerator.new do |yielder|
       b = 1
       loop do
-        batch = unexported_stored_records(:batch => 100)
+        batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
         break if batch.empty?
         updates = {}
         batch.map do |record|
@@ -121,24 +135,6 @@ class SimpleOpencBot
         end
         sqlite_magic_connection.execute("COMMIT")
         b += 1
-      end
-    end
-  end
-
-  def yield_export_data
-    loop do
-      batch = unexported_stored_records(:batch => 100)
-      break if batch.empty?
-      updates = {}
-      batch.map do |record|
-        pipeline_data = record.to_pipeline
-        updates[record.class.name] ||= []
-        updates[record.class.name] << record.to_hash.merge(
-          :_last_exported_at => Time.now.iso8601(2))
-        yield pipeline_data
-      end
-      updates.each do |k, v|
-        save_data(k.constantize.unique_fields, v)
       end
     end
   end

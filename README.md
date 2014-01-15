@@ -40,7 +40,7 @@ the notes below carefully.
 ## About fetching and transforming data
 
 As you'll see in the sample bot, bots have separate steps to fetch
-data (the `fetch_records` method) and to transform it to a format
+data (the `fetch_all_records` method) and to transform it to a format
 suitable for OpenCorporates (the `to_pipeline` method).
 
 It is useful to have separate *fetch* and *export* phase for a couple
@@ -129,11 +129,11 @@ scraping data from a source as you iteratively improve your code. It
 can be useful to use a caching proxy on your development machine to
 speed up this cycle.
 
-If you run `bundle exec openc_bot rake bot:run[test]`, then your `fetch_records` method
-will receive an option `test_mode`; you can use this to turn proxying
-on or off.  Here's how you can set a proxy using the `mechanize`
-library; if you want to use different http client libraries, refer to
-their documentation regarding how to set a proxy.
+If you run `bundle exec openc_bot rake bot:run -- --test`, then your
+`fetch_records` method will receive an option `test_mode`; you can use
+this to turn proxying on or off.  Here's how you can set a proxy using
+the `mechanize` library; if you want to use different http client
+libraries, refer to their documentation regarding how to set a proxy.
 
     agent = Mechanize.new
     if opts[:test_mode]
@@ -155,3 +155,57 @@ options in the config work for us:
     relaxTransparency = yes
     dontTrustVaryETag = yes
     proxyOffline = no
+
+# Targetting specific records
+
+If you define an (optional) `fetch_specific_records` method in your
+bot, then you can specify particular records you wish to be
+fetched, thus:
+
+    bundle exec openc_bot rake bot:run -- --identifier "Foo Corp"
+
+You can also target specific records to export with:
+
+    bundle exec openc_bot rake bot:export -- --identifier "Foo Corp"
+
+# Incremental, resumable searches
+
+It's often necessary to do incremental searches or scrapes to get a
+full set of data. For example, you may know that all the records exist
+at urls like http://foo.com/?page=1, http://foo.com/?page=2, etc.
+
+Another common use case is where you can only access records with a
+search. In these cases, there's no alternative except to search for
+all the possible permutations of the letters A-Z and numbers 0-9 (in
+the case of ASCII searchable databases).
+
+In the latter case, this is 46656 different possible
+permutations. This will take a long time to scrape. If for some reason
+the scraper gets interrupted, you don't want to have to start again.
+
+We provide some convenience iterators, which save their current state,
+and restart unless told otherwise.
+
+    # currently provides a NumericIncrementer and an AsciiIncrementer:
+    require 'openc_bot/incrementers/common'
+
+    def fetch_all_records(opts={})
+        counter = NumericIncrementer.new(
+          :start_val => 0,
+          :end_val => 20)
+
+        # yield records one at a time, resuming by default
+        counter.enum(:reset => opts[:reset_iterator]).each do |num|
+          url = "http://assets.opencorporates.com/test_bot_page_#{num}.html"
+          yield fetch_record_from_url(url)
+        end
+    end
+
+    def fetch_record_from_url(url)
+       # parse data at url and return a Record
+    end
+
+The above code would resume an incremental search automatically. To
+reset, run the bot thus:
+
+    bundle exec openc_bot rake bot:run -- --reset

@@ -9,6 +9,7 @@ module OpencBot
   class OpencBotError < StandardError;end
   class DatabaseError < OpencBotError;end
   class InvalidDataError < OpencBotError;end
+  class NotFoundError < OpencBotError;end
 
   include ScraperWiki
 
@@ -44,8 +45,8 @@ module OpencBot
     ENV['VERBOSE']
   end
 
-  def export
-    export_data.each do |record|
+  def export(opts={})
+    export_data(opts).each do |record|
       $stdout.puts record.to_json
       $stdout.flush
     end
