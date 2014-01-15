@@ -23,7 +23,7 @@ end
 
 
 module OpencBot
-  class AlphaNumericIncrementer < OpencBot::Incrementer
+  class AsciiIncrementer < OpencBot::Incrementer
 
     def increment_yielder
       @expected_count = 46656
