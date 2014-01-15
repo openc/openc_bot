@@ -14,9 +14,10 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # 'fetch_records' (see below) is run.
   store_fields :name, :type, :reporting_date
 
-  # This is an array of fields which will uniquely define a record
-  # (think primary key in a database)
-  unique_fields :name
+  # This is the field which will uniquely define a record (think
+  # primary key in a database). You may need to generate your own
+  # "fingerprints" for a record (e.g. by concatenating two fields)
+  unique_field :name
 
   # These are just example methods and constants used by
   # `to_pipeline`, below

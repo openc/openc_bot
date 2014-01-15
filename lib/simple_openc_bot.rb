@@ -45,7 +45,7 @@ class SimpleOpencBot
     record_enumerator.each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       records.each do |record|
-        insert_or_update(record.class.unique_fields,
+        insert_or_update([record.class.unique_field],
           record.to_hash)
         saves_count += 1
         if saves_count == 1
@@ -70,12 +70,12 @@ class SimpleOpencBot
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
       info[0]["name"]
     end.compact
-    record_unique_fields = record_class.unique_fields.map(&:to_s)
-    if !(record_unique_fields - db_unique_fields).empty?
+    record_unique_field = record_class.unique_field.to_s
+    if !db_unique_fields.include?(record_unique_field)
       sqlite_magic_connection.execute("ROLLBACK")
-      error = "Unique fields #{record_unique_fields} are not unique indices in `ocdata` table!"
-      error += "\nThis is usually because the value of unique_fields has changed since the table was automatically created."
-      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
+      error = "Unique field #{record_unique_field} is not unique index in `ocdata` table!"
+      error += "\nThis is usually because the value of unique_field has changed since the table was automatically created."
+      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_field}"
       raise error
     end
   end
@@ -99,7 +99,7 @@ class SimpleOpencBot
       "OR _last_exported_at < _last_updated_at)"
     if !opts[:specific_ids].empty?
       ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
-      sql += " AND #{_yields[0].unique_fields[0]} IN (#{ids})"
+      sql += " AND #{_yields[0].unique_field} IN (#{ids})"
     end
     sql += " LIMIT #{opts[:batch]}" if opts[:batch]
     select_records(sql)
@@ -131,7 +131,7 @@ class SimpleOpencBot
         end
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
         updates.each do |k, v|
-          save_data(k.constantize.unique_fields, v)
+          save_data([k.constantize.unique_field], v)
         end
         sqlite_magic_connection.execute("COMMIT")
         b += 1
@@ -159,7 +159,7 @@ class SimpleOpencBot
 
 
   class BaseLicenceRecord
-    class_attribute :_store_fields, :_unique_fields, :_type, :_schema
+    class_attribute :_store_fields, :_unique_field, :_type, :_schema
 
     def self.store_fields(*fields)
       self._store_fields ||= []
@@ -171,9 +171,9 @@ class SimpleOpencBot
       end
     end
 
-    def self.unique_fields(*fields)
-      self._unique_fields = fields unless fields.empty?
-      self._unique_fields
+    def self.unique_field(*fields)
+      self._unique_field = fields[0] unless fields.empty?
+      self._unique_field
     end
 
     def self.schema(schema)
@@ -203,7 +203,7 @@ class SimpleOpencBot
         all_errors << "You must define the following functions in your record class: #{func_errors.join(', ')}"
       end
       field_errors = []
-      required_fields = [:_store_fields, :_unique_fields, :_schema]
+      required_fields = [:_store_fields, :_unique_field, :_schema]
       required_fields.each do |f|
         if !send(f)
           field_errors << f.to_s[1..-1]
