@@ -70,10 +70,12 @@ class SimpleOpencBot
     select_records(sql)
   end
 
-  def unexported_stored_records
-    select_records("ocdata.* from ocdata "\
-                   "WHERE _last_exported_at IS NULL "\
-                   "OR _last_exported_at < _last_updated_at")
+  def unexported_stored_records(opts={})
+    sql = "ocdata.* from ocdata "\
+      "WHERE _last_exported_at IS NULL "\
+      "OR _last_exported_at < _last_updated_at"
+    sql += " LIMIT #{opts[:batch]}" if opts[:batch]
+    select_records(sql)
   end
 
   def spotcheck_records(limit = 5)
@@ -112,7 +114,7 @@ class SimpleOpencBot
 
   def yield_export_data
     loop do
-      batch = unexported_stored_records
+      batch = unexported_stored_records(:batch => 100)
       break if batch.empty?
       updates = {}
       batch.map do |record|
