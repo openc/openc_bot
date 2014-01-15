@@ -2,20 +2,6 @@ require 'active_support/core_ext'
 require 'openc_bot'
 require 'json-schema'
 
-# This class converts a method which yields values into something that can be
-# iterated over with `.each`.
-class EnumeratorFromYielder
-  include Enumerable
-
-  def initialize(yielder)
-    @yielder = yielder
-  end
-
-  def each
-    @yielder.call {|item| yield item }
-  end
-end
-
 class SimpleOpencBot
   include OpencBot
 
@@ -101,7 +87,27 @@ class SimpleOpencBot
   end
 
   def export_data
-    EnumeratorFromYielder.new(method(:yield_export_data))
+    Enumerator.new do |yielder|
+      b = 1
+      loop do
+        batch = unexported_stored_records(:batch => 100)
+        break if batch.empty?
+        updates = {}
+        batch.map do |record|
+          pipeline_data = record.to_pipeline
+          updates[record.class.name] ||= []
+          updates[record.class.name] << record.to_hash.merge(
+            :_last_exported_at => Time.now.iso8601(2))
+          yielder << pipeline_data
+        end
+        sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        updates.each do |k, v|
+          save_data(k.constantize.unique_fields, v)
+        end
+        sqlite_magic_connection.execute("COMMIT")
+        b += 1
+      end
+    end
   end
 
   def yield_export_data
