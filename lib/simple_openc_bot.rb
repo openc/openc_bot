@@ -1,6 +1,7 @@
 require 'active_support/core_ext'
 require 'openc_bot'
 require 'json-schema'
+require 'openc_bot/incrementer'
 
 class SimpleOpencBot
   include OpencBot
