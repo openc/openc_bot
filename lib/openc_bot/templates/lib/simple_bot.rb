@@ -59,14 +59,14 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class MyLicence < SimpleOpencBot
-  # This method should return an array of Records. It must be defined.
+  # This method should yield Records. It must be defined.
   def fetch_records(opts={})
     agent = Mechanize.new
     page = agent.get("http://assets.opencorporates.com/test_bot_page.html")
     doc = Nokogiri::HTML(page.body)
     doc.xpath("//li").map do |li|
       name, type = li.content.split(":")
-      MyLicenceRecord.new(
+      yield MyLicenceRecord.new(
         :name => name.strip,
         :type => type.strip,
         :reporting_date => Time.now.iso8601(2))

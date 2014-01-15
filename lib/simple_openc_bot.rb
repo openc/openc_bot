@@ -19,7 +19,12 @@ class SimpleOpencBot
 
   def update_data(opts={})
     saves_by_class = {}
-    fetch_records(opts).each_slice(500) do |records|
+    record_enumerator = Enumerator.new do |yielder|
+      fetch_records(opts) do |result|
+        yielder.yield(result)
+      end
+    end
+    record_enumerator.each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       records.each do |record|
         insert_or_update(record.class.unique_fields,
