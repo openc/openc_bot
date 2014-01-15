@@ -62,7 +62,7 @@ namespace :bot do
     only_process_running(t.name) do
       options = {}
       options[:specific_ids] = []
-      options[:restart] = false
+      options[:reset_iterator] = false
       OptionParser.new(args) do |opts|
         opts.banner = "Usage: rake #{t.name} -- [options]"
         opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
@@ -74,9 +74,9 @@ namespace :bot do
           "Pass 'test' flag to bot") do |val|
           options[:test_mode] = true
         end
-        opts.on("-r", "--restart",
-          "Don't resume incremental bots; restart from the beginning") do |val|
-          options[:restart] = true
+        opts.on("-r", "--reset",
+          "Don't resume incremental bots; reset and start from the beginning") do |val|
+          options[:reset_iterator] = true
         end
       end.parse!
       bot_name = get_bot_name
