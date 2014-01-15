@@ -59,6 +59,10 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class MyLicence < SimpleOpencBot
+
+  # the class that `fetch_records` yields
+  yields MyLicenceRecord
+
   # This method should yield Records. It must be defined.
   def fetch_records(opts={})
     agent = Mechanize.new

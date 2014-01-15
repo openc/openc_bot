@@ -6,6 +6,13 @@ require 'openc_bot/incrementer'
 class SimpleOpencBot
   include OpencBot
 
+  class_attribute :_yields
+
+  def self.yields(*fields)
+    raise "We currently only support one Record type per bot" if fields.count > 1
+    self._yields = fields
+  end
+
   def self.inherited(obj)
     path, = caller[0].partition(":")
     path = File.expand_path(File.join(File.dirname(path), ".."))
@@ -25,20 +32,20 @@ class SimpleOpencBot
         yielder.yield(result)
       end
     end
+    saves_count = 0
     record_enumerator.each_slice(500) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       records.each do |record|
         insert_or_update(record.class.unique_fields,
           record.to_hash)
-        saves_by_class[record.class] ||= 0
-        saves_by_class[record.class] += 1
-        if saves_by_class[record.class] == 1
-          check_unique_index(record.class)
+        saves_count += 1
+        if saves_count == 1
+          check_unique_index(_yields[0])
         end
       end
       sqlite_magic_connection.execute("COMMIT")
     end
-    if !saves_by_class.empty?
+    if saves_count
       # ensure there's internally-used columns
       sqlite_magic_connection.add_columns(
         'ocdata', [:_last_exported_at, :_last_updated_at])
