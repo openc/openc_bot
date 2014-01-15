@@ -13,10 +13,6 @@ module OpencBot
 
   include ScraperWiki
 
-  def thing_from_openc_bot
-    puts "ribbit"
-  end
-
   def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
