@@ -55,11 +55,6 @@ class SimpleOpencBot
       end
       sqlite_magic_connection.execute("COMMIT")
     end
-    if saves_count > 0
-      # ensure there's internally-used columns
-      sqlite_magic_connection.add_columns(
-        'ocdata', [:_last_exported_at, :_last_updated_at])
-    end
     save_run_report(:status => 'success', :completed_at => Time.now)
     saves_count
   end
@@ -117,6 +112,11 @@ class SimpleOpencBot
   end
 
   def export_data(opts={})
+    begin
+      sqlite_magic_connection.add_columns(
+        'ocdata', [:_last_exported_at, :_last_updated_at])
+    rescue SQLite3::SQLException
+    end
     Enumerator.new do |yielder|
       b = 1
       loop do
