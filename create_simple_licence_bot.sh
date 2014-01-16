@@ -5,8 +5,7 @@ set -e
 # Add the openc_bot to the Gemfile:
 if [ ! -f Gemfile ]; then
   echo "source 'https://rubygems.org'" >> Gemfile
-  #echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
-  echo "gem 'openc_bot', :path => '/home/seb/Code/openc_bot'" >> Gemfile
+  echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
   echo "gem 'trollop'" >> Gemfile
   echo "gem 'mechanize'" >> Gemfile
 fi
