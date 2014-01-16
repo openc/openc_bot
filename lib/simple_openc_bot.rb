@@ -125,6 +125,7 @@ class SimpleOpencBot
         updates = {}
         batch.map do |record|
           pipeline_data = record.to_pipeline
+          next if pipeline_data.nil?
           updates[record.class.name] ||= []
           updates[record.class.name] << record.to_hash.merge(
             :_last_exported_at => Time.now.iso8601(2))
@@ -226,17 +227,19 @@ class SimpleOpencBot
     # return a structure including errors if invalid; otherwise return nil
     def errors
       data = self.to_pipeline
-      if !self._schema
-        # backwards compatibility
-        self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
-      end
-      errors = JSON::Validator.fully_validate(
-        self._schema,
-        data.to_json,
-        {:errors_as_objects => true})
-      if !errors.empty?
-        data[:errors] = errors
-        data
+      if data
+        if !self._schema
+          # backwards compatibility
+          self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
+        end
+        errors = JSON::Validator.fully_validate(
+          self._schema,
+          data.to_json,
+          {:errors_as_objects => true})
+        if !errors.empty?
+          data[:errors] = errors
+          data
+        end
       end
     end
   end
