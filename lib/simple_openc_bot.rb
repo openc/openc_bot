@@ -52,6 +52,8 @@ class SimpleOpencBot
         if saves_count == 1
           check_unique_index(_yields[0])
         end
+        STDOUT.print(".")
+        STDOUT.flush
       end
       sqlite_magic_connection.execute("COMMIT")
     end

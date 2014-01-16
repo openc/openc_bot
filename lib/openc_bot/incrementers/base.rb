@@ -28,7 +28,7 @@ module OpencBot
           write_current(result)
           yielder.yield(result)
           @count += 1
-          STDOUT.print(progress_percent.to_s + "\r") if @show_progress
+          puts "\nIterator progress: " + (progress_percent.to_s + "%") if @show_progress
         end
         reset_current
       end.lazy
