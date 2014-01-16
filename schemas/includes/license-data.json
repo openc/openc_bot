@@ -6,6 +6,9 @@
     "properties": {
       "type": "object",
       "properties": {
+        "jurisdiction_code": {
+          "description": "The jurisdiction for which licence was issued",
+          "type": "string"},
         "licence_number": {
           "type": "string"},
         "jurisdiction_classification": {
@@ -14,7 +17,7 @@
         "oc_classification": {
           "type": "array"}
       },
-      "required": [ "jurisdiction_classification" ]
+      "required": [ "jurisdiction_code", "jurisdiction_classification" ]
     }
   },
   "required": [ "data_type", "properties" ]
