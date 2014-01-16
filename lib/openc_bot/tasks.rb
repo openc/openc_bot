@@ -121,6 +121,59 @@ namespace :bot do
     end
   end
 
+  desc 'Lint old-style bots'
+  task :lint do
+    bot_name = get_bot_name
+    require_relative File.join(Dir.pwd,'lib', bot_name)
+    runner = callable_from_file_name(bot_name)
+    messages = []
+    if runner.method(:export_data).arity == 0
+      messages <<  "export_data method must accept a hash as a single argument (e.g. `export_data(opts={})`"
+    end
+
+    if runner.is_a? SimpleOpencBot
+      if !runner.respond_to? "fetch_all_records"
+        messages <<  "You must rename fetch_records -> fetch_all_records."
+      end
+
+      full_source = File.open(File.join(Dir.pwd,'lib', bot_name) + ".rb").read
+      if !full_source.match("^\s+yields")
+        messages << <<EOF
+You must call the `yields` class method with the class
+of the Records you're returning. For example:
+
+    class FooLicenses < SimpleOpencBot
+        yields FooLicensesRecord
+
+EOF
+      end
+
+      # fetch_all_methods must yield rather than return
+      if runner.respond_to? "fetch_all_records"
+        source, line = runner.method(:fetch_all_records).source_location
+        count = 0
+        found = false
+        File.foreach(source, "r") do |l|
+          count += 1
+          next if count < line
+
+          if l.match("^\s+yield")
+            found = true
+            break
+          end
+          break if l.match("^\s+end")
+        end
+        messages << "fetch_all_records must `yield` single records (rather than returning an array)" if !found
+      end
+    end
+    messages.each_with_index do |m, i|
+      puts "#{i + 1}:"
+      puts m
+      puts "------------"
+    end
+    puts "No problems!" if messages.empty?
+  end
+
   task :test do
     bot_name = get_bot_name
     require_relative File.join(Dir.pwd,'lib', bot_name)
