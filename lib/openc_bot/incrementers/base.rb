@@ -33,6 +33,7 @@ module OpencBot
         reset_current
       end.lazy
       enum = resuming_enum(enum) unless opts[:reset_iterator]
+      enum = enum.take(opts[:max_iterations]) if opts[:max_iterations]
       enum
     end
 
@@ -86,9 +87,7 @@ module OpencBot
 
     def populate(opts={})
       if !populated || opts[:reset_iterator]
-        STDOUT.puts("Populating iterator...")
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
-        # only do the populating the first time
         yield(self)
         sqlite_magic_connection.execute("COMMIT")
       end

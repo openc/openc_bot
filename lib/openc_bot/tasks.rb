@@ -78,6 +78,10 @@ namespace :bot do
           "Don't resume incremental bots; reset and start from the beginning") do |val|
           options[:reset_iterator] = true
         end
+        opts.on("-m", "--max-iterations MAX_ITERATIONS",
+          "Exit all iterators after MAX_ITERATIONS iterations. Useful for debugging.") do |val|
+          options[:max_iterations] = val.to_i
+        end
       end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)

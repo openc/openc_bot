@@ -210,6 +210,12 @@ reset, run the bot thus:
 
     bundle exec openc_bot rake bot:run -- --reset
 
+When debugging, it is useful to test out only a few iterations at a time. To do this:
+
+    bundle exec openc_bot rake bot:run -- --max-iterations=3
+
+This will restrict all iterators to a maximum of three iterations.
+
 There's also an incrementer which you can manually fill with records
 (arbitrary hashes), thus:
 
