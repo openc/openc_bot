@@ -44,6 +44,8 @@ The format your bot is expected to produce for a Financial Licence is:
             :properties
                 required
                 a hash with the following keys:
+                    :jurisdiction_code
+                        the jurisdiction in which the licence was issued
                     :licence_number
                         optional
                     :jurisdiction_classification

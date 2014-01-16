@@ -6,11 +6,18 @@
     "properties": {
       "type": "object",
       "properties": {
-        "category": {
+        "jurisdiction_code": {
+          "description": "The jurisdiction for which licence was issued",
+          "type": "string"},
+        "licence_number": {
           "type": "string"},
         "jurisdiction_classification": {
+          "type": "array",
+          "minItems": 1},
+        "oc_classification": {
           "type": "array"}
-      }
+      },
+      "required": [ "jurisdiction_code", "jurisdiction_classification" ]
     }
   },
   "required": [ "data_type", "properties" ]
