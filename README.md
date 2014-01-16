@@ -225,7 +225,7 @@ There's also an incrementer which you can manually fill with records
         (0..10).each do |num|
             inc.save_hash({'num' => num})
         end
-        # If set this flag, the "populate" block will skip next time it's run
+        # If this flag is set, the "populate" block will skip next time it's run
         i.populated = true
     end
 
