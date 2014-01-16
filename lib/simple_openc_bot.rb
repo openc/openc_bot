@@ -1,7 +1,7 @@
 require 'active_support/core_ext'
 require 'openc_bot'
 require 'json-schema'
-require 'openc_bot/incrementer'
+require 'openc_bot/incrementers'
 
 class SimpleOpencBot
   include OpencBot
@@ -46,7 +46,7 @@ class SimpleOpencBot
     record_enumerator.each_slice(batch_size) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
       records.each do |record|
-        insert_or_update([record.class.unique_field],
+        insert_or_update(record.class.unique_fields,
           record.to_hash)
         saves_count += 1
         if saves_count == 1
@@ -69,14 +69,14 @@ class SimpleOpencBot
     db_unique_fields = indexes.map do |i|
       next if i["unique"] != 1
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
-      info[0]["name"]
+      info.map{|x| x["name"]}
     end.compact
-    record_unique_field = record_class.unique_field.to_s
-    if !db_unique_fields.include?(record_unique_field)
+    record_unique_fields = record_class.unique_fields.map(&:to_s)
+    if !db_unique_fields.include?(record_unique_fields)
       sqlite_magic_connection.execute("ROLLBACK")
-      error = "Unique field #{record_unique_field} is not unique index in `ocdata` table!"
+      error = "Unique fields #{record_unique_fields} are not a unique index in `ocdata` table!"
       error += "\nThis is usually because the value of unique_field has changed since the table was automatically created."
-      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_field}"
+      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
       raise error
     end
   end
@@ -132,7 +132,7 @@ class SimpleOpencBot
         end
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
         updates.each do |k, v|
-          save_data([k.constantize.unique_field], v)
+          save_data(k.constantize.unique_fields, v)
         end
         sqlite_magic_connection.execute("COMMIT")
         b += 1
@@ -160,7 +160,7 @@ class SimpleOpencBot
 
 
   class BaseLicenceRecord
-    class_attribute :_store_fields, :_unique_field, :_type, :_schema
+    class_attribute :_store_fields, :_type, :_schema, :_unique_fields
 
     def self.store_fields(*fields)
       self._store_fields ||= []
@@ -172,9 +172,9 @@ class SimpleOpencBot
       end
     end
 
-    def self.unique_field(*fields)
-      self._unique_field = fields[0] unless fields.empty?
-      self._unique_field
+    def self.unique_fields(*fields)
+      self._unique_fields = fields unless fields.empty?
+      self._unique_fields
     end
 
     def self.schema(schema)
@@ -204,7 +204,7 @@ class SimpleOpencBot
         all_errors << "You must define the following functions in your record class: #{func_errors.join(', ')}"
       end
       field_errors = []
-      required_fields = [:_store_fields, :_unique_field, :_schema]
+      required_fields = [:_store_fields, :_unique_fields, :_schema]
       required_fields.each do |f|
         if !send(f)
           field_errors << f.to_s[1..-1]
