@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require_relative '../../../spec_helper'
 require 'openc_bot'
-require 'openc_bot/incrementers/common'
+require 'openc_bot/incrementers'
 
 
 describe OpencBot::ManualIncrementer do

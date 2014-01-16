@@ -187,7 +187,7 @@ We provide some convenience iterators, which save their current state,
 and restart unless told otherwise.
 
     # currently provides a NumericIncrementer and an AsciiIncrementer:
-    require 'openc_bot/incrementers/common'
+    require 'openc_bot/incrementers'
 
     def fetch_all_records(opts={})
         counter = NumericIncrementer.new(
@@ -195,7 +195,7 @@ and restart unless told otherwise.
           :end_val => 20)
 
         # yield records one at a time, resuming by default
-        counter.enum(:reset => opts[:reset_iterator]).each do |num|
+        counter.enum(opts).each do |num|
           url = "http://assets.opencorporates.com/test_bot_page_#{num}.html"
           yield fetch_record_from_url(url)
         end
@@ -209,3 +209,21 @@ The above code would resume an incremental search automatically. To
 reset, run the bot thus:
 
     bundle exec openc_bot rake bot:run -- --reset
+
+There's also an incrementer which you can manually fill with records
+(arbitrary hashes), thus:
+
+    incrementer =  OpencBot::ManualIncrementer.new
+
+    incrementer.populate(opts) do |inc|
+        (0..10).each do |num|
+            inc.save_hash({'num' => num})
+        end
+        # If set this flag, the "populate" block will skip next time it's run
+        i.populated = true
+    end
+
+    # now increment over its values, resuming where we left off last time if interrupted
+    incrementer.enum(opts).each do |item|
+      doc = agent.get("http://assets.opencorporates.com/document_number#{item["num"]}"
+    end
