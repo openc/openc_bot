@@ -42,7 +42,6 @@ class SimpleOpencBot
       end
     end
     saves_count = 0
-    total = count_stored_records
     batch_size = opts[:test_mode] ? 1 : 500
     record_enumerator.each_slice(batch_size) do |records|
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
@@ -53,8 +52,6 @@ class SimpleOpencBot
         if saves_count == 1
           check_unique_index(_yields[0])
         end
-        STDOUT.print("Progress: " + (saves_count.to_f/total).round(2).to_s + "%\r")
-        STDOUT.flush
       end
       sqlite_magic_connection.execute("COMMIT")
     end
@@ -80,7 +77,11 @@ class SimpleOpencBot
   end
 
   def count_stored_records
+    begin
     sqlite_magic_connection.execute("select count(*) as count from ocdata").first["count"]
+    rescue SqliteMagic::NoSuchTable
+      0
+    end
   end
 
   def all_stored_records(opts={})
