@@ -86,6 +86,7 @@ module OpencBot
 
     def populate(opts={})
       if !populated || opts[:reset_iterator]
+        STDOUT.puts("Populating iterator...")
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
         # only do the populating the first time
         yield(self)
@@ -130,6 +131,7 @@ module OpencBot
     end
 
     def save_hash(val)
+      print "."
       save_sqlite([:id], val.merge({:id => @rows_count}), "items")
       @rows_count += 1
     end
