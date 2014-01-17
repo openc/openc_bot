@@ -219,7 +219,7 @@ There's also an incrementer which you can manually fill with records
     incrementer =  OpencBot::ManualIncrementer.new(opts.merge(:fields => [:num]))
 
     (0..10).each do |num|
-        incrementer.save_hash({'num' => num})
+        incrementer.add_row({'num' => num})
     end
 
     # now increment over its values, resuming where we left off last time if interrupted
@@ -233,7 +233,7 @@ been done:
 
     if !incrementer.populated
         (0..10).each do |num|
-            incrementer.save_hash({'num' => num})
+            incrementer.add_row({'num' => num})
         end
     end
     incrementer.populated = true
