@@ -153,7 +153,7 @@ EOF
         source, line = runner.method(:fetch_all_records).source_location
         count = 0
         found = false
-        File.foreach(source, "r") do |l|
+        File.foreach(source, "\n") do |l|
           count += 1
           next if count < line
 
