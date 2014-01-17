@@ -155,13 +155,13 @@ EOF
         found = false
         File.foreach(source, "\n") do |l|
           count += 1
-          next if count < line
+          next if count < line + 1
 
           if l.match("^\s+yield")
             found = true
             break
           end
-          break if l.match("^\s+end")
+          break if l.match("^\s+def")
         end
         messages << "fetch_all_records must `yield` single records (rather than returning an array)" if !found
       end
