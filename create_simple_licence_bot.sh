@@ -6,7 +6,6 @@ set -e
 if [ ! -f Gemfile ]; then
   echo "source 'https://rubygems.org'" >> Gemfile
   echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'" >> Gemfile
-  echo "gem 'trollop'" >> Gemfile
   echo "gem 'mechanize'" >> Gemfile
 fi
 echo "/db" >> .gitignore
