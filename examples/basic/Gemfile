@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
-gem 'openc_bot', :path => '/home/seb/Code/openc_bot'
-gem 'trollop'
+gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git'
 gem 'mechanize'
 group :test do
   gem 'rspec'
