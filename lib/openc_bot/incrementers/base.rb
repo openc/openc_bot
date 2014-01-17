@@ -1,5 +1,5 @@
 require 'backports/2.0.0/enumerable/lazy'
-
+require 'json'
 module OpencBot
   class BaseIncrementer
 
@@ -8,6 +8,9 @@ module OpencBot
       @count = 0
       @app_path = opts[:app_path]
       @show_progress = opts[:show_progress] || (opts[:show_progress].nil? && true)
+      @reset_iterator = opts[:reset_iterator]
+      @max_iterations = opts[:max_iterations]
+      @opts = opts
     end
 
     def self.new(*args)
@@ -18,31 +21,46 @@ module OpencBot
       super(*args)
     end
 
+    def log_progress(percent)
+      puts "Iterator #{self.class.name} progress: " + (percent.to_s + "%") if @show_progress
+    end
+
     def progress_percent
       (@count.to_f / @expected_count * 100).round(2) if @expected_count
     end
 
-    def enum(opts={})
-      enum = Enumerator.new do |yielder|
+    def each
+      Enumerator.new do |yielder|
         increment_yielder do |result|
-          write_current(result)
+          if result.is_a? Hash
+            formatted_result = result.to_json
+          else
+            formatted_result = result
+          end
+          write_current(formatted_result)
           yielder.yield(result)
           @count += 1
-          puts "\nIterator progress: " + (progress_percent.to_s + "%") if @show_progress
+          log_progress(progress_percent)
         end
         reset_current
       end.lazy
-      enum = resuming_enum(enum) unless opts[:reset_iterator]
-      enum = enum.take(opts[:max_iterations]) if opts[:max_iterations]
+    end
+
+    def resumable
+      enum = each
+      enum = resuming_enum(enum) unless @reset_iterator
+      enum = enum.take(@max_iterations) if @max_iterations
       enum
     end
 
     def resuming_enum(enum)
       start_from = read_current
-      found_start_point = false
+      preset_show_progress = @show_progress
+      @show_progress = false
       if start_from && start_from != ""
         enum = enum.drop_while do |x|
           found_start_point = (x.to_s == start_from)
+          @show_progress = preset_show_progress && found_start_point
           !found_start_point
         end
       end
@@ -85,17 +103,22 @@ module OpencBot
 
     include ScraperWiki
 
-    def populate(opts={})
-      if !populated || opts[:reset_iterator]
-        sqlite_magic_connection.execute("BEGIN TRANSACTION")
-        yield(self)
-        sqlite_magic_connection.execute("COMMIT")
-      end
+    ITEMS_TABLE = "items"
+
+    def single_transaction
+      sqlite_magic_connection.execute("BEGIN TRANSACTION")
+      yield(self)
+      sqlite_magic_connection.execute("COMMIT")
     end
 
     def initialize(opts={})
       @rows_count = 0
       super(opts)
+      query = "CREATE TABLE IF NOT EXISTS #{ITEMS_TABLE} (#{opts[:fields].join(',')}, _id INTEGER PRIMARY KEY)"
+      sqlite_magic_connection.execute query
+      query = "CREATE UNIQUE INDEX IF NOT EXISTS #{opts[:fields].join('_')} " +
+        "ON #{ITEMS_TABLE} (#{opts[:fields].join(',')})"
+      sqlite_magic_connection.execute query
     end
 
     # Override default in ScraperWiki gem
@@ -104,12 +127,14 @@ module OpencBot
       @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
     end
 
-    def increment_yielder(start_id=nil)
-      @expected_count = count_items
+    def increment_yielder(start_row=nil)
+      start_id = start_row && start_row["_id"].to_i
+      @expected_count = count_all_items
+      @count = count_processed_items(start_id)
       loop do
         result = read_batch(start_id).each do |row|
           yield row
-          start_id = row['id']
+          start_id = row["_id"].to_i + 1
         end
         raise StopIteration if result.empty?
       end
@@ -129,39 +154,55 @@ module OpencBot
       end
     end
 
-    def save_hash(val)
-      print "."
-      save_sqlite([:id], val.merge({:id => @rows_count}), "items")
-      @rows_count += 1
+    def enum(*args)
+      self.populated = true
+      super(enum(*args))
     end
 
-    def count_items
+    def add_row(val)
+      sqlite_magic_connection.insert_or_update(
+        val.keys, val, ITEMS_TABLE, :update_unique_keys => true)
+    end
+
+    def count_processed_items(start_id)
+      if start_id
+        begin
+          result = select("count(*) as count FROM #{ITEMS_TABLE} WHERE _id < #{start_id}").first
+          result && result['count']
+        rescue SqliteMagic::NoSuchTable
+          0
+        end
+      else
+        0
+      end
+    end
+
+    def count_all_items
       begin
-        select("count(*) as count FROM items").first['count']
+        select("count(*) as count FROM #{ITEMS_TABLE}").first['count']
       rescue SqliteMagic::NoSuchTable
       end
     end
 
-    def read_batch(start_id)
-      sql = "* FROM items"
-      if !start_id.nil?
-        sql += " WHERE id > #{start_id}"
+    def read_batch(start_id=nil)
+      sql = "* FROM #{ITEMS_TABLE}"
+      if start_id
+        sql += " WHERE _id >= #{start_id}"
       end
-      sql += " ORDER BY id LIMIT 100"
+      sql += " LIMIT 100"
       select(sql)
     end
 
     # override superclass definition for more efficient version
     def resuming_enum(enum)
-      current_id_match = read_current && read_current.match(/"id"=>(\d+)/)
-      if current_id_match
-        start_from = current_id_match[1].to_i
-        @count = start_from
+      current_row = read_current && read_current != "" && JSON.parse(read_current)
+      if current_row
         enum = Enumerator.new do |yielder|
-          increment_yielder(start_from) do |result|
-            write_current(result)
+          increment_yielder(current_row) do |result|
+            write_current(result.to_json)
             yielder.yield(result)
             @count += 1
+            log_progress(progress_percent)
           end
           reset_current
         end.lazy

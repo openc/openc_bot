@@ -191,18 +191,15 @@ and restart unless told otherwise.
 
     def fetch_all_records(opts={})
         counter = NumericIncrementer.new(
-          :start_val => 0,
-          :end_val => 20)
+          opts.merge(
+              :start_val => 0,
+              :end_val => 20))
 
         # yield records one at a time, resuming by default
-        counter.enum(opts).each do |num|
+        counter.resumable.each do |num|
           url = "http://assets.opencorporates.com/test_bot_page_#{num}.html"
-          yield fetch_record_from_url(url)
+          yield record_from_url(url)
         end
-    end
-
-    def fetch_record_from_url(url)
-       # parse data at url and return a Record
     end
 
 The above code would resume an incremental search automatically. To
@@ -219,17 +216,24 @@ This will restrict all iterators to a maximum of three iterations.
 There's also an incrementer which you can manually fill with records
 (arbitrary hashes), thus:
 
-    incrementer =  OpencBot::ManualIncrementer.new
+    incrementer =  OpencBot::ManualIncrementer.new(opts.merge(:fields => [:num]))
 
-    incrementer.populate(opts) do |inc|
-        (0..10).each do |num|
-            inc.save_hash({'num' => num})
-        end
-        # If this flag is set, the "populate" block will skip next time it's run
-        i.populated = true
+    (0..10).each do |num|
+        incrementer.save_hash({'num' => num})
     end
 
     # now increment over its values, resuming where we left off last time if interrupted
-    incrementer.enum(opts).each do |item|
+    incrementer.resumable.each do |item|
       doc = agent.get("http://assets.opencorporates.com/document_number#{item["num"]}"
     end
+
+ManualIncrementers also have a persisted field named `populated`,
+which you can use to skip expensive record-filling if it's already
+been done:
+
+    if !incrementer.populated
+        (0..10).each do |num|
+            incrementer.save_hash({'num' => num})
+        end
+    end
+    incrementer.populated = true
