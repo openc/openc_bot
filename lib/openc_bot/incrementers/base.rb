@@ -3,7 +3,8 @@ require 'json'
 module OpencBot
   class BaseIncrementer
 
-    def initialize(opts={})
+    def initialize(name, opts={})
+      @name = name
       @expected_count = opts[:expected_count]
       @count = 0
       @app_path = opts[:app_path]
@@ -16,13 +17,13 @@ module OpencBot
     def self.new(*args)
       path, = caller[0].partition(":")
       path = File.expand_path(File.join(File.dirname(path), ".."))
-      args << {} if args.empty?
-      args[0][:app_path] = path if !args[0][:app_path]
+      args << {} if args.count == 1
+      args[1][:app_path] = path if !args[1][:app_path]
       super(*args)
     end
 
     def log_progress(percent)
-      puts "Iterator #{self.class.name} progress: " + (percent.to_s + "%") if @show_progress
+      puts "Iterator #{@name} progress: " + (percent.to_s + "%") if @show_progress
     end
 
     def progress_percent
@@ -72,7 +73,7 @@ module OpencBot
     end
 
     def db_name
-      self.class.name.split(':')[-1].downcase
+      @name
     end
 
     # this is done with a file, rather than SQL, for speed reasons
@@ -111,9 +112,8 @@ module OpencBot
       sqlite_magic_connection.execute("COMMIT")
     end
 
-    def initialize(opts={})
-      @rows_count = 0
-      super(opts)
+    def initialize(name, opts={})
+      super(name, opts)
       query = "CREATE TABLE IF NOT EXISTS #{ITEMS_TABLE} (#{opts[:fields].join(',')}, _id INTEGER PRIMARY KEY)"
       sqlite_magic_connection.execute query
       query = "CREATE UNIQUE INDEX IF NOT EXISTS #{opts[:fields].join('_')} " +

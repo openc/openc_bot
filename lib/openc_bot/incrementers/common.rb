@@ -1,10 +1,10 @@
 module OpencBot
   class NumericIncrementer < OpencBot::BaseIncrementer
-    def initialize(opts={})
+    def initialize(name, opts={})
       raise "You must specify an end_val for a NumericIncrementer" if ! opts[:end_val]
       @start_val = opts[:start_val] || 0
       @end_val = opts[:end_val]
-      super(opts)
+      super(name, opts)
     end
 
     def increment_yielder
@@ -21,15 +21,17 @@ module OpencBot
   end
 
   class AsciiIncrementer < OpencBot::BaseIncrementer
-    def initialize(opts={})
+    def initialize(name, opts={})
       @size = opts[:size] || 3
-      super(opts)
+      super(name, opts)
     end
 
     def increment_yielder
-      alnum = (10...36).map{|i|i.to_s 36} # 0...z
+      alnum = (0...36).map{|i|i.to_s 36} # 0...z
       all_perms = alnum.repeated_permutation(@size)
       case @size
+      when 1
+        @expected_count = 36
       when 2
         @expected_count = 1296
       when 3
