@@ -1,0 +1,21 @@
+# This is a short description of the kind of data the bot handles.
+description: ''
+
+# This is your confidence, between 0 and 100, in the accuracy of the data
+# provided by the data source.  It is suggested that you do not change this
+# without first discussing with OpenCorporates.
+default_confidence: 80
+
+# Don't change this.  OpenCorporates will bump this version number when the bot
+# is running in production.
+version: 0
+
+# the frequency that updates may happen at the source. One of daily,
+# weekly, monthly or yearly
+frequency: monthly
+
+# If this flag is true, our deployment script will set up the bot to
+# be run on OpenCorporates servers (specifically, deploy the bot and
+# allow it to be executed from the data pipeline). Please don't change
+# this; we'll change it when we're ready to test the bot.
+enabled: false

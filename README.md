@@ -14,28 +14,32 @@ cd your_bot_name
 curl -s https://raw.github.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
 ```
 
-The default bot scrapes a dummy page on OpenCorporates'
-website. Once you've set it up, you can try:
+The default bot doesn't scrape, it just outputs some dummy data. You can try:
 
 * running the scrape with `bundle exec openc_bot rake bot:run`
 * testing the validity of the data it will output with
   `bundle exec openc_bot rake bot:test`
 
-Finally, take a look at the bot code created at
+Take a look at the bot code created at
 `your_bot_name/lib/your_bot_name.rb` and read the comments there to
-start writing your own bot.  First, get it scraping correctly (which
-you can test by repeatedly running `bin/fetch_data`); second,
-transform the scraped data correctly (which you can test with
-`bin/verify_data`). You can write bots for any schemas we have
-defined - see [SCHEMAS.md](./doc/SCHEMAS.md) for currently supported
-schemas.
+start writing your own bot.  Look at the example bots in the
+`examples/` folder for inspiration, including how to scrape from a
+website, and how to use "incrementers" to help with resumable,
+incremental scrapes (see below for more).
+
+These bots are all runnable; you should be able to `cd` to their
+directory, run `bundle install`, and then `bundle exec openc_bot rake
+bot:run`
+
+You can write bots for any schemas we have defined
+- see [SCHEMAS.md](./doc/SCHEMAS.md) for currently supported schemas.
 
 When you are happy that your bot is finished, please update its
 `README.md`, change the `enabled` flag in `config.yml` to be `true`,
 and email us.
 
 Please note that dates are a bit complicated, so we ask you to read
-the notes below carefully.
+the bit about dates below carefully.
 
 ## About fetching and transforming data
 
@@ -191,6 +195,7 @@ and restart unless told otherwise.
 
     def fetch_all_records(opts={})
         counter = NumericIncrementer.new(
+          :my_incrementer,
           opts.merge(
               :start_val => 0,
               :end_val => 20))
@@ -216,7 +221,9 @@ This will restrict all iterators to a maximum of three iterations.
 There's also an incrementer which you can manually fill with records
 (arbitrary hashes), thus:
 
-    incrementer =  OpencBot::ManualIncrementer.new(opts.merge(:fields => [:num]))
+    incrementer =  OpencBot::ManualIncrementer.new(
+        :my_incrementer,
+        opts.merge(:fields => [:num]))
 
     (0..10).each do |num|
         incrementer.add_row({'num' => num})
@@ -237,3 +244,6 @@ been done:
         end
     end
     incrementer.populated = true
+
+There are examples of how this can work in
+`examples/bot_with_simple_iterator`.
