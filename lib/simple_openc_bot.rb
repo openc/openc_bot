@@ -51,9 +51,12 @@ class SimpleOpencBot
       sqlite_magic_connection.add_columns(
         'ocdata', [:_last_exported_at, :_last_updated_at])
     end
+    # NB #save_run_report saves a timestamp called :run_at, so :completed_at is redundant.
+    # Probably should either remove or replace with another datapoint, e.g. started_at
     save_run_report(:status => 'success', :completed_at => Time.now)
   end
 
+  # should this be a method in sqlite_magic gem?
   def check_unique_index(record_class)
     indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
     db_unique_fields = indexes.map do |i|
