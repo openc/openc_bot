@@ -150,7 +150,7 @@ module OpencBot
 
     def populated=(val)
       if val && val == "true" || val == true
-        save_sqlite([], {:populated => "true"}, "misc")
+        save_sqlite([:populated], {:populated => "true"}, "misc")
       end
     end
 
