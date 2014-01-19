@@ -12,6 +12,7 @@ module OpencBot
 
   include ScraperWiki
 
+  # What's this for?
   def thing_from_openc_bot
     puts "ribbit"
   end
