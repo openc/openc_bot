@@ -44,18 +44,22 @@ class SimpleOpencBot
     saves_count = 0
     batch_size = opts[:test_mode] ? 1 : 500
     record_enumerator.each_slice(batch_size) do |records|
-      sqlite_magic_connection.execute("BEGIN TRANSACTION")
-      records.each do |record|
-        insert_or_update(record.class.unique_fields,
-          record.to_hash)
-        saves_count += 1
-        if saves_count == 1
-          check_unique_index(_yields[0])
+      begin
+        sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        records.each do |record|
+          insert_or_update(record.class.unique_fields,
+            record.to_hash)
+          saves_count += 1
+          if saves_count == 1
+            check_unique_index(_yields[0])
+          end
+          STDOUT.print(".")
+          STDOUT.flush
         end
-        STDOUT.print(".")
-        STDOUT.flush
+      rescue
+      ensure
+        sqlite_magic_connection.execute("COMMIT")
       end
-      sqlite_magic_connection.execute("COMMIT")
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
     saves_count
