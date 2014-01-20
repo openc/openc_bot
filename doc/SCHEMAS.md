@@ -35,6 +35,9 @@ The format your bot is expected to produce for a Financial Licence is:
     :source_url
         required
         a string of the URL of the data
+    :source_jurisdiction
+        optional
+        The jurisdiction that is responsible for the source
     :data
         required
         an array with a single hash, with the following keys:
@@ -97,6 +100,10 @@ influence.
     :source_url
         required
         a string of the URL of the data
+    :source_jurisdiction
+        optional
+        The jurisdiction that is responsible for the source
+
     :data
         required
         an array with a single hash, with the following keys:
@@ -170,6 +177,9 @@ environmental, etc)
     :source_url
         required
         a string of the URL of the data
+    :source_jurisdiction
+        optional
+        The jurisdiction that is responsible for the source
     :data
         required
         an array with a single hash, with the following keys:
