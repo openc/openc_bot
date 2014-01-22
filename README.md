@@ -181,14 +181,17 @@ at urls like http://foo.com/?page=1, http://foo.com/?page=2, etc.
 Another common use case is where you can only access records with a
 search. In these cases, there's no alternative except to search for
 all the possible permutations of the letters A-Z and numbers 0-9 (in
-the case of ASCII searchable databases).
+the case of ASCII-searchable databases).
 
 In the latter case, this is 46656 different possible
 permutations. This will take a long time to scrape. If for some reason
 the scraper gets interrupted, you don't want to have to start again.
 
 We provide some convenience iterators, which save their current state,
-and restart unless told otherwise.
+and restart unless told otherwise. They are probably not worth using for 
+small scrapes (e.g. ones that take 10 mins) as they add to the complexity 
+of your code; however, they are invaluable for large scrapes that may well 
+get interrupted.
 
     # currently provides a NumericIncrementer and an AsciiIncrementer:
     require 'openc_bot/incrementers'
