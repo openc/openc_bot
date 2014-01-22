@@ -19,6 +19,7 @@ The default bot doesn't scrape, it just outputs some dummy data. You can try:
 * running the scrape with `bundle exec openc_bot rake bot:run`
 * testing the validity of the data it will output with
   `bundle exec openc_bot rake bot:test`
+* viewing a sample of the data with `bundle exec openc_bot rake bot:spotcheck`
 
 Take a look at the bot code created at
 `your_bot_name/lib/your_bot_name.rb` and read the comments there to
