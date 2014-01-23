@@ -7,7 +7,7 @@
     "jurisdiction": { "type": "string" },
     "identifier": {
       "type": "string",
-      "pattern": "^[^/]/[^/]+$"
+      "pattern": "^[^/]+/[^/]+$"
     }
   },
   "required": [ "name", "jurisdiction" ]
