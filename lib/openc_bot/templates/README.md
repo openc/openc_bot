@@ -15,6 +15,7 @@ OpenCorporates)?
 instructions on how to find one.
 * Provide references, if possible, to where the meanings of the fields
 are defined.
+* Found any interesting bits of data while debugging? Mention them here!
 
 ### Data exported
 
