@@ -103,6 +103,10 @@ namespace :bot do
           " (may specify multiple times; refer to bot for its unique_fields)") do |val|
           options[:specific_ids] << val
         end
+        opts.on("-a", "--all",
+          "Export everything (default is only to export data that has changed since last export)") do |val|
+          options[:all] = true
+        end
       end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)

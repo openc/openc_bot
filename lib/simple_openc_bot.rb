@@ -130,7 +130,12 @@ class SimpleOpencBot
     Enumerator.new do |yielder|
       b = 1
       loop do
-        batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
+        if opts[:all]
+          break if b > 1
+          batch = all_stored_records
+        else
+          batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
+        end
         break if batch.empty?
         updates = {}
         batch.map do |record|
