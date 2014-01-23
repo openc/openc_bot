@@ -11,7 +11,7 @@ To start writing a new bot, run the following to create a skeleton bot:
 ```bash
 mkdir your_bot_name
 cd your_bot_name
-curl -s https://raw.github.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
+curl -s https://raw.github.com/openc/openc_bot/enumerators-and-iterators/create_simple_licence_bot.sh | bash
 ```
 
 The default bot doesn't scrape, it just outputs some dummy data. You can try:
@@ -19,6 +19,7 @@ The default bot doesn't scrape, it just outputs some dummy data. You can try:
 * running the scrape with `bundle exec openc_bot rake bot:run`
 * testing the validity of the data it will output with
   `bundle exec openc_bot rake bot:test`
+* viewing a sample of the data with `bundle exec openc_bot rake bot:spotcheck`
 
 Take a look at the bot code created at
 `your_bot_name/lib/your_bot_name.rb` and read the comments there to
@@ -181,14 +182,17 @@ at urls like http://foo.com/?page=1, http://foo.com/?page=2, etc.
 Another common use case is where you can only access records with a
 search. In these cases, there's no alternative except to search for
 all the possible permutations of the letters A-Z and numbers 0-9 (in
-the case of ASCII searchable databases).
+the case of ASCII-searchable databases).
 
 In the latter case, this is 46656 different possible
 permutations. This will take a long time to scrape. If for some reason
 the scraper gets interrupted, you don't want to have to start again.
 
 We provide some convenience iterators, which save their current state,
-and restart unless told otherwise.
+and restart unless told otherwise. They are probably not worth using for 
+small scrapes (e.g. ones that take 10 mins) as they add to the complexity 
+of your code; however, they are invaluable for large scrapes that may well 
+get interrupted.
 
     # currently provides a NumericIncrementer and an AsciiIncrementer:
     require 'openc_bot/incrementers'

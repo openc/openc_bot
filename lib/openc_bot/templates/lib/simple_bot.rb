@@ -43,7 +43,7 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
         properties: {
           jurisdiction_code: "xx",
           category: 'Financial',
-          jurisdiction_classification: [jurisdiction_classification],
+          jurisdiction_classification: [type],
         }
       }]
     }
