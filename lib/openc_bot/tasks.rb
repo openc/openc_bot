@@ -1,5 +1,6 @@
 require 'simple_openc_bot'
 require 'optparse'
+require 'json'
 
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
@@ -123,6 +124,88 @@ namespace :bot do
       runner = callable_from_file_name(bot_name)
       runner.spotcheck
     end
+  end
+
+  desc 'Summarise data for quality checking (only works for licences at the moment)'
+  task :summarise_data do
+    def as_sorted_hash(name, data)
+      title = "#{name} counts:"
+      puts title
+      puts "-" * title.length
+      grouped = Hash[*data.group_by{|i| i}.map{|k,v| [k, v.count] }.flatten]
+      hash = grouped.sort_by do |k, v|
+        v
+      end
+      hash.each do |k, v|
+        printf("%-60s %10s\n", k, v)
+      end
+      puts
+    end
+
+    def as_longest_and_shortest(name, data)
+      sorted = data.sort_by do |n|
+        n.length
+      end
+      puts
+      title = "shortest 5 #{name}"
+      puts title
+      puts "-" * title.length
+      puts sorted[0..5]
+      puts
+      title = "longest 5 #{name}"
+      puts title
+      puts "-" * title.length
+      puts sorted[-5..-1]
+      puts
+    end
+
+    def main
+      #result = open("foo", "r").read
+      result = `bundle exec openc_bot rake bot:export -- -a`
+      jurisdictions = []
+      names = []
+      start_dates = []
+      end_dates = []
+      sample_dates = []
+      licence_numbers = []
+      jurisdiction_classifications = []
+      result.split(/\r?\n/).each do |line|
+        line = JSON.parse(line)
+        jurisdictions << line["company"]["jurisdiction"]
+        names << line["company"]["name"]
+        start_dates << line["start_date"]
+        end_dates << line["end_date"]
+        sample_dates << line["sample_date"]
+        licence_numbers << line["data"][0]["properties"]["licence_number"]
+        jurisdiction_classifications << line["data"][0]["properties"]["jurisdiction_classification"]
+      end
+
+      # This could be a histogram:
+      as_sorted_hash("[company][jurisdiction]", jurisdictions)
+
+      # This could be a list of the longest and shortest names:
+      as_longest_and_shortest("[company][name]s", names)
+
+      # earliest start date and latest start date and sample dates
+      start_dates = start_dates.compact.sort
+      end_dates = end_dates.compact.sort
+      sample_dates = sample_dates.compact.sort
+      puts
+      puts "Dates"
+      puts "-----"
+      printf("%-22s %10s\n", "Earliest start_date:", start_dates.first)
+      printf("%-22s %10s\n", "Earliest end_date:", end_dates.first)
+      printf("%-22s %10s\n", "Earliest sample_date:", end_dates.first)
+      printf("%-22s %10s\n", "Latest start_date:", start_dates.last)
+      printf("%-22s %10s\n", "Latest end_date:", end_dates.last)
+      printf("%-22s %10s\n", "Latest sample_date:", sample_dates.last)
+
+      as_longest_and_shortest("licence numbers", licence_numbers)
+      as_sorted_hash("jurisdiction_classifications", jurisdiction_classifications)
+    end
+
+    main()
+
   end
 
   desc 'Lint old-style bots'
