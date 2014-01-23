@@ -4,7 +4,11 @@
   "type": "object",
   "properties": {
     "name": { "type": "string" },
-    "jurisdiction": { "type": "string" }
+    "jurisdiction": { "type": "string" },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    }
   },
   "required": [ "name", "jurisdiction" ]
 }

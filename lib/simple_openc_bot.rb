@@ -1,23 +1,17 @@
 require 'active_support/core_ext'
 require 'openc_bot'
 require 'json-schema'
-
-# This class converts a method which yields values into something that can be
-# iterated over with `.each`.
-class EnumeratorFromYielder
-  include Enumerable
-
-  def initialize(yielder)
-    @yielder = yielder
-  end
-
-  def each
-    @yielder.call {|item| yield item }
-  end
-end
+require 'openc_bot/incrementers'
 
 class SimpleOpencBot
   include OpencBot
+
+  class_attribute :_yields
+
+  def self.yields(*fields)
+    raise "We currently only support one Record type per bot" if fields.count > 1
+    self._yields = fields
+  end
 
   def self.inherited(obj)
     path, = caller[0].partition(":")
@@ -32,26 +26,43 @@ class SimpleOpencBot
   end
 
   def update_data(opts={})
-    saves_by_class = {}
-    fetch_records(opts).each_slice(500) do |records|
-      sqlite_magic_connection.execute("BEGIN TRANSACTION")
-      records.each do |record|
-        insert_or_update(record.class.unique_fields,
-          record.to_hash)
-        saves_by_class[record.class] ||= 0
-        saves_by_class[record.class] += 1
-        if saves_by_class[record.class] == 1
-          check_unique_index(record.class)
+    if opts[:specific_ids].empty?
+      # fetch everything
+      record_enumerator = Enumerator.new do |yielder|
+        fetch_all_records(opts) do |result|
+          yielder.yield(result)
         end
       end
-      sqlite_magic_connection.execute("COMMIT")
+    else
+      # fetch records with specified ids
+      record_enumerator = Enumerator.new do |yielder|
+        fetch_specific_records(opts) do |result|
+          yielder.yield(result)
+        end
+      end
     end
-    if !saves_by_class.empty?
-      # ensure there's internally-used columns
-      sqlite_magic_connection.add_columns(
-        'ocdata', [:_last_exported_at, :_last_updated_at])
+    saves_count = 0
+    batch_size = opts[:test_mode] ? 1 : 500
+    record_enumerator.each_slice(batch_size) do |records|
+      begin
+        sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        records.each do |record|
+          insert_or_update(record.class.unique_fields,
+            record.to_hash)
+          saves_count += 1
+          if saves_count == 1
+            check_unique_index(_yields[0])
+          end
+          STDOUT.print(".")
+          STDOUT.flush
+        end
+      rescue
+      ensure
+        sqlite_magic_connection.execute("COMMIT")
+      end
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
+    saves_count
   end
 
   def check_unique_index(record_class)
@@ -59,20 +70,24 @@ class SimpleOpencBot
     db_unique_fields = indexes.map do |i|
       next if i["unique"] != 1
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
-      info[0]["name"]
+      info.map{|x| x["name"]}
     end.compact
     record_unique_fields = record_class.unique_fields.map(&:to_s)
-    if !(record_unique_fields - db_unique_fields).empty?
+    if !db_unique_fields.include?(record_unique_fields)
       sqlite_magic_connection.execute("ROLLBACK")
-      error = "Unique fields #{record_unique_fields} are not unique indices in `ocdata` table!"
-      error += "\nThis is usually because the value of unique_fields has changed since the table was automatically created."
+      error = "Unique fields #{record_unique_fields} are not a unique index in `ocdata` table!"
+      error += "\nThis is usually because the value of unique_field has changed since the table was automatically created."
       error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
       raise error
     end
   end
 
   def count_stored_records
+    begin
     sqlite_magic_connection.execute("select count(*) as count from ocdata").first["count"]
+    rescue SqliteMagic::NoSuchTable
+      0
+    end
   end
 
   def all_stored_records(opts={})
@@ -84,10 +99,16 @@ class SimpleOpencBot
     select_records(sql)
   end
 
-  def unexported_stored_records
-    select_records("ocdata.* from ocdata "\
-                   "WHERE _last_exported_at IS NULL "\
-                   "OR _last_exported_at < _last_updated_at")
+  def unexported_stored_records(opts={})
+    sql = "ocdata.* from ocdata "\
+      "WHERE (_last_exported_at IS NULL "\
+      "OR _last_exported_at < _last_updated_at)"
+    if !opts[:specific_ids].empty?
+      ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
+      sql += " AND #{_yields[0].unique_field} IN (#{ids})"
+    end
+    sql += " LIMIT #{opts[:batch]}" if opts[:batch]
+    select_records(sql)
   end
 
   def spotcheck_records(limit = 5)
@@ -100,24 +121,37 @@ class SimpleOpencBot
     select(sql).map { |record| record['_type'].constantize.new(record) }
   end
 
-  def export_data
-    EnumeratorFromYielder.new(method(:yield_export_data))
-  end
-
-  def yield_export_data
-    loop do
-      batch = unexported_stored_records
-      break if batch.empty?
-      updates = {}
-      batch.map do |record|
-        pipeline_data = record.to_pipeline
-        updates[record.class.name] ||= []
-        updates[record.class.name] << record.to_hash.merge(
-          :_last_exported_at => Time.now.iso8601(2))
-        yield pipeline_data
-      end
-      updates.each do |k, v|
-        save_data(k.constantize.unique_fields, v)
+  def export_data(opts={})
+    begin
+      sqlite_magic_connection.add_columns(
+        'ocdata', [:_last_exported_at, :_last_updated_at])
+    rescue SQLite3::SQLException
+    end
+    Enumerator.new do |yielder|
+      b = 1
+      loop do
+        if opts[:all]
+          break if b > 1
+          batch = all_stored_records
+        else
+          batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
+        end
+        break if batch.empty?
+        updates = {}
+        batch.map do |record|
+          pipeline_data = record.to_pipeline
+          next if pipeline_data.nil?
+          updates[record.class.name] ||= []
+          updates[record.class.name] << record.to_hash.merge(
+            :_last_exported_at => Time.now.iso8601(2))
+          yielder << pipeline_data
+        end
+        sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        updates.each do |k, v|
+          save_data(k.constantize.unique_fields, v)
+        end
+        sqlite_magic_connection.execute("COMMIT")
+        b += 1
       end
     end
   end
@@ -142,7 +176,7 @@ class SimpleOpencBot
 
 
   class BaseLicenceRecord
-    class_attribute :_store_fields, :_unique_fields, :_type, :_schema
+    class_attribute :_store_fields, :_type, :_schema, :_unique_fields
 
     def self.store_fields(*fields)
       self._store_fields ||= []
@@ -208,17 +242,19 @@ class SimpleOpencBot
     # return a structure including errors if invalid; otherwise return nil
     def errors
       data = self.to_pipeline
-      if !self._schema
-        # backwards compatibility
-        self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
-      end
-      errors = JSON::Validator.fully_validate(
-        self._schema,
-        data.to_json,
-        {:errors_as_objects => true})
-      if !errors.empty?
-        data[:errors] = errors
-        data
+      if data
+        if !self._schema
+          # backwards compatibility
+          self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
+        end
+        errors = JSON::Validator.fully_validate(
+          self._schema,
+          data.to_json,
+          {:errors_as_objects => true})
+        if !errors.empty?
+          data[:errors] = errors
+          data
+        end
       end
     end
   end

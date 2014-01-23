@@ -1,4 +1,6 @@
 require 'simple_openc_bot'
+require 'optparse'
+require 'json'
 
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
@@ -57,27 +59,60 @@ namespace :bot do
   end
 
   desc 'Get data from target'
-  task :run, :test_mode do |t, args|
-    only_process_running('run') do
+  task :run do |t, args|
+    only_process_running(t.name) do
+      options = {}
+      options[:specific_ids] = []
+      options[:reset_iterator] = false
+      OptionParser.new(args) do |opts|
+        opts.banner = "Usage: rake #{t.name} -- [options]"
+        opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
+          "Identifier of specific record to fetch",
+          " (may specify multiple times; refer to bot for its unique_fields)") do |val|
+          options[:specific_ids] << val
+        end
+        opts.on("-t", "--test-mode",
+          "Pass 'test' flag to bot") do |val|
+          options[:test_mode] = true
+        end
+        opts.on("-r", "--reset",
+          "Don't resume incremental bots; reset and start from the beginning") do |val|
+          options[:reset_iterator] = true
+        end
+        opts.on("-m", "--max-iterations MAX_ITERATIONS",
+          "Exit all iterators after MAX_ITERATIONS iterations. Useful for debugging.") do |val|
+          options[:max_iterations] = val.to_i
+        end
+      end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      if runner.is_a?(SimpleOpencBot)
-        runner.update_data(:test_mode => !!args[:test_mode])
-        puts "Got #{runner.count_stored_records} records"
-      else
-        runner.update_data
-      end
+      count = runner.update_data(options)
+      puts "Got #{count} records"
     end
   end
 
   desc 'Export data to stdout'
-  task :export do
-    only_process_running('export') do
+  task :export do |t, args|
+    only_process_running(t.name) do
+      options = {}
+      options[:specific_ids] = []
+      OptionParser.new(args) do |opts|
+        opts.banner = "Usage: rake #{t.name} -- [options]"
+        opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
+          "Identifier of specific record to export",
+          " (may specify multiple times; refer to bot for its unique_fields)") do |val|
+          options[:specific_ids] << val
+        end
+        opts.on("-a", "--all",
+          "Export everything (default is only to export data that has changed since last export)") do |val|
+          options[:all] = true
+        end
+      end.parse!
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
-      runner.export
+      runner.export(options)
     end
   end
 
@@ -89,6 +124,141 @@ namespace :bot do
       runner = callable_from_file_name(bot_name)
       runner.spotcheck
     end
+  end
+
+  desc 'Summarise data for quality checking (only works for licences at the moment)'
+  task :summarise_data do
+    def as_sorted_hash(name, data)
+      title = "#{name} counts:"
+      puts title
+      puts "-" * title.length
+      grouped = Hash[*data.group_by{|i| i}.map{|k,v| [k, v.count] }.flatten]
+      hash = grouped.sort_by do |k, v|
+        v
+      end
+      hash.each do |k, v|
+        printf("%-60s %10s\n", k, v)
+      end
+      puts
+    end
+
+    def as_longest_and_shortest(name, data)
+      sorted = data.compact.sort_by do |n|
+        n.length
+      end
+      puts
+      title = "shortest 5 #{name}"
+      puts title
+      puts "-" * title.length
+      puts sorted[0..5]
+      puts
+      title = "longest 5 #{name}"
+      puts title
+      puts "-" * title.length
+      puts sorted[-5..-1]
+      puts
+    end
+
+    def main
+      #result = open("foo", "r").read
+      result = `bundle exec openc_bot rake bot:export -- -a`
+      jurisdictions = []
+      names = []
+      start_dates = []
+      end_dates = []
+      sample_dates = []
+      licence_numbers = []
+      jurisdiction_classifications = []
+      result.split(/\r?\n/).each do |line|
+        line = JSON.parse(line)
+        jurisdictions << line["company"]["jurisdiction"]
+        names << line["company"]["name"]
+        start_dates << line["start_date"]
+        end_dates << line["end_date"]
+        sample_dates << line["sample_date"]
+        licence_numbers << line["data"][0]["properties"]["licence_number"]
+        jurisdiction_classifications << line["data"][0]["properties"]["jurisdiction_classification"]
+      end
+
+      # This could be a histogram:
+      as_sorted_hash("[company][jurisdiction]", jurisdictions)
+
+      # This could be a list of the longest and shortest names:
+      as_longest_and_shortest("[company][name]s", names)
+
+      # earliest start date and latest start date and sample dates
+      start_dates = start_dates.compact.sort
+      end_dates = end_dates.compact.sort
+      sample_dates = sample_dates.compact.sort
+      puts
+      puts "Dates"
+      puts "-----"
+      printf("%-22s %10s\n", "Earliest start_date:", start_dates.first)
+      printf("%-22s %10s\n", "Earliest end_date:", end_dates.first)
+      printf("%-22s %10s\n", "Earliest sample_date:", end_dates.first)
+      printf("%-22s %10s\n", "Latest start_date:", start_dates.last)
+      printf("%-22s %10s\n", "Latest end_date:", end_dates.last)
+      printf("%-22s %10s\n", "Latest sample_date:", sample_dates.last)
+
+      as_longest_and_shortest("licence numbers", licence_numbers)
+      as_sorted_hash("jurisdiction_classifications", jurisdiction_classifications)
+    end
+
+    main()
+
+  end
+
+  desc 'Lint old-style bots'
+  task :lint do
+    bot_name = get_bot_name
+    require_relative File.join(Dir.pwd,'lib', bot_name)
+    runner = callable_from_file_name(bot_name)
+    messages = []
+    if runner.method(:export_data).arity == 0
+      messages <<  "export_data method must accept a hash as a single argument (e.g. `export_data(opts={})`"
+    end
+
+    if runner.is_a? SimpleOpencBot
+      if !runner.respond_to? "fetch_all_records"
+        messages <<  "You must rename fetch_records -> fetch_all_records."
+      end
+
+      full_source = File.open(File.join(Dir.pwd,'lib', bot_name) + ".rb").read
+      if !full_source.match("^\s+yields")
+        messages << <<EOF
+You must call the `yields` class method with the class
+of the Records you're returning. For example:
+
+    class FooLicenses < SimpleOpencBot
+        yields FooLicensesRecord
+
+EOF
+      end
+
+      # fetch_all_methods must yield rather than return
+      if runner.respond_to? "fetch_all_records"
+        source, line = runner.method(:fetch_all_records).source_location
+        count = 0
+        found = false
+        File.foreach(source, "\n") do |l|
+          count += 1
+          next if count < line + 1
+
+          if l.match("^\s+yield")
+            found = true
+            break
+          end
+          break if l.match("^\s+def")
+        end
+        messages << "fetch_all_records must `yield` single records (rather than returning an array)" if !found
+      end
+    end
+    messages.each_with_index do |m, i|
+      puts "#{i + 1}:"
+      puts m
+      puts "------------"
+    end
+    puts "No problems!" if messages.empty?
   end
 
   task :test do
