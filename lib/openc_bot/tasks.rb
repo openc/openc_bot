@@ -143,7 +143,7 @@ namespace :bot do
     end
 
     def as_longest_and_shortest(name, data)
-      sorted = data.sort_by do |n|
+      sorted = data.compact.sort_by do |n|
         n.length
       end
       puts
