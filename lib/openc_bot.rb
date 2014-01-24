@@ -3,7 +3,6 @@ require 'openc_bot/version'
 require 'json'
 require 'scraperwiki'
 require_relative 'openc_bot/bot_data_validator'
-require_relative 'openc_bot/helpers/incremental_search'
 
 module OpencBot
 

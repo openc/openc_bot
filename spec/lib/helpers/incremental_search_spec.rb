@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require_relative '../../spec_helper'
 require 'openc_bot'
+require 'openc_bot/helpers/incremental_search'
 
 module ModuleThatIncludesIncrementalSearch
   extend OpencBot
