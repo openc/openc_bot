@@ -16,7 +16,7 @@ module MyModule
     sql_query = "ocdata.* from ocdata"
     select(sql_query).collect do |raw_datum|
       # raw_datum will be a Hash of field names (as symbols) for the keys and the values for each field.
-      # It should be converted to the format necessary for importing into OpenCorporates by using a 
+      # It should be converted to the format necessary for importing into OpenCorporates by using a
       # prepare_for_export method.
       prepare_for_export(raw_datum)
     end
@@ -28,14 +28,14 @@ module MyModule
   end
 
   def update_data
-    # write code here (using other methods if necessary) for 
-    # updating your local database with data from the source 
+    # write code here (using other methods if necessary) for
+    # updating your local database with data from the source
     # that you are scraping or fetching from
     #
     # # See https://github.com/openc/openc_bot README for details
     # save_data([:uid,:date], my_data, sometablename)
     #
-    # After updating the data you should run save_run_report, which 
+    # After updating the data you should run save_run_report, which
     # saves the status (and other data, if applicable)
     save_run_report(:status => 'success')
   end

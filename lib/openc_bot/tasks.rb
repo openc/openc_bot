@@ -71,6 +71,18 @@ namespace :bot do
     end
   end
 
+  desc 'Run bot, but just for record with given uid'
+  task :run_for_uid, :uid do |t, args|
+    only_process_running('run_for_uid') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      runner = callable_from_file_name(bot_name)
+      # this should output the updated json data for the given uid to
+      # STDOUT, as well as updating local database, when passed true as second argument
+      runner.update_datum(args[:uid], true)
+    end
+  end
+
   desc 'Export data to stdout'
   task :export do
     only_process_running('export') do
