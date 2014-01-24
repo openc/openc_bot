@@ -1,13 +1,10 @@
 # encoding: UTF-8
 require_relative '../../spec_helper'
 require 'openc_bot'
-# require_relative '../lib/incremental_search_methods'
-# require 'active_support/core_ext'
-
 
 module ModuleThatIncludesIncrementalSearch
   extend OpencBot
-  extend IncrementalSearch
+  extend OpencBot::Helpers::IncrementalSearch
 end
 
 describe 'a module that includes IncrementalSearch' do
