@@ -5,8 +5,7 @@ module OpencBot
     module IncrementalSearch
 
       def datum_exists?(uid)
-        # TODO: Remove hard-coded references to table name and uid field name (i.e. company_number)
-        !!select("ocdata.company_number FROM ocdata WHERE company_number = '?' LIMIT 1", uid).first
+        !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = '?' LIMIT 1", uid).first
       end
 
       # Gets new records using an incremental search
@@ -36,11 +35,11 @@ module OpencBot
 
       def highest_entry_uid_result(options={})
         if options[:prefix]
-          sql_query = ["ocdata.company_number FROM ocdata WHERE company_number LIKE ? ORDER BY cast(substr(company_number,?) as real) DESC LIMIT 1", ["#{options[:prefix]}%", options[:prefix].length + 1]]
+          sql_query = ["ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} LIKE ? ORDER BY cast(substr(#{primary_key_name},?) as real) DESC LIMIT 1", ["#{options[:prefix]}%", options[:prefix].length + 1]]
         else
-          sql_query = "ocdata.company_number FROM ocdata ORDER BY cast(company_number as real) DESC LIMIT 1"
+          sql_query = "ocdata.#{primary_key_name} FROM ocdata ORDER BY cast(#{primary_key_name} as real) DESC LIMIT 1"
         end
-        select(*sql_query).first['company_number']# rescue nil
+        select(*sql_query).first[primary_key_name.to_s]# rescue nil
       rescue SqliteMagic::NoSuchTable
         # first run, so no table or database yet
         return "#{options[:prefix]}0"
@@ -98,12 +97,15 @@ module OpencBot
         self.const_defined?('MAX_FAILED_COUNT') ? self.const_get('MAX_FAILED_COUNT') : 10
       end
 
+      def primary_key_name
+        self.const_defined?('PRIMARY_KEY_NAME') ? self.const_get('PRIMARY_KEY_NAME') : :uid
+      end
+
       def stale_entry_uids(stale_count=nil)
-        # TODO: refine this query so company_number field_name, stale date, default stale count are not hard-coded
         stale_count ||= 1000
         sql_query = "ocdata.* from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - 30}') LIMIT #{stale_count.to_i}"
         raw_data = select(sql_query).each do |res|
-          yield res['company_number']
+          yield res[primary_key_name.to_s]
         end
       end
 
@@ -127,8 +129,7 @@ module OpencBot
         # prepare the data for saving (converting Arrays, Hashes to json) and save the original json too
         # as we're not extracting everything from it yet
         data_to_be_saved = prepare_for_saving(processed_data).merge(:data => json_data)
-        # TODO: Remove hard-coded reference to company_number
-        save_data([:company_number], data_to_be_saved)
+        save_data([primary_key_name], data_to_be_saved)
         if output_as_json
           puts processed_data.to_json
         else

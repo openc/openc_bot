@@ -6,6 +6,12 @@ require 'openc_bot/helpers/incremental_search'
 module ModuleThatIncludesIncrementalSearch
   extend OpencBot
   extend OpencBot::Helpers::IncrementalSearch
+  PRIMARY_KEY_NAME = :custom_uid
+end
+
+module ModuleWithNoCustomPrimaryKey
+  extend OpencBot
+  extend OpencBot::Helpers::IncrementalSearch
 end
 
 describe 'a module that includes IncrementalSearch' do
@@ -201,13 +207,13 @@ describe 'a module that includes IncrementalSearch' do
     end
 
     it "should select_data from database" do
-      expected_sql_query = "ocdata.company_number FROM ocdata WHERE company_number = '?' LIMIT 1"
+      expected_sql_query = "ocdata.custom_uid FROM ocdata WHERE custom_uid = '?' LIMIT 1"
       ModuleThatIncludesIncrementalSearch.should_receive(:select).with(expected_sql_query, '4567').and_return([])
       ModuleThatIncludesIncrementalSearch.datum_exists?('4567')
     end
 
     it "should return true if result returned" do
-      ModuleThatIncludesIncrementalSearch.stub(:select).and_return([{'company_number' => '4567'}])
+      ModuleThatIncludesIncrementalSearch.stub(:select).and_return([{'custom_uid' => '4567'}])
 
       ModuleThatIncludesIncrementalSearch.datum_exists?('4567').should be_true
     end
@@ -225,6 +231,16 @@ describe 'a module that includes IncrementalSearch' do
     it 'should return value if INCREMENTAL_REWIND_COUNT set' do
       stub_const("ModuleThatIncludesIncrementalSearch::INCREMENTAL_REWIND_COUNT", 42)
       ModuleThatIncludesIncrementalSearch.send(:incremental_rewind_count).should == ModuleThatIncludesIncrementalSearch::INCREMENTAL_REWIND_COUNT
+    end
+  end
+
+  describe '#primary_key_name' do
+    it 'should return :uid if PRIMARY_KEY_NAME not set' do
+      ModuleWithNoCustomPrimaryKey.send(:primary_key_name).should == :uid
+    end
+
+    it 'should return value if PRIMARY_KEY_NAME set' do
+      ModuleThatIncludesIncrementalSearch.send(:primary_key_name).should == :custom_uid
     end
   end
 
@@ -371,7 +387,7 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.highest_entry_uids
       end
 
-      it 'should return highest company_number for jurisdiction_code' do
+      it 'should return highest uid for jurisdiction_code' do
         ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uid_result).with(:prefix => 'H').and_return('H553311')
         ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uid_result).with(:prefix => 'P').and_return('P12345')
         ModuleThatIncludesIncrementalSearch.highest_entry_uids.should == ['H553311', 'P12345']
@@ -389,7 +405,7 @@ describe 'a module that includes IncrementalSearch' do
       end
     end
 
-    context 'and highest_company_number in cache' do
+    context 'and highest_uid in cache' do
       before do
         @cached_result = '765432'
         ModuleThatIncludesIncrementalSearch.save_var('highest_entry_uids', @cached_result)
@@ -400,7 +416,7 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.highest_entry_uids
       end
 
-      it 'should return cached highest_company_number' do
+      it 'should return cached highest_entry_uid' do
         ModuleThatIncludesIncrementalSearch.highest_entry_uids.should == @cached_result
       end
 
@@ -422,25 +438,25 @@ describe 'a module that includes IncrementalSearch' do
   describe '#highest_entry_uid_result' do
     context "in general" do
       before do
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '99999')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '5234888')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '9234567')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'A094567')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'A234567')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'SL34567')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'SL34999')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'H9999')
-        ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '5234567')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '99999')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '5234888')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '9234567')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'A094567')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'A234567')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'SL34567')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'SL34999')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'H9999')
+        ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '5234567')
       end
 
       context 'and no options passed' do
-        it 'should return highest company_number as number for jurisdiction_code' do
+        it 'should return highest uid as number for jurisdiction_code' do
           ModuleThatIncludesIncrementalSearch.highest_entry_uid_result.should == '9234567'
         end
       end
 
       context 'and prefix passed in options' do
-        it 'should return highest company_number as number for jurisdiction_code' do
+        it 'should return highest uid as number for jurisdiction_code' do
           ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:prefix => 'A').should == 'A234567'
           ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:prefix => 'SL').should == 'SL34999'
         end
@@ -504,10 +520,10 @@ describe 'a module that includes IncrementalSearch' do
 
   describe "#stale_entry_uids" do
     before do
-      ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '99999')
-      ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '5234888', :retrieved_at => (Date.today-40).to_time)
-      ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => '9234567', :retrieved_at => (Date.today-2).to_time)
-      ModuleThatIncludesIncrementalSearch.save_data([:company_number], :company_number => 'A094567')
+      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '99999')
+      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
+      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'A094567')
     end
 
     it "should get entries which have not been retrieved or are more than 1 month old" do
@@ -515,7 +531,7 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
-  describe "#update_datum for company_number" do
+  describe "#update_datum for uid" do
     before do
       @dummy_time = Time.now
       Time.stub(:now).and_return(@dummy_time)
@@ -566,9 +582,9 @@ describe 'a module that includes IncrementalSearch' do
       end
 
       it "should save prepared_data" do
-        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:company_number => '23456', :foo => 'some prepared data'})
+        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:custom_uid => '23456', :foo => 'some prepared data'})
 
-        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:company_number], hash_including(:company_number => '23456', :foo => 'some prepared data'))
+        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:custom_uid => '23456', :foo => 'some prepared data'))
         ModuleThatIncludesIncrementalSearch.update_datum('23456')
       end
 
