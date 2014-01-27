@@ -1,4 +1,5 @@
 # encoding: UTF-8
+
 module OpencBot
   module Helpers
     module IncrementalSearch
@@ -118,19 +119,16 @@ module OpencBot
       # and then saving it. It assumes the methods for doing this (#fetch_datum and #process_datum) are implemented
       # in the module that includes this method.
       #
-      # If no second argument is passed to this method, or false is passed, the
-      # method will return the processed data hash
-      # If true is passed as the second argument, the method will output the
-      # updated result as json to STDOUT, which can then be consumed by, say,
-      # something which triggered this method, for example if it was called by
-      # a rake task, which in turn might have been called by the main
-      # OpenCorporates application
+      # If no second argument is passed to this method, or false is passed, the method will return the processed data hash
+      # If true is passed as the second argument, the method will output the updated result as json to STDOUT, which can
+      # then be consumed by, say, something which triggered this method, for example if it was called by a rake task
+      # which in turn might have been called by the main OpenCorporates application
       def update_datum(uid, output_as_json=false)
-        return unless raw_data = fetch_datum(uid)
-        processed_data = process_datum(raw_data).merge(:retrieved_at => Time.now.to_s)
-        # prepare the data for saving (converting Arrays, Hashes to json) and
-        # save the original data too, as we're not extracting everything from it yet
-        data_to_be_saved = prepare_for_saving(processed_data).merge(:data => raw_data)
+        return unless json_data = fetch_datum(uid)
+        processed_data = process_datum(json_data).merge(:retrieved_at => Time.now.to_s)
+        # prepare the data for saving (converting Arrays, Hashes to json) and save the original json too
+        # as we're not extracting everything from it yet
+        data_to_be_saved = prepare_for_saving(processed_data).merge(:data => json_data)
         save_data([primary_key_name], data_to_be_saved)
         if output_as_json
           puts processed_data.to_json

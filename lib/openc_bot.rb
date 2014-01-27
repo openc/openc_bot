@@ -3,6 +3,7 @@ require 'openc_bot/version'
 require 'json'
 require 'scraperwiki'
 require_relative 'openc_bot/bot_data_validator'
+require 'openc_bot/helpers/text'
 
 module OpencBot
 
@@ -11,6 +12,8 @@ module OpencBot
   class InvalidDataError < OpencBotError;end
 
   include ScraperWiki
+  # include by default, as some were previously in made openc_bot file
+  include Helpers::Text
 
   # What's this for?
   def thing_from_openc_bot
@@ -84,13 +87,6 @@ module OpencBot
   def sqlite_magic_connection
     db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
-  end
-
-  private
-  # TODO: Move to helper class
-  def normalise_utf8_spaces(raw_text)
-    raw_text&&raw_text.gsub(/\xC2\xA0/, ' ')
-    # raw_text&&raw_text.gsub(/&nbsp;|\xC2\xA0/, ' ')
   end
 
 end
