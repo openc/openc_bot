@@ -127,10 +127,10 @@ module OpencBot
       # OpenCorporates application
       def update_datum(uid, output_as_json=false)
         return unless raw_data = fetch_datum(uid)
-        processed_data = process_datum(raw_data).merge(:retrieved_at => Time.now.to_s)
+        processed_data = process_datum(raw_data).merge(primary_key_name => uid, :retrieved_at => Time.now.to_s)
         # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we're not extracting everything from it yet
-        data_to_be_saved = prepare_for_saving(processed_data).merge(primary_key_name => uid, :data => raw_data)
+        data_to_be_saved = prepare_for_saving(processed_data).merge(:data => raw_data)
         save_data([primary_key_name], data_to_be_saved)
         if output_as_json
           puts processed_data.to_json

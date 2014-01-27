@@ -534,19 +534,20 @@ describe 'a module that includes IncrementalSearch' do
   describe "#update_datum for uid" do
     before do
       @dummy_time = Time.now
+      @uid = '23456'
       Time.stub(:now).and_return(@dummy_time)
       @fetch_datum_response = 'some really useful data'
       # @processed_data = ModuleThatIncludesIncrementalSearch.process_datum(@fetch_datum_response)
       @processed_data = {:foo => 'bar'}
       ModuleThatIncludesIncrementalSearch.stub(:fetch_datum).and_return(@fetch_datum_response)
       ModuleThatIncludesIncrementalSearch.stub(:process_datum).and_return(@processed_data)
-      @processed_data_with_retrieved_at = @processed_data.merge(:retrieved_at => @dummy_time.to_s)
+      @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time.to_s)
       ModuleThatIncludesIncrementalSearch.stub(:save_data)
     end
 
     it "should fetch_datum for company number" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:fetch_datum).with('23456').and_return(@fetch_datum_response)
-      ModuleThatIncludesIncrementalSearch.update_datum('23456')
+      ModuleThatIncludesIncrementalSearch.should_receive(:fetch_datum).with(@uid).and_return(@fetch_datum_response)
+      ModuleThatIncludesIncrementalSearch.update_datum(@uid)
     end
 
     context "and nothing returned from fetch_datum" do
@@ -556,16 +557,16 @@ describe 'a module that includes IncrementalSearch' do
 
       it "should not process_datum" do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:process_datum)
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
       it "should not save data" do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:save_data)
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
       it "should return nil" do
-        ModuleThatIncludesIncrementalSearch.update_datum('23456').should be_nil
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
       end
 
     end
@@ -573,41 +574,34 @@ describe 'a module that includes IncrementalSearch' do
     context 'and data returned from fetch_datum' do
       it "should process_datum returned from fetching" do
         ModuleThatIncludesIncrementalSearch.should_receive(:process_datum).with(@fetch_datum_response)
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
       it "should prepare processed data for saving including timestamp" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(@processed_data_with_retrieved_at).and_call_original
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(@processed_data_with_retrieved_at_and_uid).and_call_original
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
       it "should save prepared_data" do
         ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
 
         ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:foo => 'some prepared data'))
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
-      it "should return data" do
-        ModuleThatIncludesIncrementalSearch.update_datum('23456').should == @processed_data_with_retrieved_at
-      end
-
-      it "should include uid in data" do
-        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
-        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with(anything, hash_including(:custom_uid => '23456'))
-        ModuleThatIncludesIncrementalSearch.update_datum('23456').should == @processed_data_with_retrieved_at
+      it "should return data including uid" do
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid).should == @processed_data_with_retrieved_at_and_uid
       end
 
       it "should not output jsonified processed data by default" do
-        ModuleThatIncludesIncrementalSearch.should_not_receive(:puts).with(@processed_data_with_retrieved_at.to_json)
-        ModuleThatIncludesIncrementalSearch.update_datum('23456')
+        ModuleThatIncludesIncrementalSearch.should_not_receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
       it "should output jsonified processed data to STDOUT if passed true as second argument" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(@processed_data_with_retrieved_at.to_json)
-        ModuleThatIncludesIncrementalSearch.update_datum('23456', true)
+        ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid, true)
       end
-
 
 
       context "and exception raised" do
@@ -617,16 +611,16 @@ describe 'a module that includes IncrementalSearch' do
 
         it "should output error message if true passes as second argument" do
           ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(/error.+went wrong/m)
-          ModuleThatIncludesIncrementalSearch.update_datum('23456', true)
+          ModuleThatIncludesIncrementalSearch.update_datum(@uid, true)
         end
 
         it "should return nil if true not passed as second argument" do
-          ModuleThatIncludesIncrementalSearch.update_datum('23456').should be_nil
+          ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
         end
 
         it "should output error message if true not passed as second argument" do
           ModuleThatIncludesIncrementalSearch.should_not_receive(:puts).with(/error/)
-          ModuleThatIncludesIncrementalSearch.update_datum('23456').should be_nil
+          ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
         end
       end
     end
