@@ -270,6 +270,21 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
+  describe "entity_uid_suffixes" do
+    context 'and no ENTITY_UID_SUFFIXES constant' do
+      it "should return array containing nil" do
+        ModuleThatIncludesIncrementalSearch.entity_uid_suffixes.should == [nil]
+      end
+    end
+
+    context 'and has ENTITY_UID_SUFFIXES constant' do
+      it "should return ENTITY_UID_SUFFIXES" do
+        stub_const("ModuleThatIncludesIncrementalSearch::ENTITY_UID_SUFFIXES", ['A','X'])
+        ModuleThatIncludesIncrementalSearch.entity_uid_suffixes.should == ModuleThatIncludesIncrementalSearch::ENTITY_UID_SUFFIXES
+      end
+    end
+  end
+
   describe '#get_new' do
     before do
       @most_recent_companies = ['03456789', 'A12345']
@@ -373,14 +388,11 @@ describe 'a module that includes IncrementalSearch' do
 
   describe '#highest_entry_uids' do
     before do
-      # ModuleThatIncludesIncrementalSearch.cache_store.del(ModuleThatIncludesIncrementalSearch.cache_key(:highest_entry_uids))
       ModuleThatIncludesIncrementalSearch.stub(:highest_entry_uid_result).and_return('553311')
       ModuleThatIncludesIncrementalSearch.stub(:entity_uid_prefixes).and_return(['H', 'P'])
     end
 
     context 'and highest_entry_uids not set in cache' do
-      before do
-      end
 
       it 'should get highest_entry_uid_result for each prefix' do
         ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uid_result).with(:prefix => 'H').with(:prefix => 'P')
@@ -459,6 +471,21 @@ describe 'a module that includes IncrementalSearch' do
         it 'should return highest uid as number for jurisdiction_code' do
           ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:prefix => 'A').should == 'A234567'
           ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:prefix => 'SL').should == 'SL34999'
+        end
+      end
+
+      context "and suffix passed in options" do
+        before do
+          ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '009802V')
+          ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '001234V')
+          ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '34567C')
+          ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '128055C')
+          ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '99999999')
+        end
+
+        it 'should return highest company_number for Im with prefix letter' do
+          ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:suffix => 'V').should == '009802V'
+          ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:suffix => 'C').should == '128055C'
         end
       end
     end

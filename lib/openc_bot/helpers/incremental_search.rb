@@ -35,6 +35,8 @@ module OpencBot
       def highest_entry_uid_result(options={})
         if options[:prefix]
           sql_query = ["ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} LIKE ? ORDER BY cast(substr(#{primary_key_name},?) as real) DESC LIMIT 1", ["#{options[:prefix]}%", options[:prefix].length + 1]]
+        elsif options[:suffix]
+          sql_query = ["ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} LIKE ? ORDER BY cast(#{primary_key_name} as real) DESC LIMIT 1", "%#{options[:suffix]}"]
         else
           sql_query = "ocdata.#{primary_key_name} FROM ocdata ORDER BY cast(#{primary_key_name} as real) DESC LIMIT 1"
         end
@@ -51,6 +53,10 @@ module OpencBot
 
       def entity_uid_prefixes
         self.const_defined?('ENTITY_UID_PREFIXES') ? self.const_get('ENTITY_UID_PREFIXES') : [nil]
+      end
+
+      def entity_uid_suffixes
+        self.const_defined?('ENTITY_UID_SUFFIXES') ? self.const_get('ENTITY_UID_SUFFIXES') : [nil]
       end
 
       def incremental_search(uid, options={})
