@@ -578,7 +578,12 @@ describe 'a module that includes IncrementalSearch' do
       end
 
       it "should prepare processed data for saving including timestamp" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(@processed_data_with_retrieved_at_and_uid).and_call_original
+        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_call_original
+        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
+      end
+
+      it "should include data in data to be prepared for saving" do
+        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(hash_including(:data => @fetch_datum_response)).and_call_original
         ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
