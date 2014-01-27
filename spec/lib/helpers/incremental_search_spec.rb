@@ -582,13 +582,19 @@ describe 'a module that includes IncrementalSearch' do
       end
 
       it "should save prepared_data" do
-        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:custom_uid => '23456', :foo => 'some prepared data'})
+        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
 
-        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:custom_uid => '23456', :foo => 'some prepared data'))
+        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:foo => 'some prepared data'))
         ModuleThatIncludesIncrementalSearch.update_datum('23456')
       end
 
       it "should return data" do
+        ModuleThatIncludesIncrementalSearch.update_datum('23456').should == @processed_data_with_retrieved_at
+      end
+
+      it "should include uid in data" do
+        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
+        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with(anything, hash_including(:custom_uid => '23456'))
         ModuleThatIncludesIncrementalSearch.update_datum('23456').should == @processed_data_with_retrieved_at
       end
 
@@ -601,6 +607,8 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(@processed_data_with_retrieved_at.to_json)
         ModuleThatIncludesIncrementalSearch.update_datum('23456', true)
       end
+
+
 
       context "and exception raised" do
         before do
