@@ -103,9 +103,12 @@ We expect licence data as a hash with the following keys:
             :properties
                 required
                 a hash with the following keys:
+                    :category
+                        optional
+                        should be "Financial" -- contact OC if this doesn't apply
                     :licence_number
                         optional
-                    :jurisdiction_tags
+                    :jurisdiction_classification
                         required
                         an array of strings that describe the licence or the licenced company, using the vocabulary of the data source
                         examples might be:
@@ -113,7 +116,7 @@ We expect licence data as a hash with the following keys:
                             co-operative credit
                             motor vehicle finance
                             trust company
-                    :oc_tags
+                    :oc_classification
                         not required yet
                         an array of strings that describe the licence or the licenced company, taken from a vocabulary list provided by OpenCorporates
 
