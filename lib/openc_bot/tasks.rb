@@ -132,7 +132,7 @@ namespace :bot do
       title = "#{name} counts:"
       puts title
       puts "-" * title.length
-      grouped = Hash[*data.group_by{|i| i}.map{|k,v| [k, v.count] }.flatten]
+      grouped = Hash[*data.group_by{|i| i}.map{|k,v| [Array(k).join(", "), v.count] }.flatten]
       hash = grouped.sort_by do |k, v|
         v
       end
