@@ -144,7 +144,9 @@ namespace :bot do
   end
 
   def only_process_running(task_name)
-    pid_path = File.join(Dir.pwd, 'pids', task_name)
+    pid_dir = File.join(Dir.pwd, 'pids')
+    pid_path = File.join(pid_dir, task_name)
+    Dir.mkdir(pid_dir) unless Dir.exist?(pid_dir)
 
     raise_if_already_running(pid_path)
     write_pid_file(pid_path)
