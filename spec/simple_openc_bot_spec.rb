@@ -46,9 +46,9 @@ class TestLicenceBot < SimpleOpencBot
     @data = data
   end
 
-  def fetch_records
-    @data.map do |datum|
-      LicenceRecord.new(datum)
+  def fetch_all_records(opts={})
+    @data.each do |datum|
+      yield LicenceRecord.new(datum)
     end
   end
 end

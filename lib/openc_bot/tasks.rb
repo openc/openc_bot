@@ -1,6 +1,7 @@
 require 'simple_openc_bot'
 require 'optparse'
 require 'json'
+require 'fileutils'
 
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
@@ -8,10 +9,13 @@ namespace :bot do
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
+
     %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
-      Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
+      new_dir_path = File.join(working_dir,new_dir)
+      FileUtils.mkdir_p(new_dir_path)
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
+
+    templates = ['spec/spec_helper.rb',"spec/bot_spec.rb","lib/bot.rb", 'README.md', 'config.yml']
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyModule',new_module_name)
@@ -20,10 +24,11 @@ namespace :bot do
       File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
       puts "Created #{new_file}"
     end
+
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file}"
+      puts "Added rspec and debugger to Gemfile at #{file.name}"
     end
     puts "Please run 'bundle install'"
   end
@@ -36,7 +41,7 @@ namespace :bot do
     %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/simple_bot.rb', 'README.md', 'config.yml', 'bin/export_data', 'bin/fetch_data', 'bin/verify_data']
+    templates = ['spec/spec_helper.rb','spec/simple_bot_spec.rb','lib/simple_bot.rb', 'README.md', 'config.yml', 'bin/export_data', 'bin/fetch_data', 'bin/verify_data']
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyLicence',new_module_name)
@@ -46,7 +51,7 @@ namespace :bot do
         File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
         puts "Created #{new_file}"
       rescue Errno::EEXIST
-        puts "Skpped created #{new_file} as it already exists"
+        puts "Skipped created #{new_file} as it already exists"
       end
       FileUtils.chmod(0755, Dir.glob("#{working_dir}/bin/*"))
     end

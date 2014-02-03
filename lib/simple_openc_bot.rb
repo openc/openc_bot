@@ -26,7 +26,7 @@ class SimpleOpencBot
   end
 
   def update_data(opts={})
-    if opts[:specific_ids].empty?
+    if opts[:specific_ids].nil? || opts[:specific_ids].empty?
       # fetch everything
       record_enumerator = Enumerator.new do |yielder|
         fetch_all_records(opts) do |result|
@@ -103,7 +103,7 @@ class SimpleOpencBot
     sql = "ocdata.* from ocdata "\
       "WHERE (_last_exported_at IS NULL "\
       "OR _last_exported_at < _last_updated_at)"
-    if !opts[:specific_ids].empty?
+    if !opts[:specific_ids].blank?
       ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
       sql += " AND #{_yields[0].unique_field} IN (#{ids})"
     end

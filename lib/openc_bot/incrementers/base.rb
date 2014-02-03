@@ -114,6 +114,7 @@ module OpencBot
 
     def initialize(name, opts={})
       super(name, opts)
+      raise "Fields must be defined for this Record" if opts[:fields].nil?
       query = "CREATE TABLE IF NOT EXISTS #{ITEMS_TABLE} (#{opts[:fields].join(',')}, _id INTEGER PRIMARY KEY)"
       sqlite_magic_connection.execute query
       query = "CREATE UNIQUE INDEX IF NOT EXISTS #{opts[:fields].join('_')} " +
