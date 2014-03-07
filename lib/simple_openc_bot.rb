@@ -91,30 +91,39 @@ class SimpleOpencBot
   end
 
   def all_stored_records(opts={})
-    if opts[:limit]
-      sql = "ocdata.* from ocdata LIMIT #{opts[:limit]}"
-    else
-      sql = "ocdata.* from ocdata"
-    end
+    select = opts[:select] || "ocdata.*"
+    table = opts[:table] || "ocdata"
+    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "")
+    order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
+    limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
+
+    sql = "#{select} from #{table} #{where} #{limit}"
     select_records(sql)
   end
 
   def unexported_stored_records(opts={})
-    sql = "ocdata.* from ocdata "\
-      "WHERE (_last_exported_at IS NULL "\
+    opts[:limit] ||= opts[:batch] 
+
+    select = opts[:select] || "ocdata.*"
+    table = opts[:table] || "ocdata"
+    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "")
+    order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
+    limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
+
+    where += "#{where.empty? ? 'WHERE ' : ' AND '} (_last_exported_at IS NULL "\
       "OR _last_exported_at < _last_updated_at)"
+
     if !opts[:specific_ids].blank?
       ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
-      sql += " AND #{_yields[0].unique_field} IN (#{ids})"
+      where += " AND #{_yields[0].unique_field} IN (#{ids})"
     end
-    sql += " LIMIT #{opts[:batch]}" if opts[:batch]
+
+    sql = "#{select} from #{table} #{where} #{limit}"
     select_records(sql)
   end
 
   def spotcheck_records(limit = 5)
-    select_records("ocdata.* from ocdata "\
-                   "ORDER BY RANDOM()"\
-                   "LIMIT #{limit}")
+    all_stored_records(:order => "RANDOM()", :limit => limit)
   end
 
   def select_records(sql)
@@ -132,7 +141,7 @@ class SimpleOpencBot
       loop do
         if opts[:all]
           break if b > 1
-          batch = all_stored_records
+          batch = all_stored_records(opts)
         else
           batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
         end
