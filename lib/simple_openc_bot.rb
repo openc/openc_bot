@@ -97,7 +97,8 @@ class SimpleOpencBot
     order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
     limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
 
-    sql = "#{select} from #{table} #{where} #{limit}"
+    sql = "#{select} from #{table} #{where} #{order} #{limit}"
+    puts sql if opts[:debug]
     select_records(sql)
   end
 
