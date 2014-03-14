@@ -88,43 +88,46 @@ class SimpleOpencBot
 
   def count_stored_records
     begin
-    sqlite_magic_connection.execute("select count(*) as count from ocdata").first["count"]
+      all_stored_records(:count => true).first["count"]
     rescue SqliteMagic::NoSuchTable
       0
     end
   end
 
   def all_stored_records(opts={})
+    if opts[:only_unexported]
+      opts[:limit] ||= opts[:batch] 
+    end
+
     select = opts[:select] || "ocdata.*"
     table = opts[:table] || "ocdata"
-    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "")
+    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "\nWHERE 1 \n")
     order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
     limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
 
-    sql = "#{select} from #{table} #{where} #{order} #{limit}"
-    puts sql if opts[:debug]
-    select_records(sql)
+    if opts[:only_unexported]
+      where += " AND (_last_exported_at IS NULL "\
+        "OR _last_exported_at < _last_updated_at)"
+
+      if !opts[:specific_ids].blank?
+        ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
+        where += " AND #{_yields[0].unique_field} IN (#{ids})"
+      end
+    end
+
+    if opts[:count]
+      sql = "COUNT(*) AS count from #{table} #{where}"
+      puts sql if opts[:debug]
+      select(sql)
+    else
+      sql = "#{select} from #{table} #{where} #{order} #{limit}"
+      puts sql if opts[:debug]
+      select_records(sql)
+    end
   end
 
   def unexported_stored_records(opts={})
-    opts[:limit] ||= opts[:batch] 
-
-    select = opts[:select] || "ocdata.*"
-    table = opts[:table] || "ocdata"
-    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "")
-    order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
-    limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
-
-    where += "#{where.empty? ? 'WHERE ' : ' AND '} (_last_exported_at IS NULL "\
-      "OR _last_exported_at < _last_updated_at)"
-
-    if !opts[:specific_ids].blank?
-      ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
-      where += " AND #{_yields[0].unique_field} IN (#{ids})"
-    end
-
-    sql = "#{select} from #{table} #{where} #{limit}"
-    select_records(sql)
+    all_stored_records(opts.merge!(:only_unexported => true))
   end
 
   def spotcheck_records(limit = 5)
