@@ -33,6 +33,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
         properties: {
           category: 'Financial',
           jurisdiction_classification: [jurisdiction_classification],
+          jurisdiction_code: 'gb'
         }
       }]
     }
@@ -41,6 +42,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class TestLicenceBot < SimpleOpencBot
+  yields LicenceRecord
 
   def initialize(data={})
     @data = data

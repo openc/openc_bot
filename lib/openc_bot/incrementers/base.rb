@@ -157,7 +157,7 @@ module OpencBot
 
     def enum(*args)
       self.populated = true
-      super(enum(*args))
+      each
     end
 
     def add_row(val)
