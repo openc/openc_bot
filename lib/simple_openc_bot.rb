@@ -51,14 +51,17 @@ class SimpleOpencBot
             record.to_hash)
           saves_count += 1
           if saves_count == 1
+            # TODO: move this validation to somewhere more explicit
+            raise "Bot must specify what record type it will yield" if _yields.nil?
             check_unique_index(_yields[0])
           end
           STDOUT.print(".")
           STDOUT.flush
         end
-      rescue
-      ensure
-        sqlite_magic_connection.execute("COMMIT")
+      rescue Error => e
+        raise e
+      ensure 
+        sqlite_magic_connection.execute("COMMIT") if sqlite_magic_connection.database.transaction_active?
       end
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
@@ -69,15 +72,16 @@ class SimpleOpencBot
     indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
     db_unique_fields = indexes.map do |i|
       next if i["unique"] != 1
+      next if i["name"] =~ /autoindex/ #sqlite creates an index for any unique or primary keys
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
       info.map{|x| x["name"]}
-    end.compact
+    end.compact.flatten
     record_unique_fields = record_class.unique_fields.map(&:to_s)
-    if !db_unique_fields.include?(record_unique_fields)
+    if db_unique_fields != record_unique_fields
       sqlite_magic_connection.execute("ROLLBACK")
-      error = "Unique fields #{record_unique_fields} are not a unique index in `ocdata` table!"
+      error = "Unique fields #{record_unique_fields} do not match the unique index(es) in `ocdata` table!"
       error += "\nThis is usually because the value of unique_field has changed since the table was automatically created."
-      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
+      error += "\nUnique fields in `ocdata`: #{db_unique_fields.flatten}; in record #{record_class.name}: #{record_unique_fields}"
       raise error
     end
   end
@@ -164,6 +168,9 @@ class SimpleOpencBot
           yielder << pipeline_data
         end
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        if b == 1
+          check_unique_index(_yields[0])
+        end
         updates.each do |k, v|
           save_data(k.constantize.unique_fields, v)
         end
