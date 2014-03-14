@@ -152,8 +152,15 @@ class SimpleOpencBot
           pipeline_data = record.to_pipeline
           next if pipeline_data.nil?
           updates[record.class.name] ||= []
-          updates[record.class.name] << record.to_hash.merge(
-            :_last_exported_at => Time.now.iso8601(2))
+          # opts[:all] is currently called in the bot:test rake task
+          # This has the unfortunate side effect of updating the _last_exported_at
+          # time when running the validation task, so I've added the following conditional
+          if !opts[:all]
+            updates[record.class.name] << record.to_hash.merge(
+              :_last_exported_at => Time.now.iso8601(2))
+          else
+            updates[record.class.name] << record.to_hash
+          end
           yielder << pipeline_data
         end
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
