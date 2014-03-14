@@ -58,8 +58,6 @@ class SimpleOpencBot
           STDOUT.print(".")
           STDOUT.flush
         end
-      rescue Error => e
-        raise e
       ensure 
         sqlite_magic_connection.execute("COMMIT") if sqlite_magic_connection.database.transaction_active?
       end
@@ -72,7 +70,7 @@ class SimpleOpencBot
     indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
     db_unique_fields = indexes.map do |i|
       next if i["unique"] != 1
-      next if i["name"] =~ /autoindex/ #sqlite creates an index for any unique or primary keys
+      next unless i["name"] =~ /autoindex/
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
       info.map{|x| x["name"]}
     end.compact.flatten
