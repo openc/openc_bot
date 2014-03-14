@@ -21,14 +21,16 @@ namespace :bot do
       template.gsub!('MyModule',new_module_name)
       template.gsub!('my_module',bot_name)
       new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/bot/,bot_name)}")
-      File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
-      puts "Created #{new_file}"
+      unless File.exists? new_file
+        File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
+        puts "Created #{new_file}"
+      end
     end
 
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file.name}"
+      puts "Added rspec and debugger to Gemfile at #{file.path}"
     end
     puts "Please run 'bundle install'"
   end
@@ -51,14 +53,14 @@ namespace :bot do
         File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
         puts "Created #{new_file}"
       rescue Errno::EEXIST
-        puts "Skipped created #{new_file} as it already exists"
+        puts "Skipped creating #{new_file} as it already exists"
       end
       FileUtils.chmod(0755, Dir.glob("#{working_dir}/bin/*"))
     end
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file}"
+      puts "Added rspec and debugger to Gemfile at #{file.path}"
     end
     puts "Please run 'bundle install'"
   end
