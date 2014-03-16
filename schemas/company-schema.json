@@ -5,16 +5,16 @@
   "description": "A company in OpenCorporates",
   "properties": {
     "company_number": { "type": "string" },
-	"name": { "type": "string" },
-	"jurisdiction_code": { "type": "string", "minLength": 2, "maxLength": 5 },
-	"incorporation_date": { "type": "date-time" },
-	"dissolution_date": { "type": "date-time" },
-	"retrieved_at": { "type": "date-time" },
-	"current_status": { "type": "string" },
-	"company_type": { "type": "string" },
-	"branch": { "type": "string", "maxLength": 1 },
-	"registry_url": { "type": "string" },
-	"registered_address": { "type": "string" },
+  	"name": { "type": "string" },
+  	"jurisdiction_code": { "type": "string", "minLength": 2, "maxLength": 5 },
+  	"incorporation_date": { "type": "date-time" },
+  	"dissolution_date": { "type": "date-time" },
+  	"retrieved_at": { "type": "date-time" },
+  	"current_status": { "type": "string" },
+  	"company_type": { "type": "string" },
+  	"branch": { "type": "string", "maxLength": 1 },
+  	"registry_url": { "type": "string" },
+  	"registered_address": { "type": "string" }
   },
   "required": ["company_number", "name", "jurisdiction_code"]
 
