@@ -617,7 +617,7 @@ describe 'a module that includes IncrementalSearch' do
       it "should save prepared_data" do
         ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
 
-        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:foo => 'some prepared data'))
+        ModuleThatIncludesIncrementalSearch.should_receive(:insert_or_update).with([:custom_uid], hash_including(:foo => 'some prepared data'))
         ModuleThatIncludesIncrementalSearch.update_datum(@uid)
       end
 
