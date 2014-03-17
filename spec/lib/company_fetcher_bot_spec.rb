@@ -23,7 +23,7 @@ describe "A module that extends CompanyFetcherBot" do
     TestCompanyFetcherBot.should respond_to(:incremental_search)
   end
 
-  it "should set PRIMARY_KEY_NAME to :company_number" do
+  it "should set primary_key_name to :company_number" do
     TestCompanyFetcherBot.primary_key_name.should == :company_number
   end
 
@@ -51,6 +51,41 @@ describe "A module that extends CompanyFetcherBot" do
         result.first[:failed_attribute].should == "Required"
         result.first[:message].should match 'company_number'
       end
+    end
+  end
+
+  describe "#fetch_datum for company_number" do
+    before do
+      TestCompanyFetcherBot.stub(:fetch_registry_page)
+    end
+
+    it "should #fetch_registry_page for company_numbers" do
+      TestCompanyFetcherBot.should_receive(:fetch_registry_page).with('76543')
+      TestCompanyFetcherBot.fetch_datum('76543')
+    end
+
+    it "should stored result of #fetch_registry_page in hash keyed to :company_page" do
+      TestCompanyFetcherBot.stub(:fetch_registry_page).and_return(:registry_page_html)
+      TestCompanyFetcherBot.fetch_datum('76543').should == {:company_page => :registry_page_html}
+    end
+  end
+
+  describe "#fetch_registry_page for company_number" do
+    before do
+      @dummy_client = double('http_client', :get_content => nil)
+      TestCompanyFetcherBot.stub(:_client).and_return(@dummy_client)
+      TestCompanyFetcherBot.stub(:registry_url).and_return('http://some.registry.url')
+    end
+
+    it "should GET registry_page for registry_url for company_number" do
+      TestCompanyFetcherBot.should_receive(:registry_url).with('76543').and_return('http://some.registry.url')
+      @dummy_client.should_receive(:get_content).with('http://some.registry.url')
+      TestCompanyFetcherBot.fetch_registry_page('76543')
+    end
+
+    it "should return result of GETing registry_page" do
+      @dummy_client.stub(:get_content).and_return(:registry_page_html)
+      TestCompanyFetcherBot.fetch_registry_page('76543').should == :registry_page_html
     end
   end
 
