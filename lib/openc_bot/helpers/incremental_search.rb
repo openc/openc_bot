@@ -8,7 +8,7 @@ module OpencBot
       end
 
       # Gets new records using an incremental search
-      def get_new(options={})
+      def fetch_data(options={})
         return unless old_highest_numbers = options.delete(:highest_entry_uids) || highest_entry_uids
         # offset by rewind count if set and also in that case assume by default we want to skip_existing_companies
         options = {:offset => (0 - incremental_rewind_count), :skip_existing_entries => true}.merge(options) if incremental_rewind_count
@@ -45,7 +45,6 @@ module OpencBot
         # first run, so no table or database yet
         return "#{options[:prefix]}0"
       end
-
 
       def incremental_rewind_count
         self.const_defined?('INCREMENTAL_REWIND_COUNT') ? self.const_get('INCREMENTAL_REWIND_COUNT') : nil
@@ -133,7 +132,7 @@ module OpencBot
       end
 
       def update_data
-        get_new
+        fetch_data
         update_stale
         save_run_report(:status => 'success')
       end
