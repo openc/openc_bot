@@ -102,8 +102,26 @@ module OpencBot
         self.const_defined?('MAX_FAILED_COUNT') ? self.const_get('MAX_FAILED_COUNT') : 10
       end
 
+      def prepare_and_save_data(all_data,options={})
+        data_to_be_saved = prepare_for_saving(all_data)
+        insert_or_update([primary_key_name], data_to_be_saved)
+      end
+
       def primary_key_name
         self.const_defined?('PRIMARY_KEY_NAME') ? self.const_get('PRIMARY_KEY_NAME') : :uid
+      end
+
+      # sensible default. Either uses computed version or registry_url in db
+      def registry_url(uid)
+        computed_registry_url(uid) || registry_url_from_db(uid)
+      end
+
+      # stub method. Override in including module if this can be computed from uid
+      def computed_registry_url(uid)
+      end
+
+      def registry_url_from_db(uid)
+        # TODO
       end
 
       def stale_entry_uids(stale_count=nil)
@@ -131,13 +149,12 @@ module OpencBot
       # something which triggered this method, for example if it was called by
       # a rake task, which in turn might have been called by the main
       # OpenCorporates application
-      def update_datum(uid, output_as_json=false)
+      def update_datum(uid, output_as_json=false,replace_existing_data=false)
         return unless raw_data = fetch_datum(uid)
         processed_data = process_datum(raw_data).merge(primary_key_name => uid, :retrieved_at => Time.now.to_s)
         # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we may not extracting everything from it yet
-        data_to_be_saved = prepare_for_saving(processed_data.merge(:data => raw_data))
-        save_data([primary_key_name], data_to_be_saved)
+        prepare_and_save_data(processed_data.merge(:data => raw_data))
         if output_as_json
           puts processed_data.to_json
         else
