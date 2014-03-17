@@ -120,8 +120,8 @@ module OpencBot
       def computed_registry_url(uid)
       end
 
+      # stub method. Override in including module if this can be pulled from db (i.e. it is stored there)
       def registry_url_from_db(uid)
-        # TODO
       end
 
       def stale_entry_uids(stale_count=nil)

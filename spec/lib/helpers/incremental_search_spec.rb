@@ -658,4 +658,20 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
+  describe '#registry_url for uid' do
+    it 'should get computed_registry_url' do
+      ModuleThatIncludesIncrementalSearch.should_receive(:computed_registry_url).with('338811').and_return('http://some.url')
+      ModuleThatIncludesIncrementalSearch.registry_url('338811').should == 'http://some.url'
+    end
+
+    context "and computed_registry_url returns nil" do
+      it 'should get registry_url_from_db' do
+        ModuleThatIncludesIncrementalSearch.stub(:computed_registry_url)
+        ModuleThatIncludesIncrementalSearch.should_receive(:registry_url_from_db).with('338811').and_return('http://another.url')
+        ModuleThatIncludesIncrementalSearch.registry_url('338811').should == 'http://another.url'
+      end
+    end
+  end
+
+
 end
