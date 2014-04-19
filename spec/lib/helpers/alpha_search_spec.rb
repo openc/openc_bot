@@ -81,12 +81,12 @@ describe 'a module that includes AlphaSearch' do
       ModuleThatIncludesAlphaSearch.stub(:create_new_company)
       ModuleThatIncludesAlphaSearch.stub(:process_datum)
       ModuleThatIncludesAlphaSearch.stub(:alpha_terms).and_return(@alpha_terms)
-      ModuleThatIncludesAlphaSearch.stub(:search_for_companies_for_term).and_return([])
+      ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).and_return([])
     end
 
-    it "should search_for_companies_for_term for each term in alpha_terms" do
+    it "should search_for_entities_for_term for each term in alpha_terms" do
       @alpha_terms.each do |term|
-        ModuleThatIncludesAlphaSearch.should_receive(:search_for_companies_for_term).with(term, anything).and_return([])
+        ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(term, anything).and_return([])
       end
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end
@@ -98,8 +98,8 @@ describe 'a module that includes AlphaSearch' do
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end
 
-    it "should pass options to search_for_companies_for_term" do
-      ModuleThatIncludesAlphaSearch.should_receive(:search_for_companies_for_term).with(anything, :foo => 'bar').and_return([])
+    it "should pass options to search_for_entities_for_term" do
+      ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(anything, :foo => 'bar').and_return([])
 
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search(:foo => 'bar')
     end
@@ -124,10 +124,10 @@ describe 'a module that includes AlphaSearch' do
 
     context "and search finishes before getting to end of alpha_terms" do
       it "should store term where it was working on where there was problem" do
-        ModuleThatIncludesAlphaSearch.should_receive(:search_for_companies_for_term).
+        ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).
                                       with(@alpha_terms.first, anything).and_return([])
 
-        ModuleThatIncludesAlphaSearch.should_receive(:search_for_companies_for_term).
+        ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).
                                       with(@alpha_terms[1], anything).and_raise('Something has gone wrong')
 
         lambda { ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search }.should raise_error
@@ -136,10 +136,10 @@ describe 'a module that includes AlphaSearch' do
     end
   end
 
-  describe "#search_for_companies_for_term" do
+  describe "#search_for_entities_for_term" do
 
     it "should raise exception" do
-      lambda { ModuleThatIncludesAlphaSearch.search_for_companies_for_term('foo') }.should raise_error(/method has not been implemented/)
+      lambda { ModuleThatIncludesAlphaSearch.search_for_entities_for_term('foo') }.should raise_error(/method has not been implemented/)
     end
 
   end
