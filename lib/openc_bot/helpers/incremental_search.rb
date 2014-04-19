@@ -101,12 +101,6 @@ module OpencBot
         self.const_defined?('MAX_FAILED_COUNT') ? self.const_get('MAX_FAILED_COUNT') : 10
       end
 
-      def update_data
-        fetch_data_via_incremental_search
-        update_stale
-        save_run_report(:status => 'success')
-      end
-
     end
   end
 end
