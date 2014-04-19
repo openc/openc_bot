@@ -26,7 +26,7 @@ module MyModule
   # Override this if a different method for iterating companies is going to done (e.g. an alpha search, or
   # parsing a CSV file)
   def fetch_data
-    super
+    fetch_data_via_incremental_search
   end
 
   # This is called by #update_datum (defined in the IncrementalSearch helper module), which updates the

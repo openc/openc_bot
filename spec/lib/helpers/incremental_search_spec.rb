@@ -285,7 +285,7 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
-  describe '#fetch_data' do
+  describe '#fetch_data_via_incremental_search' do
     before do
       @most_recent_companies = ['03456789', 'A12345']
       ModuleThatIncludesIncrementalSearch.stub(:highest_entry_uids).and_return(@most_recent_companies)
@@ -295,7 +295,7 @@ describe 'a module that includes IncrementalSearch' do
     it 'should find highest_entry_uids' do
       ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uids)
 
-      ModuleThatIncludesIncrementalSearch.fetch_data
+      ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
     end
 
     context 'and highest_entry_uids returns nil' do
@@ -306,13 +306,13 @@ describe 'a module that includes IncrementalSearch' do
       it 'should not do incremental_search' do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:incremental_search)
 
-        ModuleThatIncludesIncrementalSearch.fetch_data
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
       it 'should not update cached highest_entry_uid value' do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:save_var)
 
-        ModuleThatIncludesIncrementalSearch.fetch_data
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
     end
 
@@ -325,7 +325,7 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', {})
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', {})
 
-        ModuleThatIncludesIncrementalSearch.fetch_data
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
       it 'should save highest_entry_uids' do
@@ -333,14 +333,14 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.stub(:incremental_search).with('A12345', anything).and_return('A234567')
         ModuleThatIncludesIncrementalSearch.should_receive(:save_var).with(:highest_entry_uids, ['0345999','A234567'])
 
-        ModuleThatIncludesIncrementalSearch.fetch_data
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
-      context 'and options passed to fetch_data' do
+      context 'and options passed to fetch_data_via_incremental_search' do
         it "should pass them on to incremental search" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', :foo => 'bar')
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', :foo => 'bar')
-          ModuleThatIncludesIncrementalSearch.fetch_data(:foo => 'bar')
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:foo => 'bar')
         end
       end
 
@@ -352,19 +352,19 @@ describe 'a module that includes IncrementalSearch' do
         it "should pass negated version on to incremental search as offset" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:offset => -42))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:offset => -42))
-          ModuleThatIncludesIncrementalSearch.fetch_data
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
         end
 
         it "should ask to skip_existing_companies on incremental search by default" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:skip_existing_entries => true))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:skip_existing_entries => true))
-          ModuleThatIncludesIncrementalSearch.fetch_data
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
         end
 
         it "should not ask to skip_existing_companies on incremental search if requested not to" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:skip_existing_entries => false))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:skip_existing_entries => false))
-          ModuleThatIncludesIncrementalSearch.fetch_data(:skip_existing_entries => false)
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:skip_existing_entries => false)
         end
       end
 
@@ -374,14 +374,14 @@ describe 'a module that includes IncrementalSearch' do
       it "should not find highest_entry_uids" do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:highest_entry_uids)
 
-        ModuleThatIncludesIncrementalSearch.fetch_data(:highest_entry_uids => ['1234', '6543'])
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:highest_entry_uids => ['1234', '6543'])
       end
 
       it 'should do incremental_search starting at provided highest company numbers' do
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('1234', {})
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('6543', {})
 
-        ModuleThatIncludesIncrementalSearch.fetch_data(:highest_entry_uids => ['1234', '6543'])
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:highest_entry_uids => ['1234', '6543'])
       end
     end
   end
@@ -503,12 +503,12 @@ describe 'a module that includes IncrementalSearch' do
 
   describe "#update_data" do
     before do
-      ModuleThatIncludesIncrementalSearch.stub(:fetch_data)
+      ModuleThatIncludesIncrementalSearch.stub(:fetch_data_via_incremental_search)
       ModuleThatIncludesIncrementalSearch.stub(:update_stale)
     end
 
-    it "should get new records" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:fetch_data)
+    it "should get new records via incremental search" do
+      ModuleThatIncludesIncrementalSearch.should_receive(:fetch_data_via_incremental_search)
       ModuleThatIncludesIncrementalSearch.update_data
     end
 
