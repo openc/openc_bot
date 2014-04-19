@@ -19,6 +19,10 @@ describe 'a module that includes AlphaSearch' do
     remove_test_database
   end
 
+  it "should include register_methods" do
+    ModuleThatIncludesAlphaSearch.should respond_to(:registry_url)
+  end
+
   describe "#letters_and_numbers" do
     it "should return an array of all letters and numbers" do
       ModuleThatIncludesAlphaSearch.letters_and_numbers.should == ('A'..'Z').to_a + ('0'..'9').to_a
