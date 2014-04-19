@@ -20,7 +20,7 @@ module OpencBot
         starting_term = options[:starting_term]||get_var('starting_term')
         alpha_terms(starting_term).each do |term|
           save_var('starting_term', term)
-          search_for_companies_for_term(term, options) do |company_datum|
+          search_for_entities_for_term(term, options) do |company_datum|
             # process_datum(company_datum)
           end
 
@@ -37,8 +37,8 @@ module OpencBot
         self.const_defined?('NUMBER_OF_CHARS_IN_SEARCH') ? self.const_get('NUMBER_OF_CHARS_IN_SEARCH') : 1
       end
 
-      def search_for_companies_for_term(term, options={})
-        raise "The #search_for_companies_for_term method has not been implemented for this casee.\nIt needs to be, and should yield a company data Hash"
+      def search_for_entities_for_term(term, options={})
+        raise "The #search_for_entities_for_term method has not been implemented for this casee.\nIt needs to be, and should yield a company data Hash"
       end
 
       def get_results_and_extract_data_for(prefix, search_offset)

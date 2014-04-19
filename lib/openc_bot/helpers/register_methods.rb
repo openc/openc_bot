@@ -3,8 +3,16 @@ module OpencBot
   module Helpers
     module RegisterMethods
 
+      def use_alpha_search
+        self.const_defined?('USE_ALPHA_SEARCH') && self.const_get('USE_ALPHA_SEARCH')
+      end
+
       def datum_exists?(uid)
         !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = '?' LIMIT 1", uid).first
+      end
+
+      def fetch_registry_page(company_number)
+        _client.get_content(registry_url(company_number))
       end
 
       def prepare_and_save_data(all_data,options={})
@@ -38,7 +46,11 @@ module OpencBot
       end
 
       def update_data
-        fetch_data_via_incremental_search
+        if use_alpha_search
+          fetch_data_via_alpha_search
+        else
+          fetch_data_via_incremental_search
+        end
         update_stale
         save_run_report(:status => 'success')
       end
@@ -94,6 +106,18 @@ module OpencBot
           end
         end
         prepared_data
+      end
+
+      def _client(options={})
+        return @client if @client
+        @client = HTTPClient.new(options.delete(:proxy))
+        @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE if options.delete(:skip_ssl_verification)
+        @client.agent_name = options.delete(:user_agent)
+        @client.ssl_config.ssl_version = options.delete(:ssl_version) if options[:ssl_version]
+        if ssl_certificate = options.delete(:ssl_certificate)
+          @client.ssl_config.add_trust_ca(ssl_certificate) # Above cert
+        end
+        @client
       end
 
     end

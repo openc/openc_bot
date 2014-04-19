@@ -58,6 +58,21 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe "#use_alpha_search" do
+    context 'and no USE_ALPHA_SEARCH constant' do
+      it "should not return true" do
+        ModuleThatIncludesRegisterMethods.use_alpha_search.should_not be_true
+      end
+    end
+
+    context 'and USE_ALPHA_SEARCH constant set' do
+      it "should return USE_ALPHA_SEARCH" do
+        stub_const("ModuleThatIncludesRegisterMethods::USE_ALPHA_SEARCH", true)
+        ModuleThatIncludesRegisterMethods.use_alpha_search.should be_true
+      end
+    end
+  end
+
   describe "#update_data" do
     before do
       ModuleThatIncludesRegisterMethods.stub(:fetch_data_via_incremental_search)
@@ -65,7 +80,15 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it "should get new records via incremental search" do
+      ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_alpha_search)
       ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_incremental_search)
+      ModuleThatIncludesRegisterMethods.update_data
+    end
+
+    it "should get new records via alpha search if use_alpha_search" do
+      ModuleThatIncludesRegisterMethods.should_receive(:use_alpha_search).and_return(true)
+      ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_incremental_search)
+      ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_alpha_search)
       ModuleThatIncludesRegisterMethods.update_data
     end
 
@@ -227,6 +250,26 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.should_receive(:registry_url_from_db).with('338811').and_return('http://another.url')
         ModuleThatIncludesRegisterMethods.registry_url('338811').should == 'http://another.url'
       end
+    end
+  end
+
+  describe "#fetch_registry_page for company_number" do
+    before do
+      @dummy_client = double('http_client', :get_content => nil)
+      ModuleThatIncludesRegisterMethods.stub(:_client).and_return(@dummy_client)
+      ModuleThatIncludesRegisterMethods.stub(:registry_url).and_return('http://some.registry.url')
+    end
+
+    it "should GET registry_page for registry_url for company_number" do
+      ModuleThatIncludesRegisterMethods.should_receive(:registry_url).
+                                        with('76543').and_return('http://some.registry.url')
+      @dummy_client.should_receive(:get_content).with('http://some.registry.url')
+      ModuleThatIncludesRegisterMethods.fetch_registry_page('76543')
+    end
+
+    it "should return result of GETing registry_page" do
+      @dummy_client.stub(:get_content).and_return(:registry_page_html)
+      ModuleThatIncludesRegisterMethods.fetch_registry_page('76543').should == :registry_page_html
     end
   end
 

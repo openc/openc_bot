@@ -7,11 +7,10 @@ module TestCompanyFetcherBot
   extend OpencBot::CompanyFetcherBot
 end
 
-
 describe "A module that extends CompanyFetcherBot" do
 
   before do
-    @dummy_connection = double('database_connection')
+    @dummy_connection = double('database_connection', :save_data => nil)
     TestCompanyFetcherBot.stub(:sqlite_magic_connection).and_return(@dummy_connection)
   end
 
@@ -21,6 +20,10 @@ describe "A module that extends CompanyFetcherBot" do
 
   it "should include IncrementalHelper methods" do
     TestCompanyFetcherBot.should respond_to(:incremental_search)
+  end
+
+  it "should include AlphaHelper methods" do
+    TestCompanyFetcherBot.should respond_to(:letters_and_numbers)
   end
 
   it "should set primary_key_name to :company_number" do
@@ -67,25 +70,6 @@ describe "A module that extends CompanyFetcherBot" do
     it "should stored result of #fetch_registry_page in hash keyed to :company_page" do
       TestCompanyFetcherBot.stub(:fetch_registry_page).and_return(:registry_page_html)
       TestCompanyFetcherBot.fetch_datum('76543').should == {:company_page => :registry_page_html}
-    end
-  end
-
-  describe "#fetch_registry_page for company_number" do
-    before do
-      @dummy_client = double('http_client', :get_content => nil)
-      TestCompanyFetcherBot.stub(:_client).and_return(@dummy_client)
-      TestCompanyFetcherBot.stub(:registry_url).and_return('http://some.registry.url')
-    end
-
-    it "should GET registry_page for registry_url for company_number" do
-      TestCompanyFetcherBot.should_receive(:registry_url).with('76543').and_return('http://some.registry.url')
-      @dummy_client.should_receive(:get_content).with('http://some.registry.url')
-      TestCompanyFetcherBot.fetch_registry_page('76543')
-    end
-
-    it "should return result of GETing registry_page" do
-      @dummy_client.stub(:get_content).and_return(:registry_page_html)
-      TestCompanyFetcherBot.fetch_registry_page('76543').should == :registry_page_html
     end
   end
 
