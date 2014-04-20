@@ -124,14 +124,14 @@ namespace :bot do
     callable
   end
 
-  def create_bot(bot_name='bot')
+  def create_bot(template_name='bot')
     working_dir = Dir.pwd
     bot_name = get_bot_name
     new_module_name = bot_name.split('_').collect(&:capitalize).join
     %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    bot_template = "lib/#{bot_name}.rb"
+    bot_template = "lib/#{template_name}.rb"
     templates = ['spec/spec_helper.rb','spec/bot_spec.rb', 'README.md', 'config.yml', bot_template]
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
