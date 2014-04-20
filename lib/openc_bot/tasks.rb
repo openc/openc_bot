@@ -8,7 +8,7 @@ namespace :bot do
 
   desc "create a skeleton bot that can be used in OpenCorporates"
   task :create_company_bot do
-    create_bot(company)
+    create_bot('company')
   end
 
   desc "create a skeleton simple_bot that can be used in OpenCorporates"
