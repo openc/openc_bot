@@ -21,7 +21,7 @@ module OpencBot
         alpha_terms(starting_term).each do |term|
           save_var('starting_term', term)
           search_for_entities_for_term(term, options) do |company_datum|
-            # process_datum(company_datum)
+            process_datum(company_datum)
           end
 
         end
