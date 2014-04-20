@@ -1,4 +1,7 @@
 # encoding: UTF-8
+require 'json-schema'
+require 'active_support/core_ext'
+
 module OpencBot
   module Helpers
     module RegisterMethods
@@ -35,6 +38,16 @@ module OpencBot
 
       # stub method. Override in including module if this can be pulled from db (i.e. it is stored there)
       def registry_url_from_db(uid)
+      end
+
+      def save_entity(entity_datum)
+        entity_valid = validate_datum(entity_datum)
+        return unless entity_valid.blank?
+        prepare_and_save_data(entity_datum)
+      end
+
+      def schema_name
+        self.const_defined?('SCHEMA_NAME') ? self.const_get('SCHEMA_NAME') : nil
       end
 
       def stale_entry_uids(stale_count=nil)
@@ -87,6 +100,14 @@ module OpencBot
         end
       end
 
+      def validate_datum(record)
+        schema = File.expand_path("../../../../schemas/#{schema_name}.json", __FILE__)
+        errors = JSON::Validator.fully_validate(
+          schema,
+          record.to_json,
+          {:errors_as_objects => true})
+      end
+
       private
       # This is a utility method for outputting an error message as json to STDOUT
       # (which can then be handled by the importer)
@@ -96,8 +117,7 @@ module OpencBot
       end
 
       def prepare_for_saving(raw_data_hash)
-        # deep clone hash
-        prepared_data = Marshal.load( Marshal.dump(raw_data_hash) )
+        prepared_data = deep_clone_hash(raw_data_hash)
         #This jsonifies each value that is an an array or hash so that it can be saved as a string in sqlite
         prepared_data.each do |k,v|
           case v
@@ -118,6 +138,10 @@ module OpencBot
           @client.ssl_config.add_trust_ca(ssl_certificate) # Above cert
         end
         @client
+      end
+
+      def deep_clone_hash(given_hash)
+        Marshal.load( Marshal.dump(given_hash) )
       end
 
     end

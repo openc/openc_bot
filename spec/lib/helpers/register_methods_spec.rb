@@ -7,6 +7,7 @@ module ModuleThatIncludesRegisterMethods
   extend OpencBot
   extend OpencBot::Helpers::RegisterMethods
   PRIMARY_KEY_NAME = :custom_uid
+  SCHEMA_NAME = 'company-schema'
 end
 
 module ModuleWithNoCustomPrimaryKey
@@ -137,6 +138,38 @@ describe 'a module that includes RegisterMethods' do
       expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999', '5234888', 'A094567')
     end
   end
+
+  describe '#prepare_and_save_data' do
+    before do
+      @params = {:name => 'Foo Inc', :custom_uid => '12345', :foo => ['bar','baz'], :foo2 => {:bar => 'baz'}}
+    end
+
+    it "should insert_or_update data using primary_key" do
+      ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).with([:custom_uid], anything)
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+    end
+
+    it "should save basic data" do
+      ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).with(anything, hash_including(:name => 'Foo Inc', :custom_uid => '12345'))
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+    end
+
+    it "should convert arrays and hashes to json" do
+      ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).with(anything, hash_including(:foo => ['bar','baz'].to_json, :foo2 => {:bar => 'baz'}.to_json))
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+    end
+
+    it "should not change original params" do
+      dup_params = Marshal.load( Marshal.dump(@params) )
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+      @params.should == dup_params
+    end
+
+    it "should return true" do
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params).should be_true
+    end
+  end
+
 
   describe "#update_datum for uid" do
     before do
@@ -273,4 +306,71 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe "#validate_datum" do
+    before do
+      @valid_params = {:name => 'Foo Inc', :company_number => '12345', :jurisdiction_code => 'ie'}
+    end
+
+    it "should check json version of datum against given schema" do
+      JSON::Validator.should_receive(:fully_validate).with(File.expand_path("../../../../schemas/company-schema.json", __FILE__), @valid_params.to_json, anything)
+      ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)
+    end
+
+    context "and datum is valid" do
+      it "should return empty array" do
+        ModuleThatIncludesRegisterMethods.validate_datum(@valid_params).should == []
+      end
+    end
+
+    context "and datum is not valid" do
+      it "should return errors" do
+        result = ModuleThatIncludesRegisterMethods.validate_datum({:name => 'Foo Inc', :jurisdiction_code => 'ie'})
+        result.should be_kind_of Array
+        result.size.should == 1
+        result.first[:failed_attribute].should == "Required"
+        result.first[:message].should match 'company_number'
+      end
+    end
+  end
+
+  describe "save_entity" do
+    before do
+      @params = {:name => 'Foo Inc', :custom_uid => '12345'}
+    end
+
+    it "should validate entity data" do
+      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params).and_return([])
+      ModuleThatIncludesRegisterMethods.save_entity(@params)
+    end
+
+    context "and entity_data is valid" do
+      before do
+        ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
+      end
+
+      it "should prepare and save data" do
+        ModuleThatIncludesRegisterMethods.should_receive(:prepare_and_save_data).with(@params)
+        ModuleThatIncludesRegisterMethods.save_entity(@params)
+      end
+
+      it "should return true" do
+        ModuleThatIncludesRegisterMethods.save_entity(@params).should be_true
+      end
+    end
+
+    context "and entity_data is not valid" do
+      before do
+        ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([{:message=>'Not valid'}])
+      end
+
+      it "should not prepare and save data" do
+        ModuleThatIncludesRegisterMethods.should_not_receive(:prepare_and_save_data)
+        ModuleThatIncludesRegisterMethods.save_entity(@params)
+      end
+
+      it "should not return true" do
+        ModuleThatIncludesRegisterMethods.save_entity(@params).should_not be_true
+      end
+    end
+  end
 end

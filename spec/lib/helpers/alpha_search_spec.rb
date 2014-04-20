@@ -81,13 +81,23 @@ describe 'a module that includes AlphaSearch' do
       ModuleThatIncludesAlphaSearch.stub(:create_new_company)
       ModuleThatIncludesAlphaSearch.stub(:process_datum)
       ModuleThatIncludesAlphaSearch.stub(:alpha_terms).and_return(@alpha_terms)
-      ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).and_return([])
+      ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).and_yield(nil)
     end
 
     it "should search_for_entities_for_term for each term in alpha_terms" do
       @alpha_terms.each do |term|
-        ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(term, anything).and_return([])
+        ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(term, anything).and_yield(nil)
       end
+      ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
+    end
+
+    it "should prcess entity data yielded by search_for_entities_for_term" do
+      @alpha_terms.each do |term|
+        ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).with(term, anything).and_yield(:datum_1).and_yield(:datum_2)
+      end
+      ModuleThatIncludesAlphaSearch.should_receive(:process_datum).with(:datum_1)
+      ModuleThatIncludesAlphaSearch.should_receive(:process_datum).with(:datum_2)
+
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end
 
@@ -99,7 +109,7 @@ describe 'a module that includes AlphaSearch' do
     end
 
     it "should pass options to search_for_entities_for_term" do
-      ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(anything, :foo => 'bar').and_return([])
+      ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).with(anything, :foo => 'bar').and_yield(nil)
 
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search(:foo => 'bar')
     end
@@ -125,7 +135,7 @@ describe 'a module that includes AlphaSearch' do
     context "and search finishes before getting to end of alpha_terms" do
       it "should store term where it was working on where there was problem" do
         ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).
-                                      with(@alpha_terms.first, anything).and_return([])
+                                      with(@alpha_terms.first, anything).and_yield(nil)
 
         ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).
                                       with(@alpha_terms[1], anything).and_raise('Something has gone wrong')
