@@ -79,7 +79,7 @@ describe 'a module that includes AlphaSearch' do
     before do
       @alpha_terms = ['A1','B2','XX','YY']
       ModuleThatIncludesAlphaSearch.stub(:create_new_company)
-      ModuleThatIncludesAlphaSearch.stub(:process_datum)
+      ModuleThatIncludesAlphaSearch.stub(:save_entity)
       ModuleThatIncludesAlphaSearch.stub(:alpha_terms).and_return(@alpha_terms)
       ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).and_yield(nil)
     end
@@ -91,12 +91,12 @@ describe 'a module that includes AlphaSearch' do
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end
 
-    it "should prcess entity data yielded by search_for_entities_for_term" do
+    it "should process entity data yielded by search_for_entities_for_term" do
       @alpha_terms.each do |term|
         ModuleThatIncludesAlphaSearch.stub(:search_for_entities_for_term).with(term, anything).and_yield(:datum_1).and_yield(:datum_2)
       end
-      ModuleThatIncludesAlphaSearch.should_receive(:process_datum).with(:datum_1)
-      ModuleThatIncludesAlphaSearch.should_receive(:process_datum).with(:datum_2)
+      ModuleThatIncludesAlphaSearch.should_receive(:save_entity).with(:datum_1)
+      ModuleThatIncludesAlphaSearch.should_receive(:save_entity).with(:datum_2)
 
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end

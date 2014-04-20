@@ -9,8 +9,6 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
 
-    SCHEMA_NAME = 'company-schema'
-
     # This is called by #update_datum
     def fetch_datum(company_number)
       company_page = fetch_registry_page(company_number)
@@ -19,6 +17,10 @@ module OpencBot
 
     def primary_key_name
       :company_number
+    end
+
+    def schema_name
+      super || 'company-schema'
     end
 
   end

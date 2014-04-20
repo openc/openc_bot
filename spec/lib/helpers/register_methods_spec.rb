@@ -74,6 +74,20 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe "#schema_name" do
+    context 'and no SCHEMA_NAME constant' do
+      it "should return nil" do
+        ModuleWithNoCustomPrimaryKey.schema_name.should be_nil
+      end
+    end
+
+    context 'and SCHEMA_NAME constant set' do
+      it "should return SCHEMA_NAME" do
+        ModuleThatIncludesRegisterMethods.schema_name.should == 'company-schema'
+      end
+    end
+  end
+
   describe "#update_data" do
     before do
       ModuleThatIncludesRegisterMethods.stub(:fetch_data_via_incremental_search)

@@ -20,8 +20,8 @@ module OpencBot
         starting_term = options[:starting_term]||get_var('starting_term')
         alpha_terms(starting_term).each do |term|
           save_var('starting_term', term)
-          search_for_entities_for_term(term, options) do |company_datum|
-            process_datum(company_datum)
+          search_for_entities_for_term(term, options) do |entity_datum|
+            save_entity(entity_datum)
           end
 
         end

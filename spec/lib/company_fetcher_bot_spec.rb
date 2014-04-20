@@ -46,4 +46,19 @@ describe "A module that extends CompanyFetcherBot" do
     end
   end
 
+  describe "#schema_name" do
+    context 'and no SCHEMA_NAME constant' do
+      it "should return 'company-schema'" do
+        TestCompanyFetcherBot.schema_name.should == 'company-schema'
+      end
+    end
+
+    context 'and SCHEMA_NAME constant set' do
+      it "should return SCHEMA_NAME" do
+        stub_const("TestCompanyFetcherBot::SCHEMA_NAME", 'foo-schema')
+        TestCompanyFetcherBot.schema_name.should == 'foo-schema'
+      end
+    end
+  end
+
 end
