@@ -9,7 +9,8 @@ namespace :bot do
     %w(bin db data lib spec spec/dummy_responses tmp pids).each do |new_dir|
       Dir.mkdir(File.join(working_dir,new_dir)) unless Dir.exist?(File.join(working_dir,new_dir))
     end
-    templates = ['spec/spec_helper.rb','spec/bot_spec.rb','lib/bot.rb', 'README.md', 'config.yml']
+    bot_template = "lib/#{ENV['TEMPLATE']}" || 'lib/bot.rb'
+    templates = ['spec/spec_helper.rb','spec/bot_spec.rb', 'README.md', 'config.yml', bot_template]
     templates.each do |template_location|
       template = File.open(File.join(File.dirname(__FILE__), 'templates',template_location)).read
       template.gsub!('MyModule',new_module_name)
