@@ -4,4 +4,4 @@ source 'https://rubygems.org'
 gemspec
 
 # we need to do pull request and bump version
-gem 'scraperwiki', :git => 'git@github.com:openc/scraperwiki-ruby.git'
+gem 'scraperwiki', :git => 'https://github.com/openc/scraperwiki-ruby.git'
