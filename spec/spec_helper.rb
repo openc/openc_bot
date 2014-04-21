@@ -9,7 +9,9 @@ def remove_test_database
 end
 
 def test_database_location
-  File.join(File.dirname(__FILE__),'db','test_db.db')
+  db_dir = File.join(File.dirname(__FILE__),'db')
+  Dir.mkdir(db_dir) unless Dir.exist?(db_dir)
+  File.join(db_dir,'test_db.db')
 end
 
 def test_database_connection
