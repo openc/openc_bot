@@ -338,7 +338,13 @@ describe 'company-schema' do
             :filings => [ {:title => 'Annual Report', :date => '2010-11-22'},
                           {:description => 'Another type of filing', :date => '2010-11-22'},
                           {:description => 'Another type of filing', :uid => '12345A321', :date => '2010-11-22'},
-                          {:filing_type => 'Some type', :date => '2010-11-22'}]
+                          {:filing_type_name => 'Some type', :date => '2010-11-22'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :filings => [ {:title => 'Annual Report', :date => '2010-11-22', :other_attributes => {:foo => 'bar'}},
+                          {:filing_type_name => 'Some type', :filing_type_code => '10-K', :date => '2010-11-22'}]
           },
           { :name => 'Foo Inc',
             :company_number => '12345',
@@ -359,7 +365,7 @@ describe 'company-schema' do
           { :name => 'Foo Inc',
             :company_number => '12345',
             :jurisdiction_code => 'ie',
-            :filings => [ {:filing_type => 'Some type'}]
+            :filings => [ {:filing_type_name => 'Some type'}]
           },
           { :name => 'Foo Inc',
             :company_number => '12345',
@@ -370,27 +376,45 @@ describe 'company-schema' do
             :company_number => '12345',
             :jurisdiction_code => 'ie',
             :filings => ['foo filing']
-          },
-          # { :name => 'Foo Inc',
-          #   :company_number => '12345',
-          #   :jurisdiction_code => 'ie',
-          #   :officers => 'some body'
-          # },
-          # { :name => 'Foo Inc',
-          #   :company_number => '12345',
-          #   :jurisdiction_code => 'ie',
-          #   :officers => [{:name => 'Fred',  :other_attributes => 'non object'}]
-          # },
-          # { :name => 'Foo Inc',
-          #   :company_number => '12345',
-          #   :jurisdiction_code => 'ie',
-          #   :officers => ['some body']
-          # }
+          }
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
         errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
+    end
+
+    it "should require either title or description or filing_type_name to be present" do
+      valid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :filings => [ {:filing_type_name => 'Some type', :date => '2010-11-22'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :filings => [ {:description => 'Some type', :date => '2010-11-22'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :filings => [ {:title => 'Some type', :date => '2010-11-22'}]
+          }
+        ]
+      invalid_params =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :filings => [ {:uid => '12345', :date => '2010-11-22'}]
+          }
+      valid_company_params.each do |valid_params|
+        errors = validate_datum_and_return_errors(valid_params)
+        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+      end
+
+      validate_datum_and_return_errors(invalid_params).should_not be_empty
     end
   end
 

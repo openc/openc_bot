@@ -4,8 +4,17 @@
   "type": "object",
   "properties": { "title": { "type": "string" },
                   "date": { "type": "date" },
-                  "uid":   { "type": "string" }
+                  "description":   { "type": "string" },
+                  "uid":   { "type": "string" },
+                  "url":   { "type": "string" },
+                  "filing_type_code":   { "type": "string" },
+                  "filing_type_name":   { "type": "string" },
+                  "other_attributes": { "type": "object" }
   },
-  "required": [ "date" ]
+  "required": [ "date" ],
+  "oneOf": [ { "required": ["title"] },
+             { "required": ["description"] },
+             { "required": ["filing_type_name"] }
+           ]
 }
 
