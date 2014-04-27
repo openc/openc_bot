@@ -490,6 +490,64 @@ describe 'company-schema' do
     end
   end
 
+  context "and company has total_shares" do
+    it "should validate if total_shares are valid" do
+      valid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares =>
+             { :number => 123,
+               :share_class => 'Ordinary' }
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares =>
+             { :number => 123 }
+          }
+        ]
+        valid_company_params.each do |valid_params|
+          errors = validate_datum_and_return_errors(valid_params)
+          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        end
+    end
+
+    it "should not validate if share_parcels are not valid" do
+      invalid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares =>
+             { :share_class => 'Ordinary' }
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares =>
+             { :number => 123,
+               :share_class => '' }
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares => 'foo filing'
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :total_shares => ['foo filing']
+          }
+        ]
+      invalid_company_params.each do |invalid_params|
+        errors = validate_datum_and_return_errors(invalid_params)
+        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+      end
+    end
+  end
+
   def validate_datum_and_return_errors(record)
     errors = JSON::Validator.fully_validate(
       @schema,

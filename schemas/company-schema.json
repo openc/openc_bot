@@ -23,6 +23,7 @@
     "share_parcels": { "type": "array",
                   "items": { "$ref" : "includes/share-parcel.json" }
                 },
+    "total_shares": { "$ref" : "includes/total-shares.json"},
     "filings": { "type": "array",
                   "items": { "$ref" : "includes/filing.json" }
                 },
