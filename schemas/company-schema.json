@@ -4,17 +4,40 @@
   "type": "object",
   "description": "A company in OpenCorporates",
   "properties": {
-    "company_number": { "type": "string" },
-  	"name": { "type": "string" },
+    "company_number": { "type": "string", "minLength": 1 },
+  	"name": { "type": "string", "minLength": 1 },
   	"jurisdiction_code": { "type": "string", "minLength": 2, "maxLength": 5 },
-  	"incorporation_date": { "type": "date-time" },
-  	"dissolution_date": { "type": "date-time" },
+  	"incorporation_date": { "type": "date" },
+  	"dissolution_date": { "type": "date" },
   	"retrieved_at": { "type": "date-time" },
   	"current_status": { "type": "string" },
   	"company_type": { "type": "string" },
-  	"branch": { "type": "string", "maxLength": 1 },
+  	"branch": { "type": "string",
+                "enum": ["F","L"],
+                "description": "A flag to denote whether a company is a branch entity. In general the only option here is 'F' for a 'Foreign' branch, i.e. an out-of-jurisdiction entity that has registered as having a presence in the jurisdiction. In the US this is sometimes called a Foreign Corporation" },
   	"registry_url": { "type": "string" },
-  	"registered_address": { "type": "string" }
+  	"registered_address": { "type": "string" },
+    "officers": { "type": "array",
+                  "items": { "$ref" : "includes/officer.json" }
+                },
+    "share_parcels": { "type": "array",
+                  "items": { "$ref" : "includes/share-parcel.json" }
+                },
+    "filings": { "type": "array",
+                  "items": { "$ref" : "includes/filing.json" }
+                },
+    "previous_names": { "type": "array",
+                  "items": { "$ref" : "includes/previous_name.json" }
+                },
+    "all_attributes": {"type": "object",
+                       "description": "Other arbitrary attributes for a given company",
+                       "properties": {
+                         "jurisdiction_of_origin": { "type": "string", "minLength": 1, "description": "The jurisdiction of the 'home' company if this is a branch" },
+                         "registered_agent_name": { "type": "string", "minLength": 1, "description": "The 'Agent' of the company – a person or entity that is empowered to accept service for the company" },
+                         "registered_agent_address": { "type": "string", "minLength": 1, "description": "The address of the 'Agent', a public address to which legal papers can be served" }
+                       }
+                     }
+
   },
   "required": ["company_number", "name", "jurisdiction_code"]
 

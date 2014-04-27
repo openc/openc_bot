@@ -1,0 +1,11 @@
+{
+  "name": "Filing",
+  "description": "A statutory filing",
+  "type": "object",
+  "properties": { "title": { "type": "string" },
+                  "date": { "type": "date" },
+                  "uid":   { "type": "string" }
+  },
+  "required": [ "date" ]
+}
+
