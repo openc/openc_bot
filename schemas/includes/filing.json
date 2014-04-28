@@ -12,7 +12,7 @@
                   "other_attributes": { "type": "object" }
   },
   "required": [ "date" ],
-  "oneOf": [ { "required": ["title"] },
+  "anyOf": [ { "required": ["title"] },
              { "required": ["description"] },
              { "required": ["filing_type_name"] }
            ]

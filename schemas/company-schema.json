@@ -16,7 +16,7 @@
                 "enum": ["F","L"],
                 "description": "A flag to denote whether a company is a branch entity. In general the only option here is 'F' for a 'Foreign' branch, i.e. an out-of-jurisdiction entity that has registered as having a presence in the jurisdiction. In the US this is sometimes called a Foreign Corporation" },
   	"registry_url": { "type": "string" },
-  	"registered_address": { "type": "string" },
+  	"registered_address": { "$ref" : "includes/address.json" },
     "officers": { "type": "array",
                   "items": { "$ref" : "includes/officer.json" }
                 },

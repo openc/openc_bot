@@ -32,7 +32,8 @@ describe 'company-schema' do
       { :name => 'Foo Inc',
         :company_number => '12345',
         :jurisdiction_code => 'us_de',
-        :registered_address => '32 Foo St, Footown,'
+        :incorporation_date => '2010-10-20',
+        :dissolution_date => '2012-01-12'
       }
     errors = validate_datum_and_return_errors(valid_company_params)
     errors.should be_empty
@@ -64,6 +65,74 @@ describe 'company-schema' do
     invalid_company_params.each do |invalid_params|
       errors = validate_datum_and_return_errors(invalid_params)
       errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+    end
+  end
+
+  context "and company has registered_address" do
+    it "should be valid if it is a string" do
+      valid_company_params =
+        { :name => 'Foo Inc',
+          :company_number => '12345',
+          :jurisdiction_code => 'us_de',
+          :registered_address => '32 Foo St, Footown,'
+        }
+      errors = validate_datum_and_return_errors(valid_company_params)
+      errors.should be_empty
+    end
+
+    it "should be valid if it is a valid address object" do
+      valid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'us_de',
+            :registered_address => { :street_address => '32 Foo St', :locality => 'Footown', :region => 'Fooshire', :postal_code => 'FO1 2BA' }
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'us_de',
+            :registered_address => { :street_address => '32 Foo St' }
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'us_de',
+            :registered_address => { :postal_code => 'FO1 2BA' }
+          }
+        ]
+        valid_company_params.each do |valid_params|
+          errors = validate_datum_and_return_errors(valid_params)
+          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        end
+    end
+
+    it "should not be valid if it is not a valid address object" do
+      invalid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :registered_address => []
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :registered_address => ''
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :registered_address => {:country => 'Germany'}
+          },
+          # { :name => 'Foo Inc',
+          #   :company_number => '12345',
+          #   :jurisdiction_code => 'us_de',
+          #   :registered_address => {:country => 'Germany'}
+          # }
+        ]
+      invalid_company_params.each do |invalid_params|
+        errors = validate_datum_and_return_errors(invalid_params)
+        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+      end
     end
   end
 
@@ -141,7 +210,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}"
+          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
 
     end
@@ -190,7 +259,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}"
+          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -337,7 +406,7 @@ describe 'company-schema' do
             :jurisdiction_code => 'ie',
             :filings => [ {:title => 'Annual Report', :date => '2010-11-22'},
                           {:description => 'Another type of filing', :date => '2010-11-22'},
-                          {:description => 'Another type of filing', :uid => '12345A321', :date => '2010-11-22'},
+                          {:title => 'Annual Report', :description => 'Another type of filing', :uid => '12345A321', :date => '2010-11-22'},
                           {:filing_type_name => 'Some type', :date => '2010-11-22'}]
           },
           { :name => 'Foo Inc',
