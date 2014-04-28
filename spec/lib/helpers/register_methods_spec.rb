@@ -143,13 +143,29 @@ describe 'a module that includes RegisterMethods' do
   describe "#stale_entry_uids" do
     before do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '99999')
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => 'A094567')
     end
 
     it "should get entries which have not been retrieved or are more than 1 month old" do
-      expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999', '5234888', 'A094567')
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+
+      expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999', 'A094567', '5234888')
+    end
+
+    context "and no retrieved_at column" do
+      it "should not raise error" do
+        lambda { ModuleThatIncludesRegisterMethods.stale_entry_uids {} }.should_not raise_error
+      end
+
+      it "should create retrieved_at column" do
+        ModuleThatIncludesRegisterMethods.stale_entry_uids {}
+        ModuleThatIncludesRegisterMethods.select('* from ocdata').first.keys.should include('retrieved_at')
+      end
+
+      it "should retry" do
+        expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999','A094567')
+      end
     end
   end
 

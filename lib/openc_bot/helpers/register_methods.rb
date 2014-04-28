@@ -56,6 +56,13 @@ module OpencBot
         raw_data = select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
         end
+      rescue SQLite3::SQLException => e
+        if e.message[/no such column: retrieved_at/]
+          sqlite_magic_connection.add_columns('ocdata', ['retrieved_at'])
+          retry
+        else
+          raise e
+        end
       end
 
       def update_data
@@ -98,6 +105,7 @@ module OpencBot
         stale_entry_uids(stale_count) do |stale_entry_uid|
           update_datum(stale_entry_uid)
         end
+
       end
 
       def validate_datum(record)
