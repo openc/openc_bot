@@ -41,8 +41,8 @@ module OpencBot
       end
 
       def save_entity(entity_datum)
-        entity_valid = validate_datum(entity_datum)
-        return unless entity_valid.blank?
+        validation_errors = validate_datum(entity_datum)
+        return unless validation_errors.blank?
         prepare_and_save_data(entity_datum)
       end
 
