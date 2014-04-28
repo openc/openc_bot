@@ -56,6 +56,16 @@ namespace :bot do
     end
   end
 
+  desc 'Update stale data from target'
+  task :update_stale do
+    only_process_running('update_stale') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      runner = callable_from_file_name(bot_name)
+      runner.update_stale
+    end
+  end
+
   desc 'Run bot, but just for record with given uid'
   task :run_for_uid, :uid do |t, args|
     only_process_running('run_for_uid') do
