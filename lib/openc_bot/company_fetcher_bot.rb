@@ -15,8 +15,19 @@ module OpencBot
       {:company_page => company_page}
     end
 
+    def inferred_jurisdiction_code
+      poss_j_code = self.name.sub(/CompaniesFetcher/,'').underscore
+      poss_j_code[/^[a-z]{2}$|^[a-z]{2}_[a-z]{2}$/]
+    end
+
     def primary_key_name
       :company_number
+    end
+
+    def save_entity(entity_info)
+      return if entity_info.blank?
+      default_options = {:jurisdiction_code => inferred_jurisdiction_code}
+      super(default_options.merge(entity_info))
     end
 
     def schema_name
