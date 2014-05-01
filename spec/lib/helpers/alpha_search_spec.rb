@@ -50,8 +50,6 @@ describe 'a module that includes AlphaSearch' do
       ModuleThatIncludesAlphaSearch.stub(:letters_and_numbers).and_return(@letters_and_numbers)
     end
 
-
-
     it "should return array of letters_and_numbers based on numbers_of_chars_in_search" do
       ModuleThatIncludesAlphaSearch.alpha_terms.should == @letters_and_numbers
       ModuleThatIncludesAlphaSearch.should_receive(:numbers_of_chars_in_search).and_return(2)
@@ -71,6 +69,24 @@ describe 'a module that includes AlphaSearch' do
         ModuleThatIncludesAlphaSearch.stub(:numbers_of_chars_in_search).and_return(2)
         ModuleThatIncludesAlphaSearch.alpha_terms('C').
           should == @letters_and_numbers.repeated_permutation(2).collect(&:join)
+      end
+    end
+  end
+
+  describe "each_search_term" do
+    before do
+      ModuleThatIncludesAlphaSearch.should_receive(:alpha_terms).with('B').and_return(['C','D'])
+    end
+
+    it "should iterate through alpha_terms and yield them" do
+      yielded_data = []
+      ModuleThatIncludesAlphaSearch.each_search_term('B') { |t| yielded_data << "#{t}#{t}" }
+      yielded_data.should == ['CC','DD']
+    end
+
+    context "and no block given" do
+      it "should return alpha_terms" do
+        ModuleThatIncludesAlphaSearch.each_search_term('B').should == ['C','D']
       end
     end
   end

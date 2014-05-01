@@ -24,6 +24,8 @@ module OpencBot
       :company_number
     end
 
+    # This overrides default #save_entity (defined in RegisterMethods) and adds
+    # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
       return if entity_info.blank?
       default_options = {:jurisdiction_code => inferred_jurisdiction_code}

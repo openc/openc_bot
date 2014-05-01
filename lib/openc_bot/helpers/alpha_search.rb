@@ -18,15 +18,20 @@ module OpencBot
 
       def fetch_data_via_alpha_search(options={})
         starting_term = options[:starting_term]||get_var('starting_term')
-        alpha_terms(starting_term).each do |term|
+        each_search_term(starting_term) do |term|
           save_var('starting_term', term)
           search_for_entities_for_term(term, options) do |entity_datum|
             save_entity(entity_datum)
           end
-
         end
         # reset pointer
         save_var('starting_term',nil)
+      end
+
+      # Iterates through each search term, yielding the result to a block, or returning
+      # the array of search_terms if no block given
+      def each_search_term(starting_term=nil)
+        alpha_terms(starting_term).each{ |t| yield t if block_given?}
       end
 
       def letters_and_numbers
@@ -38,7 +43,7 @@ module OpencBot
       end
 
       def search_for_entities_for_term(term, options={})
-        raise "The #search_for_entities_for_term method has not been implemented for this casee.\nIt needs to be, and should yield a company data Hash"
+        raise "The #search_for_entities_for_term method has not been implemented for this case.\nIt needs to be, and should yield a company data Hash"
       end
 
       def get_results_and_extract_data_for(prefix, search_offset)

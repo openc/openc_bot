@@ -37,7 +37,7 @@ module MyModule
   # #update_data, which in turn calls this)
   # By default this uses an incremental search (which increments through :company_number identifiers),
   # or if USE_ALPHA_SEARCH has been set, an alpha search (e.g. searching for entities using 'AA', 'AB')
-  # Define this locally this if a different method for getting companies is going to done (e.g.
+  # Define this locally if a different method for getting companies is going to done (e.g.
   # parsing a CSV file)
   # def fetch_data
   # end
@@ -50,9 +50,10 @@ module MyModule
   # with :company_page as a key. This will then be processed or parsed by the #process_datum method,
   # and the result will be saved by #update_datum, and also returned in a form that can be used by the
   # main OpenCorporates system
-  # This hash can contain other data, such as a page of filings or shareholdings, and the hash will be
-  # converted to json, and stored in the database in the row for that company number, under the :data key,
-  # so that it can be reused or referred it in the future.
+  #
+  # This hash can contain other data, such as a page of filings or shareholdings. The hash will be
+  # converted to json, and stored in the database in the row for that company number, under the
+  # :data key, so that it can be reused or referred it in the future.
   # {:company_page => company_page_html, :filings_page => filings_page_html}
   # def fetch_datum(company_number)
   # end
@@ -62,9 +63,27 @@ module MyModule
   # Where the bot cannot do this (e.g. where the underlying data is
   # only available as a CSV file, or there are no individual pages for each company, it can be
   # left as a stub method)
+  # It should return a hash that conforms to the company-schema schema (and it will be checked)
+  # against this schema before saving
   def process_datum(datum_hash)
     # write your code to parse what is in the company pages/data
   end
+
+  # This is the standard method for alpha searches e.g. where you are searching a series of terms,
+  # from A-Z0-9. You can increase the number of characters in the search term by setting the
+  # NUMBER_OF_CHARS_IN_SEARCH constant (see above). Define this method locally if you need different
+  # behavtiour o this
+  # def fetch_data_via_alpha_search(options={})
+  #   starting_term = options[:starting_term]||get_var('starting_term')
+  #   each_search_term(starting_term) do |term|
+  #     save_var('starting_term', term)
+  #     search_for_entities_for_term(term, options) do |entity_datum|
+  #       save_entity(entity_datum)
+  #     end
+  #   end
+  #   # reset pointer
+  #   save_var('starting_term',nil)
+  # end
 
   # This method is called by #fetch_data_via_alpha_search (defined in AlphaSearch helper),
   # and is passed a search term, typically search term of a number of characters (e.g. 'AB', 'AC'...).
