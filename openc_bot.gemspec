@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib",'lib/openc_bot/helpers']
 
-  gem.add_dependency "activesupport"
+  gem.add_dependency "activesupport", "3.2.17"
   gem.add_dependency "nokogiri"
   # gem.add_dependency "sqlite3"
   gem.add_dependency "json"
