@@ -65,6 +65,17 @@ class SimpleOpencBot
     saves_count
   end
 
+  def data_as_json(opts={})
+    # fetch everything
+    fetch_all_records(opts) do |result|
+      row = {
+        identifying_fields: result.class.unique_fields
+      }
+      row[:data] = result
+      puts row.to_json
+    end
+  end
+
   def check_unique_index(record_class)
     indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
     db_unique_fields = indexes.map do |i|
