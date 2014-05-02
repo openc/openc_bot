@@ -26,7 +26,7 @@ class SimpleOpencBot
   end
 
   def update_data(opts={})
-    if opts[:specific_ids].empty?
+    if opts[:specific_ids].nil? || opts[:specific_ids].empty?
       # fetch everything
       record_enumerator = Enumerator.new do |yielder|
         fetch_all_records(opts) do |result|
@@ -51,14 +51,15 @@ class SimpleOpencBot
             record.to_hash)
           saves_count += 1
           if saves_count == 1
+            # TODO: move this validation to somewhere more explicit
+            raise "Bot must specify what record type it will yield" if _yields.nil?
             check_unique_index(_yields[0])
           end
           STDOUT.print(".")
           STDOUT.flush
         end
-      rescue
-      ensure
-        sqlite_magic_connection.execute("COMMIT")
+      ensure 
+        sqlite_magic_connection.execute("COMMIT") if sqlite_magic_connection.database.transaction_active?
       end
     end
     save_run_report(:status => 'success', :completed_at => Time.now)
@@ -80,52 +81,66 @@ class SimpleOpencBot
     indexes = sqlite_magic_connection.execute("PRAGMA INDEX_LIST('ocdata')")
     db_unique_fields = indexes.map do |i|
       next if i["unique"] != 1
+      next unless i["name"] =~ /autoindex/
       info = sqlite_magic_connection.execute("PRAGMA INDEX_INFO('#{i["name"]}')")
       info.map{|x| x["name"]}
-    end.compact
+    end.compact.flatten
     record_unique_fields = record_class.unique_fields.map(&:to_s)
-    if !db_unique_fields.include?(record_unique_fields)
+    if db_unique_fields != record_unique_fields
       sqlite_magic_connection.execute("ROLLBACK")
-      error = "Unique fields #{record_unique_fields} are not a unique index in `ocdata` table!"
+      error = "Unique fields #{record_unique_fields} do not match the unique index(es) in `ocdata` table!"
       error += "\nThis is usually because the value of unique_field has changed since the table was automatically created."
-      error += "\nUnique fields in `ocdata`: #{db_unique_fields}; in record #{record_class.name}: #{record_unique_fields}"
+      error += "\nUnique fields in `ocdata`: #{db_unique_fields.flatten}; in record #{record_class.name}: #{record_unique_fields}"
       raise error
     end
   end
 
   def count_stored_records
     begin
-    sqlite_magic_connection.execute("select count(*) as count from ocdata").first["count"]
+      all_stored_records(:count => true).first["count"]
     rescue SqliteMagic::NoSuchTable
       0
     end
   end
 
   def all_stored_records(opts={})
-    if opts[:limit]
-      sql = "ocdata.* from ocdata LIMIT #{opts[:limit]}"
-    else
-      sql = "ocdata.* from ocdata"
+    if opts[:only_unexported]
+      opts[:limit] ||= opts[:batch] 
     end
-    select_records(sql)
+
+    select = opts[:select] || "ocdata.*"
+    table = opts[:table] || "ocdata"
+    where = (opts[:where] ?  "\nWHERE #{opts[:where]}\n" : "\nWHERE 1 \n")
+    order = (opts[:order] ?  "\nORDER BY #{opts[:order]}\n" : "")
+    limit = (opts[:limit] ? "\nLIMIT #{opts[:limit]}\n" : "")
+
+    if opts[:only_unexported]
+      where += " AND (_last_exported_at IS NULL "\
+        "OR _last_exported_at < _last_updated_at)"
+
+      if !opts[:specific_ids].blank?
+        ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
+        where += " AND #{_yields[0].unique_field} IN (#{ids})"
+      end
+    end
+
+    if opts[:count]
+      sql = "COUNT(*) AS count from #{table} #{where}"
+      puts sql if opts[:debug]
+      select(sql)
+    else
+      sql = "#{select} from #{table} #{where} #{order} #{limit}"
+      puts sql if opts[:debug]
+      select_records(sql)
+    end
   end
 
   def unexported_stored_records(opts={})
-    sql = "ocdata.* from ocdata "\
-      "WHERE (_last_exported_at IS NULL "\
-      "OR _last_exported_at < _last_updated_at)"
-    if !opts[:specific_ids].empty?
-      ids = opts[:specific_ids].map{|id| "'#{id}'"}.join(",")
-      sql += " AND #{_yields[0].unique_field} IN (#{ids})"
-    end
-    sql += " LIMIT #{opts[:batch]}" if opts[:batch]
-    select_records(sql)
+    all_stored_records(opts.merge!(:only_unexported => true))
   end
 
   def spotcheck_records(limit = 5)
-    select_records("ocdata.* from ocdata "\
-                   "ORDER BY RANDOM()"\
-                   "LIMIT #{limit}")
+    all_stored_records(:order => "RANDOM()", :limit => limit)
   end
 
   def select_records(sql)
@@ -143,7 +158,7 @@ class SimpleOpencBot
       loop do
         if opts[:all]
           break if b > 1
-          batch = all_stored_records
+          batch = all_stored_records(opts)
         else
           batch = unexported_stored_records(:batch => 100, :specific_ids => opts[:specific_ids])
         end
@@ -153,11 +168,21 @@ class SimpleOpencBot
           pipeline_data = record.to_pipeline
           next if pipeline_data.nil?
           updates[record.class.name] ||= []
-          updates[record.class.name] << record.to_hash.merge(
-            :_last_exported_at => Time.now.iso8601(2))
+          # opts[:all] is currently called in the bot:test rake task
+          # This has the unfortunate side effect of updating the _last_exported_at
+          # time when running the validation task, so I've added the following conditional
+          if !opts[:all]
+            updates[record.class.name] << record.to_hash.merge(
+              :_last_exported_at => Time.now.iso8601(2))
+          else
+            updates[record.class.name] << record.to_hash
+          end
           yielder << pipeline_data
         end
         sqlite_magic_connection.execute("BEGIN TRANSACTION")
+        if b == 1
+          check_unique_index(_yields[0])
+        end
         updates.each do |k, v|
           save_data(k.constantize.unique_fields, v)
         end

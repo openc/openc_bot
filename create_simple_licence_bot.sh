@@ -8,9 +8,23 @@ if [ ! -f Gemfile ]; then
   echo "gem 'openc_bot', :git => 'https://github.com/openc/openc_bot.git', :branch => 'enumerators-and-iterators'" >> Gemfile
   echo "gem 'mechanize'" >> Gemfile
 fi
-echo "/db" >> .gitignore
-echo "/data" >> .gitignore
-echo "/tmp" >> .gitignore
+
+echo "/db/*" >> .gitignore
+echo "/data/*" >> .gitignore
+echo "/tmp/*" >> .gitignore
+echo "/pids/*" >> .gitignore
+echo "!.gitkeep" >> .gitignore
+
+mkdir -p db
+mkdir -p data
+mkdir -p tmp
+mkdir -p pids
+
+touch db/.gitkeep
+touch data/.gitkeep
+touch tmp/.gitkeep
+touch pids/.gitkeep
+
 bundle install
 # create the bot
 bundle exec openc_bot rake bot:create_simple_bot
