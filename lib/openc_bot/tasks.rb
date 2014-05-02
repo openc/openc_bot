@@ -99,6 +99,19 @@ namespace :bot do
     end
   end
 
+  desc 'Get data from target'
+  task :run_for_angler do |t, args|
+    only_process_running(t.name) do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      runner = callable_from_file_name(bot_name)
+      runner.data_as_json.each do |line|
+        puts line
+      end
+    end
+  end
+
+
   desc 'Export data to stdout'
   task :export do |t, args|
     only_process_running(t.name) do

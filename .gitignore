@@ -19,4 +19,6 @@ tmp
 *~
 db/*
 **/db/*
-!.gitkeep
+/db
+/data
+/tmp
