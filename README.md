@@ -11,7 +11,7 @@ To start writing a new bot, run the following to create a skeleton bot:
 ```bash
 mkdir your_bot_name
 cd your_bot_name
-curl -s https://raw.github.com/openc/openc_bot/enumerators-and-iterators/create_simple_licence_bot.sh | bash
+curl -s https://raw.githubusercontent.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
 ```
 
 The default bot doesn't scrape, it just outputs some dummy data. You can try:
