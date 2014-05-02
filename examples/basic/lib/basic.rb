@@ -1,11 +1,11 @@
 # encoding: UTF-8
 require 'simple_openc_bot'
+require 'mechanize'
 
 # you may need to require other libraries here
 # require 'nokogiri'
-# require 'mechanize'
 
-class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
+class BasicRecord < SimpleOpencBot::BaseLicenceRecord
   # The JSON schema to use to validate records; correspond with files
   # in `schema/*-schema.json`
   schema :licence
@@ -17,6 +17,15 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
   # This is the field(s) which will uniquely define a record (think
   # primary key in a database).
   unique_fields :name
+
+  # These are just example methods and constants used by
+  # `to_pipeline`, below
+  JURISDICTION = "uk"
+  URL = "http://foo.com"
+
+  def jurisdiction_classification
+    type
+  end
 
   # This must be defined, and should return a timestamp in ISO8601
   # format. Its value should change when something about the record
@@ -35,15 +44,15 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
       sample_date: last_updated_at,
       company: {
         name: name,
-        jurisdiction: "xx",
+        jurisdiction: JURISDICTION,
       },
-      source_url: "xx",
+      source_url: URL,
       data: [{
         data_type: :licence,
         properties: {
-          jurisdiction_code: "xx",
+          jurisdiction_code: JURISDICTION,
           category: 'Financial',
-          jurisdiction_classification: [type],
+          jurisdiction_classification: [jurisdiction_classification],
         }
       }]
     }
@@ -51,17 +60,29 @@ class MyLicenceRecord < SimpleOpencBot::BaseLicenceRecord
 
 end
 
-class MyLicence < SimpleOpencBot
+class Basic < SimpleOpencBot
 
   # the class that `fetch_records` yields. Must be defined.
-  yields MyLicenceRecord
+  yields BasicRecord
 
   # This method should yield Records. It must be defined.
   def fetch_all_records(opts={})
-    data = [{:name => "A", :type => "B"}]
-    data.each do |datum|
-      yield MyLicenceRecord.new(
-        datum.merge(:reporting_date => Time.now.iso8601(2)))
+
+    # you can use any client here, e.g. HTTPClient, open-uri, etc.
+    agent = Mechanize.new
+
+    # This is a live page on our website - have a look to see what's going on.
+    page = agent.get("http://assets.opencorporates.com/test_bot_page.html")
+
+    # We tend to use Nokogiri to parse responses, but again this is up
+    # to you.
+    doc = Nokogiri::HTML(page.body)
+    doc.xpath("//li").map do |li|
+      name, type = li.content.split(":")
+      yield BasicRecord.new(
+        :name => name.strip,
+        :type => type.strip,
+        :reporting_date => Time.now.iso8601(2))
     end
   end
 end

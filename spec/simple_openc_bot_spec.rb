@@ -33,6 +33,7 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
         properties: {
           category: 'Financial',
           jurisdiction_classification: [jurisdiction_classification],
+          jurisdiction_code: 'gb'
         }
       }]
     }
@@ -41,14 +42,15 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 end
 
 class TestLicenceBot < SimpleOpencBot
+  yields LicenceRecord
 
   def initialize(data={})
     @data = data
   end
 
-  def fetch_records
-    @data.map do |datum|
-      LicenceRecord.new(datum)
+  def fetch_all_records(opts={})
+    @data.each do |datum|
+      yield LicenceRecord.new(datum)
     end
   end
 end

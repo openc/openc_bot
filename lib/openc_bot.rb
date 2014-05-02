@@ -10,15 +10,11 @@ module OpencBot
   class OpencBotError < StandardError;end
   class DatabaseError < OpencBotError;end
   class InvalidDataError < OpencBotError;end
+  class NotFoundError < OpencBotError;end
 
   include ScraperWiki
   # include by default, as some were previously in made openc_bot file
   include Helpers::Text
-
-  # What's this for?
-  def thing_from_openc_bot
-    puts "ribbit"
-  end
 
   def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
@@ -48,8 +44,8 @@ module OpencBot
     ENV['VERBOSE']
   end
 
-  def export
-    export_data.each do |record|
+  def export(opts={})
+    export_data(opts).each do |record|
       $stdout.puts record.to_json
       $stdout.flush
     end
