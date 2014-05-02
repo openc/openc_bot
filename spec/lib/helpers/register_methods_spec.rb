@@ -88,22 +88,29 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
-  describe "#update_data" do
-    before do
-      ModuleThatIncludesRegisterMethods.stub(:fetch_data_via_incremental_search)
-      ModuleThatIncludesRegisterMethods.stub(:update_stale)
-    end
-
+  describe "#fetch_data" do
     it "should get new records via incremental search" do
       ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_alpha_search)
       ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_incremental_search)
-      ModuleThatIncludesRegisterMethods.update_data
+      ModuleThatIncludesRegisterMethods.fetch_data
     end
 
     it "should get new records via alpha search if use_alpha_search" do
       ModuleThatIncludesRegisterMethods.should_receive(:use_alpha_search).and_return(true)
       ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_incremental_search)
       ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_alpha_search)
+      ModuleThatIncludesRegisterMethods.fetch_data
+    end
+  end
+
+  describe "#update_data" do
+    before do
+      ModuleThatIncludesRegisterMethods.stub(:fetch_data)
+      ModuleThatIncludesRegisterMethods.stub(:update_stale)
+    end
+
+    it "should fetch_data" do
+      ModuleThatIncludesRegisterMethods.should_receive(:fetch_data)
       ModuleThatIncludesRegisterMethods.update_data
     end
 
