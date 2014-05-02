@@ -200,29 +200,6 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
-  describe "#datum_exists?" do
-    before do
-      ModuleThatIncludesIncrementalSearch.stub(:select).and_return([])
-
-    end
-
-    it "should select_data from database" do
-      expected_sql_query = "ocdata.custom_uid FROM ocdata WHERE custom_uid = '?' LIMIT 1"
-      ModuleThatIncludesIncrementalSearch.should_receive(:select).with(expected_sql_query, '4567').and_return([])
-      ModuleThatIncludesIncrementalSearch.datum_exists?('4567')
-    end
-
-    it "should return true if result returned" do
-      ModuleThatIncludesIncrementalSearch.stub(:select).and_return([{'custom_uid' => '4567'}])
-
-      ModuleThatIncludesIncrementalSearch.datum_exists?('4567').should be_true
-    end
-
-    it "should return false if result returned" do
-      ModuleThatIncludesIncrementalSearch.datum_exists?('4567').should be_false
-    end
-  end
-
   describe '#incremental_rewind_count' do
     it 'should return nil if INCREMENTAL_REWIND_COUNT not set' do
       ModuleThatIncludesIncrementalSearch.send(:incremental_rewind_count).should be_nil
@@ -231,16 +208,6 @@ describe 'a module that includes IncrementalSearch' do
     it 'should return value if INCREMENTAL_REWIND_COUNT set' do
       stub_const("ModuleThatIncludesIncrementalSearch::INCREMENTAL_REWIND_COUNT", 42)
       ModuleThatIncludesIncrementalSearch.send(:incremental_rewind_count).should == ModuleThatIncludesIncrementalSearch::INCREMENTAL_REWIND_COUNT
-    end
-  end
-
-  describe '#primary_key_name' do
-    it 'should return :uid if PRIMARY_KEY_NAME not set' do
-      ModuleWithNoCustomPrimaryKey.send(:primary_key_name).should == :uid
-    end
-
-    it 'should return value if PRIMARY_KEY_NAME set' do
-      ModuleThatIncludesIncrementalSearch.send(:primary_key_name).should == :custom_uid
     end
   end
 
@@ -285,7 +252,7 @@ describe 'a module that includes IncrementalSearch' do
     end
   end
 
-  describe '#get_new' do
+  describe '#fetch_data_via_incremental_search' do
     before do
       @most_recent_companies = ['03456789', 'A12345']
       ModuleThatIncludesIncrementalSearch.stub(:highest_entry_uids).and_return(@most_recent_companies)
@@ -295,7 +262,7 @@ describe 'a module that includes IncrementalSearch' do
     it 'should find highest_entry_uids' do
       ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uids)
 
-      ModuleThatIncludesIncrementalSearch.get_new
+      ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
     end
 
     context 'and highest_entry_uids returns nil' do
@@ -306,13 +273,13 @@ describe 'a module that includes IncrementalSearch' do
       it 'should not do incremental_search' do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:incremental_search)
 
-        ModuleThatIncludesIncrementalSearch.get_new
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
       it 'should not update cached highest_entry_uid value' do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:save_var)
 
-        ModuleThatIncludesIncrementalSearch.get_new
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
     end
 
@@ -325,7 +292,7 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', {})
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', {})
 
-        ModuleThatIncludesIncrementalSearch.get_new
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
       it 'should save highest_entry_uids' do
@@ -333,14 +300,14 @@ describe 'a module that includes IncrementalSearch' do
         ModuleThatIncludesIncrementalSearch.stub(:incremental_search).with('A12345', anything).and_return('A234567')
         ModuleThatIncludesIncrementalSearch.should_receive(:save_var).with(:highest_entry_uids, ['0345999','A234567'])
 
-        ModuleThatIncludesIncrementalSearch.get_new
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
       end
 
-      context 'and options passed to get_new' do
+      context 'and options passed to fetch_data_via_incremental_search' do
         it "should pass them on to incremental search" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', :foo => 'bar')
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', :foo => 'bar')
-          ModuleThatIncludesIncrementalSearch.get_new(:foo => 'bar')
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:foo => 'bar')
         end
       end
 
@@ -352,19 +319,19 @@ describe 'a module that includes IncrementalSearch' do
         it "should pass negated version on to incremental search as offset" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:offset => -42))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:offset => -42))
-          ModuleThatIncludesIncrementalSearch.get_new
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
         end
 
         it "should ask to skip_existing_companies on incremental search by default" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:skip_existing_entries => true))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:skip_existing_entries => true))
-          ModuleThatIncludesIncrementalSearch.get_new
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search
         end
 
         it "should not ask to skip_existing_companies on incremental search if requested not to" do
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('03456789', hash_including(:skip_existing_entries => false))
           ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('A12345', hash_including(:skip_existing_entries => false))
-          ModuleThatIncludesIncrementalSearch.get_new(:skip_existing_entries => false)
+          ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:skip_existing_entries => false)
         end
       end
 
@@ -374,14 +341,14 @@ describe 'a module that includes IncrementalSearch' do
       it "should not find highest_entry_uids" do
         ModuleThatIncludesIncrementalSearch.should_not_receive(:highest_entry_uids)
 
-        ModuleThatIncludesIncrementalSearch.get_new(:highest_entry_uids => ['1234', '6543'])
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:highest_entry_uids => ['1234', '6543'])
       end
 
       it 'should do incremental_search starting at provided highest company numbers' do
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('1234', {})
         ModuleThatIncludesIncrementalSearch.should_receive(:incremental_search).with('6543', {})
 
-        ModuleThatIncludesIncrementalSearch.get_new(:highest_entry_uids => ['1234', '6543'])
+        ModuleThatIncludesIncrementalSearch.fetch_data_via_incremental_search(:highest_entry_uids => ['1234', '6543'])
       end
     end
   end
@@ -497,163 +464,6 @@ describe 'a module that includes IncrementalSearch' do
 
       it "should return prefix plus 0 if prefix given" do
         ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(:prefix => 'A').should == 'A0'
-      end
-    end
-  end
-
-  describe "#update_data" do
-    before do
-      ModuleThatIncludesIncrementalSearch.stub(:get_new)
-      ModuleThatIncludesIncrementalSearch.stub(:update_stale)
-    end
-
-    it "should get new records" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:get_new)
-      ModuleThatIncludesIncrementalSearch.update_data
-    end
-
-    it "should update stale records" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:update_stale)
-      ModuleThatIncludesIncrementalSearch.update_data
-    end
-
-    it "should save run report" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:save_run_report).with(:status => 'success')
-      ModuleThatIncludesIncrementalSearch.update_data
-    end
-  end
-
-  describe "#update_stale" do
-    it "should get uids of stale entries" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:stale_entry_uids)
-      ModuleThatIncludesIncrementalSearch.update_stale
-    end
-
-    it "should update_datum for each entry yielded by stale_entries" do
-      ModuleThatIncludesIncrementalSearch.stub(:stale_entry_uids).and_yield('234').and_yield('666').and_yield('876')
-      ModuleThatIncludesIncrementalSearch.should_receive(:update_datum).with('234')
-      ModuleThatIncludesIncrementalSearch.should_receive(:update_datum).with('666')
-      ModuleThatIncludesIncrementalSearch.should_receive(:update_datum).with('876')
-      ModuleThatIncludesIncrementalSearch.update_stale
-    end
-
-    context "and limit passed in" do
-      it "should pass on limit to #stale_entries" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:stale_entry_uids).with(42)
-        ModuleThatIncludesIncrementalSearch.update_stale(42)
-      end
-    end
-  end
-
-  describe "#stale_entry_uids" do
-    before do
-      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '99999')
-      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
-      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
-      ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], :custom_uid => 'A094567')
-    end
-
-    it "should get entries which have not been retrieved or are more than 1 month old" do
-      expect {|b| ModuleThatIncludesIncrementalSearch.stale_entry_uids(&b)}.to yield_successive_args('99999', '5234888', 'A094567')
-    end
-  end
-
-  describe "#update_datum for uid" do
-    before do
-      @dummy_time = Time.now
-      @uid = '23456'
-      Time.stub(:now).and_return(@dummy_time)
-      @fetch_datum_response = 'some really useful data'
-      # @processed_data = ModuleThatIncludesIncrementalSearch.process_datum(@fetch_datum_response)
-      @processed_data = {:foo => 'bar'}
-      ModuleThatIncludesIncrementalSearch.stub(:fetch_datum).and_return(@fetch_datum_response)
-      ModuleThatIncludesIncrementalSearch.stub(:process_datum).and_return(@processed_data)
-      @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time.to_s)
-      ModuleThatIncludesIncrementalSearch.stub(:save_data)
-    end
-
-    it "should fetch_datum for company number" do
-      ModuleThatIncludesIncrementalSearch.should_receive(:fetch_datum).with(@uid).and_return(@fetch_datum_response)
-      ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-    end
-
-    context "and nothing returned from fetch_datum" do
-      before do
-        ModuleThatIncludesIncrementalSearch.stub(:fetch_datum) # => nil
-      end
-
-      it "should not process_datum" do
-        ModuleThatIncludesIncrementalSearch.should_not_receive(:process_datum)
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should not save data" do
-        ModuleThatIncludesIncrementalSearch.should_not_receive(:save_data)
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should return nil" do
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
-      end
-
-    end
-
-    context 'and data returned from fetch_datum' do
-      it "should process_datum returned from fetching" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:process_datum).with(@fetch_datum_response)
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should prepare processed data for saving including timestamp" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_call_original
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should include data in data to be prepared for saving" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:prepare_for_saving).with(hash_including(:data => @fetch_datum_response)).and_call_original
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should save prepared_data" do
-        ModuleThatIncludesIncrementalSearch.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
-
-        ModuleThatIncludesIncrementalSearch.should_receive(:save_data).with([:custom_uid], hash_including(:foo => 'some prepared data'))
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should return data including uid" do
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid).should == @processed_data_with_retrieved_at_and_uid
-      end
-
-      it "should not output jsonified processed data by default" do
-        ModuleThatIncludesIncrementalSearch.should_not_receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid)
-      end
-
-      it "should output jsonified processed data to STDOUT if passed true as second argument" do
-        ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
-        ModuleThatIncludesIncrementalSearch.update_datum(@uid, true)
-      end
-
-
-      context "and exception raised" do
-        before do
-          ModuleThatIncludesIncrementalSearch.stub(:process_datum).and_raise('something went wrong')
-        end
-
-        it "should output error message if true passes as second argument" do
-          ModuleThatIncludesIncrementalSearch.should_receive(:puts).with(/error.+went wrong/m)
-          ModuleThatIncludesIncrementalSearch.update_datum(@uid, true)
-        end
-
-        it "should return nil if true not passed as second argument" do
-          ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
-        end
-
-        it "should output error message if true not passed as second argument" do
-          ModuleThatIncludesIncrementalSearch.should_not_receive(:puts).with(/error/)
-          ModuleThatIncludesIncrementalSearch.update_datum(@uid).should be_nil
-        end
       end
     end
   end
