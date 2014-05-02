@@ -14,6 +14,17 @@ module OpencBot
         !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = '?' LIMIT 1", uid).first
       end
 
+      # fetches and saves data. By default assumes an incremental search, or an alpha search
+      # if USE_ALPHA_SEARCH is set. This method should be overridden if you are going to do a
+      # different type of data import, e.g from a CSV file.
+      def fetch_data
+        if use_alpha_search
+          fetch_data_via_alpha_search
+        else
+          fetch_data_via_incremental_search
+        end
+      end
+
       def fetch_registry_page(company_number)
         _client.get_content(registry_url(company_number))
       end
@@ -66,11 +77,7 @@ module OpencBot
       end
 
       def update_data
-        if use_alpha_search
-          fetch_data_via_alpha_search
-        else
-          fetch_data_via_incremental_search
-        end
+        fetch_data
         update_stale
         save_run_report(:status => 'success')
       end
