@@ -88,29 +88,22 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
-  describe "#fetch_data" do
+  describe "#update_data" do
+    before do
+      ModuleThatIncludesRegisterMethods.stub(:fetch_data_via_incremental_search)
+      ModuleThatIncludesRegisterMethods.stub(:update_stale)
+    end
+
     it "should get new records via incremental search" do
       ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_alpha_search)
       ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_incremental_search)
-      ModuleThatIncludesRegisterMethods.fetch_data
+      ModuleThatIncludesRegisterMethods.update_data
     end
 
     it "should get new records via alpha search if use_alpha_search" do
       ModuleThatIncludesRegisterMethods.should_receive(:use_alpha_search).and_return(true)
       ModuleThatIncludesRegisterMethods.should_not_receive(:fetch_data_via_incremental_search)
       ModuleThatIncludesRegisterMethods.should_receive(:fetch_data_via_alpha_search)
-      ModuleThatIncludesRegisterMethods.fetch_data
-    end
-  end
-
-  describe "#update_data" do
-    before do
-      ModuleThatIncludesRegisterMethods.stub(:fetch_data)
-      ModuleThatIncludesRegisterMethods.stub(:update_stale)
-    end
-
-    it "should fetch_data" do
-      ModuleThatIncludesRegisterMethods.should_receive(:fetch_data)
       ModuleThatIncludesRegisterMethods.update_data
     end
 
@@ -122,6 +115,10 @@ describe 'a module that includes RegisterMethods' do
     it "should save run report" do
       ModuleThatIncludesRegisterMethods.should_receive(:save_run_report).with(:status => 'success')
       ModuleThatIncludesRegisterMethods.update_data
+    end
+
+    it "should not raise error if passed options" do
+      lambda { ModuleThatIncludesRegisterMethods.update_data }.should_not raise_error
     end
   end
 

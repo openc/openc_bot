@@ -76,7 +76,7 @@ module OpencBot
         end
       end
 
-      def update_data
+      def update_data(options={})
         fetch_data
         update_stale
         save_run_report(:status => 'success')
