@@ -98,7 +98,7 @@ module OpencBot
         processed_data = process_datum(raw_data).merge(primary_key_name => uid, :retrieved_at => Time.now.to_s)
         # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we may not extracting everything from it yet
-        prepare_and_save_data(processed_data.merge(:data => raw_data))
+        save_entity(processed_data.merge(:data => raw_data))
         if output_as_json
           puts processed_data.to_json
         else
