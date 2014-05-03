@@ -217,6 +217,7 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stub(:process_datum).and_return(@processed_data)
       @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time.to_s)
       ModuleThatIncludesRegisterMethods.stub(:save_data)
+      ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
     end
 
     it "should fetch_datum for company number" do
@@ -248,6 +249,11 @@ describe 'a module that includes RegisterMethods' do
     context 'and data returned from fetch_datum' do
       it "should process_datum returned from fetching" do
         ModuleThatIncludesRegisterMethods.should_receive(:process_datum).with(@fetch_datum_response)
+        ModuleThatIncludesRegisterMethods.update_datum(@uid)
+      end
+
+      it "should validate processed data" do
+        ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_call_original
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
