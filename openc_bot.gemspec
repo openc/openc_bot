@@ -19,6 +19,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib",'lib/openc_bot/helpers']
 
+  gem.add_dependency "rake"
   gem.add_dependency "activesupport", "3.2.17"
   gem.add_dependency "nokogiri"
   # gem.add_dependency "sqlite3"
@@ -30,6 +31,5 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "debugger"
-  gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec"
 end
