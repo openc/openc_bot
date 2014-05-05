@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
 
   gem.files         = `git ls-files`.split($/)
 
-  gem.executables   = ['openc_bot']
+  gem.executables   = ['openc_bot','turbot']
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib",'lib/openc_bot/helpers']
@@ -27,6 +27,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency "httpclient"
   gem.add_dependency "backports"
   gem.add_dependency "scraperwiki"
+  gem.add_dependency "rubyzip"
+
 
   gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "debugger"

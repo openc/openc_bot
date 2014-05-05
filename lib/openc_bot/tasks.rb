@@ -327,7 +327,7 @@ EOF
         puts "Created #{new_file}"
       end
     end
-    
+
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
@@ -380,6 +380,51 @@ EOF
 
   def remove_pid_file(pid_path)
     File.delete(pid_path)
+  end
+
+end
+
+namespace :turbot do
+  # TURBOT_ENDPOINT = 'turbot.opencorporates.internal'
+  TURBOT_ENDPOINT = 'localhost:3000'
+  require 'zip'
+  require 'httpclient'
+
+  desc "submit a bot to turbot server"
+  task :submit do |t, args|
+    options = {}
+    options[:manifest] = 'manifest.json'
+    OptionParser.new(args) do |opts|
+      opts.banner = "Usage: turbot submit -- [options]"
+      opts.on("-m", "--manifest PATH_TO_MANIFEST",
+        "Location of manifest.json") do |val|
+        options[:manifest] << val
+      end
+    end.parse!
+    # p options
+    archive_file = bundle_up_from_manifest(options[:manifest])
+    post_archive_to_turbot_server(archive_file)
+    File.delete(archive_file)
+  end
+
+  def bundle_up_from_manifest(manifest_location)
+    working_dir = Dir.pwd
+
+    manifest = JSON.parse(open(File.join(working_dir,manifest_location)).read)
+    archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
+    Zip.continue_on_exists_proc = true
+    Zip::File.open(archive_file, Zip::File::CREATE) do |zipfile|
+      manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
+    end
+    archive_file
+  end
+
+  def post_archive_to_turbot_server(archive_file)
+    client = HTTPClient.new
+    File.open(archive_file) do |file|
+      body = { 'bot[archive]' => file }
+      res = client.post("http://#{TURBOT_ENDPOINT}/bots", body)
+    end
   end
 
 end
