@@ -49,6 +49,27 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe "#export_data" do
+    before do
+      ModuleThatIncludesRegisterMethods.stub(:select).and_return([])
+
+    end
+
+    it "should select_data from database" do
+      expected_sql_query = "ocdata.* from ocdata"
+      ModuleThatIncludesRegisterMethods.should_receive(:select).with(expected_sql_query).and_return([])
+      ModuleThatIncludesRegisterMethods.export_data
+    end
+
+    it "should yield rows that have been passed to post_process" do
+      datum = {'food' => 'tofu'}
+      ModuleThatIncludesRegisterMethods.stub(:select).and_return([datum])
+      ModuleThatIncludesRegisterMethods.should_receive(:post_process).with(datum, true).and_return(datum)
+      ModuleThatIncludesRegisterMethods.export_data{|x|}
+    end
+  end
+
+
   describe '#primary_key_name' do
     it 'should return :uid if PRIMARY_KEY_NAME not set' do
       ModuleWithNoCustomPrimaryKey.send(:primary_key_name).should == :uid
@@ -413,4 +434,65 @@ describe 'a module that includes RegisterMethods' do
       end
     end
   end
+
+  describe '#post_process' do
+    before do
+      @unprocessed_data = { :name => 'Foo Corp',
+        :company_number => '12345',
+        :serialised_field_1 => "[\"foo\",\"bar\"]",
+        :serialised_field_2 => "[{\"position\":\"gestor\",\"name\":\"JOSE MANUEL REYES R.\",\"other_attributes\":{\"foo\":\"bar\"}}]",
+        :serialised_field_3 => "{\"foo\":\"bar\"}",
+        :serialised_field_4 => "[]",
+        :serialised_field_5 => "{}",
+        :serialised_field_6 => nil,
+      }
+    end
+
+    context 'in general' do
+      before do
+        @processed_data = ModuleThatIncludesRegisterMethods.post_process(@unprocessed_data)
+      end
+
+      it 'should include non-serialised fields' do
+        @processed_data[:name].should == @unprocessed_data[:name]
+        @processed_data[:company_number].should == @unprocessed_data[:company_number]
+      end
+
+      it 'should deserialize fields' do
+        @processed_data[:serialised_field_1].should == ['foo','bar']
+        @processed_data[:serialised_field_3].should == {'foo' => 'bar'}
+        @processed_data[:serialised_field_4].should == []
+        @processed_data[:serialised_field_5].should == {}
+      end
+
+      it 'should deserialize nested fields correctly' do
+        @processed_data[:serialised_field_2].first[:position].should == "gestor"
+        @processed_data[:serialised_field_2].first[:other_attributes][:foo].should == "bar"
+      end
+
+      it 'should not do anything with null value' do
+        @processed_data[:serialised_field_6].should be_nil
+        @processed_data.has_key?(:serialised_field_6).should be_true
+      end
+    end
+
+    context 'with `skip_nulls` argument as true' do
+      before do
+        @processed_data = ModuleThatIncludesRegisterMethods.post_process(@unprocessed_data, true)
+      end
+
+      it 'should remove value from result' do
+        @processed_data.has_key?(:serialised_field_6).should be_false
+      end
+    end
+
+
+    context "and there is generic :data field" do
+      it "should not include it" do
+        ModuleThatIncludesRegisterMethods.post_process(@unprocessed_data.merge(:data => 'something else'))[:data].should be_nil
+        ModuleThatIncludesRegisterMethods.post_process(@unprocessed_data.merge(:data => "{\"bar\":\"baz\"}"))[:data].should be_nil
+      end
+    end
+  end
+
 end

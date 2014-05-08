@@ -25,6 +25,13 @@ module OpencBot
         end
       end
 
+      def export_data
+        sql_query = "ocdata.* from ocdata"
+        select(sql_query).each do |res|
+          yield post_process(res, true)
+        end
+      end
+
       def fetch_registry_page(company_number)
         _client.get_content(registry_url(company_number))
       end
@@ -123,6 +130,11 @@ module OpencBot
           {:errors_as_objects => true})
       end
 
+      def post_process(row_hash, skip_nulls=false)
+        # many of the fields will be serialized json and so we convert to ruby objects
+        convert_json_to_ruby(row_hash.except(:data), skip_nulls)
+      end
+
       private
       # This is a utility method for outputting an error message as json to STDOUT
       # (which can then be handled by the importer)
@@ -157,6 +169,23 @@ module OpencBot
 
       def deep_clone_hash(given_hash)
         Marshal.load( Marshal.dump(given_hash) )
+      end
+
+      def convert_json_to_ruby(data_hash, skip_nulls=false)
+        data_hash.each do |k,v|
+          parsed_data = JSON.parse(v) if v.is_a?(String) && v[/^[\{\[]+\"|^\[\]$|^{}$/] rescue v
+          case parsed_data
+          when Hash
+            parsed_data = parsed_data.with_indifferent_access
+          when Array
+            parsed_data.collect!{ |e| e.is_a?(Hash) ? e.with_indifferent_access : e  }
+          end
+          if skip_nulls && v.nil?
+            data_hash.delete(k)
+          else
+            data_hash[k] = parsed_data if parsed_data
+          end
+        end
       end
 
     end
