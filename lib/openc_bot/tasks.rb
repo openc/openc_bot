@@ -385,8 +385,8 @@ EOF
 end
 
 namespace :turbot do
-  # TURBOT_ENDPOINT = 'turbot.opencorporates.internal'
-  TURBOT_ENDPOINT = 'localhost:3000'
+  TURBOT_ENDPOINT = 'turbot.opencorporates.internal'
+  # TURBOT_ENDPOINT = 'localhost:3000'
   require 'zip'
   require 'httpclient'
 
@@ -401,9 +401,9 @@ namespace :turbot do
         options[:manifest] << val
       end
     end.parse!
-    # p options
     archive_file = bundle_up_from_manifest(options[:manifest])
     post_archive_to_turbot_server(archive_file)
+  ensure
     File.delete(archive_file)
   end
 
