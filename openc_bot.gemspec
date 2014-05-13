@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
   gem.executables   = ['openc_bot']
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.require_paths = ["lib",'lib/openc_bot/helpers']
+  gem.require_paths = ["lib"]
 
   gem.add_dependency "rake"
   gem.add_dependency "activesupport", "3.2.17"
