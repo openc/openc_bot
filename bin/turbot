@@ -1,0 +1,15 @@
+# To run this, simply do bundle exec turbot submit from the root of the bot
+gem_dir = File.expand_path("..",File.dirname(__FILE__))
+$LOAD_PATH.unshift gem_dir# Look in gem directory for resources first.
+exec_type = ARGV[0]
+if exec_type == 'submit' then
+  require 'rake'
+  require 'pp'
+  require 'debugger'
+  pwd=Dir.pwd
+  Dir.chdir(gem_dir) # We'll load rakefile from the gem's dir.
+  Rake.application.init
+  Rake.application.load_rakefile
+  Dir.chdir(pwd) # Revert to original pwd for any path args passed to task.
+  Rake.application.invoke_task("turbot:submit[#{ARGV[1]}]")
+end
