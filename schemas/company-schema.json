@@ -92,5 +92,6 @@
       }
     }
   },
+  "additionalProperties": false,
   "required": ["company_number", "name", "jurisdiction_code"]
 }

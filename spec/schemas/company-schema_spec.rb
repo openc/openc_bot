@@ -60,6 +60,11 @@ describe 'company-schema' do
         { :name => '',
           :jurisdiction_code => 'us_de',
           :company_number => '12345'
+        },
+        { :name => 'Foo Inc',
+          :jurisdiction_code => 'us_de',
+          :company_number => '12345',
+          :foo => 'bar'
         }
     ]
     invalid_company_params.each do |invalid_params|
