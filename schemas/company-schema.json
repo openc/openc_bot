@@ -88,6 +88,11 @@
           "type": "string",
           "description": "The 'Agent' of the company \u2013 a person or entity that is empowered to accept service for the company",
           "minLength": 1
+        },
+        "number_of_employees": {
+          "type": "number",
+          "description": "The number of employees",
+          "minimum": 0
         }
       }
     }
