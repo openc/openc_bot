@@ -339,6 +339,37 @@ describe 'company-schema' do
       validate_datum_and_return_errors(invalid_params_1).should_not be_empty
       validate_datum_and_return_errors(invalid_params_2).should_not be_empty
     end
+
+    it "should require number_of_employees to be an positive" do
+      valid_params =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:number_of_employees => 42}
+          }
+      invalid_params_1 =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:number_of_employees => ''}
+          }
+      invalid_params_2 =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:number_of_employees => 'foo'}
+          }
+      invalid_params_3 =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:number_of_employees => -1}
+          }
+      validate_datum_and_return_errors(valid_params).should be_empty
+      validate_datum_and_return_errors(invalid_params_1).should_not be_empty
+      validate_datum_and_return_errors(invalid_params_2).should_not be_empty
+      validate_datum_and_return_errors(invalid_params_3).should_not be_empty
+    end
   end
 
   context "and company has officers" do
