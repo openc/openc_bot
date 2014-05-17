@@ -435,6 +435,47 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe "save_entity!" do
+    before do
+      @params = {:name => 'Foo Inc', :custom_uid => '12345'}
+    end
+
+    it "should validate entity data" do
+      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params).and_return([])
+      ModuleThatIncludesRegisterMethods.save_entity!(@params)
+    end
+
+    context "and entity_data is valid" do
+      before do
+        ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
+      end
+
+      it "should prepare and save data" do
+        ModuleThatIncludesRegisterMethods.should_receive(:prepare_and_save_data).with(@params)
+        ModuleThatIncludesRegisterMethods.save_entity!(@params)
+      end
+
+      it "should return true" do
+        ModuleThatIncludesRegisterMethods.save_entity!(@params).should be_true
+      end
+    end
+
+    context "and entity_data is not valid" do
+      before do
+        ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([{:message=>'Not valid'}])
+      end
+
+      it "should not prepare and save data" do
+        ModuleThatIncludesRegisterMethods.should_not_receive(:prepare_and_save_data)
+        lambda {ModuleThatIncludesRegisterMethods.save_entity!(@params)}
+      end
+
+      it "should raise exception" do
+        lambda {ModuleThatIncludesRegisterMethods.save_entity!(@params)}.should raise_error(OpencBot::RecordInvalid)
+      end
+    end
+  end
+
   describe '#post_process' do
     before do
       @unprocessed_data = { :name => 'Foo Corp',

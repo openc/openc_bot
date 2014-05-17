@@ -64,6 +64,16 @@ module OpencBot
         prepare_and_save_data(entity_datum)
       end
 
+      # Behaves like +save_entity+ but raises RecordInvalid exception if
+      # record is not valid (validation errors are available in the
+      # excpetion's +validation_errors+ method)
+      def save_entity!(entity_datum)
+        validation_errors = validate_datum(entity_datum)
+        # Q: should exception be perhaps raised by validation_datum method?
+        raise OpencBot::RecordInvalid.new(validation_errors) unless validation_errors.blank?
+        prepare_and_save_data(entity_datum)
+      end
+
       def schema_name
         self.const_defined?('SCHEMA_NAME') ? self.const_get('SCHEMA_NAME') : nil
       end
