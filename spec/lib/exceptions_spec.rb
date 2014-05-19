@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require 'openc_bot'
 
-describe OpencBot::Exceptions do
+describe 'OpencBot exceptions' do
 
   describe OpencBot::OpencBotError do
 
