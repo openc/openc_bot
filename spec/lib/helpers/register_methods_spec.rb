@@ -214,6 +214,13 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
     end
 
+    it "should convert time and datetimes to iso601 version" do
+      some_date = Date.parse('2012-04-23')
+      some_time = Time.now
+      ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).with(anything, hash_including(:some_date => some_date.iso8601, :some_time => some_time.iso8601))
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params.merge(:some_date => some_date, :some_time => some_time))
+    end
+
     it "should not change original params" do
       dup_params = Marshal.load( Marshal.dump(@params) )
       ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
@@ -236,7 +243,7 @@ describe 'a module that includes RegisterMethods' do
       @processed_data = {:foo => 'bar'}
       ModuleThatIncludesRegisterMethods.stub(:fetch_datum).and_return(@fetch_datum_response)
       ModuleThatIncludesRegisterMethods.stub(:process_datum).and_return(@processed_data)
-      @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time.to_s)
+      @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time)
       ModuleThatIncludesRegisterMethods.stub(:save_data)
       ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
     end
@@ -288,6 +295,15 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
+      it "should use supplied retrieved_at in preference to default" do
+        different_time = (Date.today-3).iso8601
+        ModuleThatIncludesRegisterMethods.stub(:process_datum).
+                                          and_return(@processed_data.merge(:retrieved_at => different_time))
+        ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).
+                                          with(hash_including(:retrieved_at => different_time)).and_call_original
+        ModuleThatIncludesRegisterMethods.update_datum(@uid)
+      end
+
       it "should save prepared_data" do
         ModuleThatIncludesRegisterMethods.stub(:prepare_for_saving).and_return({:foo => 'some prepared data'})
 
@@ -305,7 +321,10 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should output jsonified processed data to STDOUT if passed true as second argument" do
-        ModuleThatIncludesRegisterMethods.should_receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
+        expected_output = @processed_data_with_retrieved_at_and_uid.
+          merge(:retrieved_at => @processed_data_with_retrieved_at_and_uid[:retrieved_at].iso8601)
+        # json output is in different, unknown order, so we test output like this
+        ModuleThatIncludesRegisterMethods.should_receive(:puts) { |output| json_hash = JSON.parse(output); json_hash == expected_output }
         ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
       end
 
