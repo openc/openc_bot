@@ -75,7 +75,7 @@
       "description": "Other arbitrary attributes for a given company",
       "properties": {
         "jurisdiction_of_origin": {
-          "type": "string",
+          "type": ["string","null"],
           "description": "The jurisdiction of the 'home' company if this is a branch",
           "minLength": 1
         },
