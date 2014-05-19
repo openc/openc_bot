@@ -199,7 +199,7 @@ describe 'company-schema' do
   end
 
   context "and company has branch flag" do
-    it "should be valid if it is F or L" do
+    it "should be valid if it is F or L or nil" do
       valid_company_params =
         [
           { :name => 'Foo Inc',
@@ -211,6 +211,11 @@ describe 'company-schema' do
             :company_number => '12345',
             :jurisdiction_code => 'us_de',
             :branch => 'L'
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'us_de',
+            :branch => nil
           }
         ]
         valid_company_params.each do |valid_params|
