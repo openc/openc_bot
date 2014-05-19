@@ -4,6 +4,7 @@ require 'json'
 require 'scraperwiki'
 require_relative 'openc_bot/bot_data_validator'
 require 'openc_bot/helpers/text'
+require 'openc_bot/exceptions'
 
 module OpencBot
 
