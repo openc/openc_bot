@@ -415,15 +415,15 @@ describe 'a module that includes RegisterMethods' do
 
   describe "save_entity" do
     before do
-      @params = {:name => 'Foo Inc', :custom_uid => '12345'}
+      @params = {:name => 'Foo Inc', :custom_uid => '12345', :data => {:foo => 'bar'}}
     end
 
     it "should validate entity data" do
-      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params).and_return([])
+      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params.except(:data)).and_return([])
       ModuleThatIncludesRegisterMethods.save_entity(@params)
     end
 
-    context "and entity_data is valid" do
+    context "and entity_data is valid (excluding :data)" do
       before do
         ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
       end
@@ -456,11 +456,11 @@ describe 'a module that includes RegisterMethods' do
 
   describe "save_entity!" do
     before do
-      @params = {:name => 'Foo Inc', :custom_uid => '12345'}
+      @params = {:name => 'Foo Inc', :custom_uid => '12345', :data => {:foo => 'bar'}}
     end
 
-    it "should validate entity data" do
-      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params).and_return([])
+    it "should validate entity data (excluding :data)" do
+      ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(@params.except(:data)).and_return([])
       ModuleThatIncludesRegisterMethods.save_entity!(@params)
     end
 

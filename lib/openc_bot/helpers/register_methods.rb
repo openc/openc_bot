@@ -59,7 +59,7 @@ module OpencBot
       end
 
       def save_entity(entity_datum)
-        validation_errors = validate_datum(entity_datum)
+        validation_errors = validate_datum(entity_datum.except(:data))
         return unless validation_errors.blank?
         prepare_and_save_data(entity_datum)
       end
@@ -68,8 +68,7 @@ module OpencBot
       # record is not valid (validation errors are available in the
       # excpetion's +validation_errors+ method)
       def save_entity!(entity_datum)
-        validation_errors = validate_datum(entity_datum)
-        # Q: should exception be perhaps raised by validation_datum method?
+        validation_errors = validate_datum(entity_datum.except(:data))
         raise OpencBot::RecordInvalid.new(validation_errors) unless validation_errors.blank?
         prepare_and_save_data(entity_datum)
       end
