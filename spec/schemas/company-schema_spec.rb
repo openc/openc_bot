@@ -85,6 +85,17 @@ describe 'company-schema' do
       errors.should be_empty
     end
 
+    it "should be valid if it is nil" do
+      valid_company_params =
+        { :name => 'Foo Inc',
+          :company_number => '12345',
+          :jurisdiction_code => 'us_de',
+          :registered_address => nil
+        }
+      errors = validate_datum_and_return_errors(valid_company_params)
+      errors.should be_empty
+    end
+
     it "should be valid if it is a valid address object" do
       valid_company_params =
         [
@@ -273,12 +284,18 @@ describe 'company-schema' do
         end
     end
 
-    it "should require jurisdiction_of_origin to be a non-empty string" do
-      valid_params =
+    it "should require jurisdiction_of_origin to be a non-empty string or null" do
+      valid_params_1 =
           { :name => 'Foo Inc',
             :company_number => '12345',
             :jurisdiction_code => 'ie',
             :all_attributes => {:jurisdiction_of_origin => 'Some Country'}
+          }
+      valid_params_2 =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:jurisdiction_of_origin => nil}
           }
       invalid_params_1 =
           { :name => 'Foo Inc',
@@ -292,7 +309,8 @@ describe 'company-schema' do
             :jurisdiction_code => 'ie',
             :all_attributes => {:jurisdiction_of_origin => 43}
           }
-      validate_datum_and_return_errors(valid_params).should be_empty
+      validate_datum_and_return_errors(valid_params_1).should be_empty
+      validate_datum_and_return_errors(valid_params_2).should be_empty
       validate_datum_and_return_errors(invalid_params_1).should_not be_empty
       validate_datum_and_return_errors(invalid_params_2).should_not be_empty
     end
