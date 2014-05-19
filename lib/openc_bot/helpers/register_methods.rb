@@ -11,7 +11,7 @@ module OpencBot
       end
 
       def datum_exists?(uid)
-        !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = '?' LIMIT 1", uid).first
+        !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = ? LIMIT 1", uid).first
       end
 
       # fetches and saves data. By default assumes an incremental search, or an alpha search
