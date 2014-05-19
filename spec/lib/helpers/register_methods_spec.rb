@@ -33,7 +33,7 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it "should select_data from database" do
-      expected_sql_query = "ocdata.custom_uid FROM ocdata WHERE custom_uid = '?' LIMIT 1"
+      expected_sql_query = "ocdata.custom_uid FROM ocdata WHERE custom_uid = ? LIMIT 1"
       ModuleThatIncludesRegisterMethods.should_receive(:select).with(expected_sql_query, '4567').and_return([])
       ModuleThatIncludesRegisterMethods.datum_exists?('4567')
     end
