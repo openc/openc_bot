@@ -315,52 +315,20 @@ describe 'company-schema' do
       validate_datum_and_return_errors(invalid_params_2).should_not be_empty
     end
 
-    it "should require registered_agent_name to be a string" do
-      valid_params =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_name => 'Some Person'}
-          }
-      invalid_params_1 =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_name => ''}
-          }
-      invalid_params_2 =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_name => 43}
-          }
-      validate_datum_and_return_errors(valid_params).should be_empty
-      validate_datum_and_return_errors(invalid_params_1).should_not be_empty
-      validate_datum_and_return_errors(invalid_params_2).should_not be_empty
+    it "should require home_company_number to be a non-empty string or null" do
+      require_all_attributes_attribute_to_be_string_or_nil(:home_company_number)
     end
 
-    it "should require registered_agent_address to be a string" do
-      valid_params =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_address => 'Some Address'}
-          }
-      invalid_params_1 =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_address => ''}
-          }
-      invalid_params_2 =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
-            :all_attributes => {:registered_agent_address => 43}
-          }
-      validate_datum_and_return_errors(valid_params).should be_empty
-      validate_datum_and_return_errors(invalid_params_1).should_not be_empty
-      validate_datum_and_return_errors(invalid_params_2).should_not be_empty
+    it "should require home_legal_name to be a non-empty string or null" do
+      require_all_attributes_attribute_to_be_string_or_nil(:home_legal_name)
+    end
+
+    it "should require registered_agent_name to be a string or nil" do
+      require_all_attributes_attribute_to_be_string_or_nil(:registered_agent_name)
+    end
+
+    it "should require registered_agent_address to be a string or nil" do
+      require_all_attributes_attribute_to_be_string_or_nil(:registered_agent_address)
     end
 
     it "should require number_of_employees to be an positive" do
@@ -681,6 +649,28 @@ describe 'company-schema' do
       @schema,
       record.to_json,
       {:errors_as_objects => true})
+  end
+
+  def require_all_attributes_attribute_to_be_string_or_nil(attribute_name)
+      ['Some String', nil].each do |val|
+        valid_params =
+            { :name => 'Foo Inc',
+              :company_number => '12345',
+              :jurisdiction_code => 'ie',
+              :all_attributes => {attribute_name => val}
+            }
+        validate_datum_and_return_errors(valid_params).should be_empty, "Valid params were not validated: #{valid_params}"
+      end
+
+      ['', 43].each do |val|
+        invalid_params =
+            { :name => 'Foo Inc',
+              :company_number => '12345',
+              :jurisdiction_code => 'ie',
+              :all_attributes => {attribute_name => val}
+            }
+        validate_datum_and_return_errors(invalid_params).should_not be_empty, "Invalid params were validated: #{invalid_params}"
+      end
   end
 
 end
