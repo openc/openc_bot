@@ -27,7 +27,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json-schema"
   gem.add_dependency "httpclient"
   gem.add_dependency "backports"
-  gem.add_dependency "scraperwiki"
+  gem.add_dependency "scraperwiki", "3.0.2"
 
   gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "debugger"

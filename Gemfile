@@ -5,4 +5,4 @@ gem "pry", :group => [:development,:test]
 gemspec
 
 # we need to do pull request and bump version
-gem 'scraperwiki', '>=3.0.2', :git => 'https://github.com/openc/scraperwiki-ruby.git'
+# gem 'scraperwiki', '>=3.0.2', :git => 'https://github.com/openc/scraperwiki-ruby.git'
