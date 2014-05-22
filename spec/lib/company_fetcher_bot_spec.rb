@@ -90,4 +90,35 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.save_entity(:name => 'Foo Corp', :company_number => '12345', :jurisdiction_code => 'xx')
     end
   end
+
+  describe "#save_entity!" do
+    before do
+      TestCompaniesFetcher.stub(:inferred_jurisdiction_code).and_return('ab_cd')
+    end
+
+    it "should save_entity with inferred_jurisdiction_code" do
+      TestCompaniesFetcher.should_receive(:prepare_and_save_data).with(:name => 'Foo Corp', :company_number => '12345', :jurisdiction_code => 'ab_cd')
+      TestCompaniesFetcher.save_entity!(:name => 'Foo Corp', :company_number => '12345')
+    end
+
+    it "should save_entity with given jurisdiction_code" do
+      TestCompaniesFetcher.should_receive(:prepare_and_save_data).with(:name => 'Foo Corp', :company_number => '12345', :jurisdiction_code => 'xx')
+      TestCompaniesFetcher.save_entity!(:name => 'Foo Corp', :company_number => '12345', :jurisdiction_code => 'xx')
+    end
+
+    context "and entity_data is not valid" do
+      before do
+        TestCompaniesFetcher.stub(:validate_datum).and_return([{:message=>'Not valid'}])
+      end
+
+      it "should not prepare and save data" do
+        TestCompaniesFetcher.should_not_receive(:prepare_and_save_data)
+        lambda {ModuleThatIncludesRegisterMethods.save_entity!(:name => 'Foo Corp', :company_number => '12345')}
+      end
+
+      it "should raise exception" do
+        lambda {TestCompaniesFetcher.save_entity!(:name => 'Foo Corp', :company_number => '12345')}.should raise_error(OpencBot::RecordInvalid)
+      end
+    end
+  end
 end
