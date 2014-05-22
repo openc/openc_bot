@@ -604,10 +604,10 @@ describe 'company-schema' do
              { :number => 123 }
           }
         ]
-        valid_company_params.each do |valid_params|
-          errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
-        end
+      valid_company_params.each do |valid_params|
+        errors = validate_datum_and_return_errors(valid_params)
+        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+      end
     end
 
     it "should not validate if share_parcels are not valid" do
@@ -643,6 +643,68 @@ describe 'company-schema' do
       end
     end
   end
+
+  context "and company has alternative_names" do
+    it "should validate if alternative_names are valid" do
+      valid_company_params=
+      [
+        { :name => 'Foo Inc',
+          :company_number => '12345',
+          :jurisdiction_code => 'ie',
+          :alternative_names =>
+           [{ :company_name => 'Foobar Inc',
+              :type => :trading },
+            { :company_name => 'Foobar Inc',
+               :type => :legal,
+               :language => 'fr' },
+           ]
+        },
+        { :name => 'Foo Inc',
+          :company_number => '12345',
+          :jurisdiction_code => 'ie',
+          :alternative_names =>[]
+        }
+      ]
+
+      invalid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :alternative_names =>
+            [{ :company_name => 'Foobar Inc'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :alternative_names =>
+            [{ :company_name => 'Foobar Inc', :type => 'foobar'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :alternative_names =>
+            [{ :company_name => 'Foobar Inc', :language => 'French'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :alternative_names => 'foo name'
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :alternative_names => ['foo name']
+          }
+        ]
+      valid_company_params.each do |valid_params|
+        errors = validate_datum_and_return_errors(valid_params)
+        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+      end
+    end
+  end
+
+
 
   def validate_datum_and_return_errors(record)
     errors = JSON::Validator.fully_validate(

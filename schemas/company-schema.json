@@ -65,6 +65,12 @@
         "$ref": "includes/previous_name.json"
       }
     },
+    "alternative_names": {
+      "type": "array",
+      "items": {
+        "$ref": "includes/alternative_name.json"
+      }
+    },
     "branch": {
       "type": ["string","null"],
       "description": "A flag to denote whether a company is a branch entity. This should only be set if the company is a type of branch (otherwise should be null). In general the only option here is 'F' for a 'Foreign' branch, i.e. an out-of-jurisdiction entity that has registered as having a presence in the jurisdiction. In the US this is sometimes called a Foreign Corporation",
