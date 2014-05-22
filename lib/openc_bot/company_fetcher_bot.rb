@@ -32,6 +32,12 @@ module OpencBot
       super(default_options.merge(entity_info))
     end
 
+    def save_entity!(entity_info)
+      return if entity_info.blank?
+      default_options = {:jurisdiction_code => inferred_jurisdiction_code}
+      super(default_options.merge(entity_info))
+    end
+
     def schema_name
       super || 'company-schema'
     end
