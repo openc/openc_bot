@@ -102,13 +102,17 @@ module OpencBot
       # and then saving it. It assumes the methods for doing this (#fetch_datum and #process_datum) are implemented
       # in the module that includes this method.
       #
-      # If no second argument is passed to this method, or false is passed, the
-      # method will return the processed data hash
+      # If no second argument is passed to this method (i.e. output_as_json is not
+       # requested), or false is passed, the method will return the processed data hash.
       # If true is passed as the second argument, the method will output the
       # updated result as json to STDOUT, which can then be consumed by, say,
       # something which triggered this method, for example if it was called by
       # a rake task, which in turn might have been called by the main
       # OpenCorporates application
+      #
+      # If the data to be saved is invalid then either the exception is raised,
+      # or, if output_as_json is requested then the validation error is included
+      # in the JSON error message
       def update_datum(uid, output_as_json=false,replace_existing_data=false)
         return unless raw_data = fetch_datum(uid)
         default_options = {primary_key_name => uid, :retrieved_at => Time.now}
@@ -122,7 +126,12 @@ module OpencBot
           processed_data
         end
       rescue Exception => e
-        output_json_error_message(e) if output_as_json
+        if output_as_json
+          output_json_error_message(e)
+        else
+          puts e.inspect if verbose?
+          raise e
+        end
       end
 
       def update_stale(stale_count=nil)
