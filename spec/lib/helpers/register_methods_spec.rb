@@ -244,8 +244,9 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stub(:fetch_datum).and_return(@fetch_datum_response)
       ModuleThatIncludesRegisterMethods.stub(:process_datum).and_return(@processed_data)
       @processed_data_with_retrieved_at_and_uid = @processed_data.merge(:custom_uid => @uid, :retrieved_at => @dummy_time)
-      ModuleThatIncludesRegisterMethods.stub(:save_data)
+      ModuleThatIncludesRegisterMethods.stub(:save_data!)
       ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([])
+      ModuleThatIncludesRegisterMethods.stub(:insert_or_update)
     end
 
     it "should fetch_datum for company number" do
@@ -264,7 +265,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should not save data" do
-        ModuleThatIncludesRegisterMethods.should_not_receive(:save_data)
+        ModuleThatIncludesRegisterMethods.should_not_receive(:save_data!)
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
@@ -281,17 +282,17 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should validate processed data" do
-        ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_call_original
+        ModuleThatIncludesRegisterMethods.should_receive(:validate_datum).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_return([])
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
       it "should prepare processed data for saving including timestamp" do
-        ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_call_original
+        ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_including(@processed_data_with_retrieved_at_and_uid)).and_return({})
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
       it "should include data in data to be prepared for saving" do
-        ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_including(:data => @fetch_datum_response)).and_call_original
+        ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_including(:data => @fetch_datum_response)).and_return({})
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
@@ -300,7 +301,7 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.stub(:process_datum).
                                           and_return(@processed_data.merge(:retrieved_at => different_time))
         ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).
-                                          with(hash_including(:retrieved_at => different_time)).and_call_original
+                                          with(hash_including(:retrieved_at => different_time)).and_return({})
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
@@ -334,18 +335,14 @@ describe 'a module that includes RegisterMethods' do
           ModuleThatIncludesRegisterMethods.stub(:process_datum).and_raise('something went wrong')
         end
 
-        it "should output error message if true passes as second argument" do
-          ModuleThatIncludesRegisterMethods.should_receive(:puts).with(/error.+went wrong/m)
+        it "should output error message as JSON if true passes as second argument" do
+          ModuleThatIncludesRegisterMethods.should_receive(:puts).
+                                            with{ |error_output| error_hash = JSON.parse(error_output); error_hash['error']['message'].should == 'something went wrong' }
           ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
         end
 
-        it "should return nil if true not passed as second argument" do
-          ModuleThatIncludesRegisterMethods.update_datum(@uid).should be_nil
-        end
-
-        it "should output error message if true not passed as second argument" do
-          ModuleThatIncludesRegisterMethods.should_not_receive(:puts).with(/error/)
-          ModuleThatIncludesRegisterMethods.update_datum(@uid).should be_nil
+        it "should raise exception if true not passed as second argument" do
+          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error('something went wrong')
         end
       end
     end
