@@ -41,7 +41,7 @@ describe 'a module that includes RegisterMethods' do
     it "should return true if result returned" do
       ModuleThatIncludesRegisterMethods.stub(:select).and_return([{'custom_uid' => '4567'}])
 
-      ModuleThatIncludesRegisterMethods.datum_exists?('4567').should be_true
+      ModuleThatIncludesRegisterMethods.datum_exists?('4567').should be true
     end
 
     it "should return false if result returned" do
@@ -83,14 +83,14 @@ describe 'a module that includes RegisterMethods' do
   describe "#use_alpha_search" do
     context 'and no USE_ALPHA_SEARCH constant' do
       it "should not return true" do
-        ModuleThatIncludesRegisterMethods.use_alpha_search.should_not be_true
+        ModuleThatIncludesRegisterMethods.use_alpha_search.should_not be true
       end
     end
 
     context 'and USE_ALPHA_SEARCH constant set' do
       it "should return USE_ALPHA_SEARCH" do
         stub_const("ModuleThatIncludesRegisterMethods::USE_ALPHA_SEARCH", true)
-        ModuleThatIncludesRegisterMethods.use_alpha_search.should be_true
+        ModuleThatIncludesRegisterMethods.use_alpha_search.should be true
       end
     end
   end
@@ -446,7 +446,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should not return true" do
-        ModuleThatIncludesRegisterMethods.save_entity(@params).should_not be_true
+        ModuleThatIncludesRegisterMethods.save_entity(@params).should_not be true
       end
     end
   end
@@ -529,7 +529,7 @@ describe 'a module that includes RegisterMethods' do
 
       it 'should not do anything with null value' do
         @processed_data[:serialised_field_6].should be_nil
-        @processed_data.has_key?(:serialised_field_6).should be_true
+        @processed_data.has_key?(:serialised_field_6).should be true
       end
     end
 

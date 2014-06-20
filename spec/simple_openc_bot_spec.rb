@@ -203,7 +203,7 @@ describe SimpleOpencBot do
     end
 
     it "should return records converted to pipeline format" do
-      @bot.spotcheck_data.any? {|c| c[:company][:name] == @properties[0][:name]}.should be_true
+      @bot.spotcheck_data.any? {|c| c[:company][:name] == @properties[0][:name]}.should be true
     end
   end
 

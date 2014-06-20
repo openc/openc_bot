@@ -22,7 +22,7 @@ describe OpencBot::BotDataValidator do
 
     end
     it 'should return true if data is valid' do
-      OpencBot::BotDataValidator.validate(@valid_data).should be_true
+      OpencBot::BotDataValidator.validate(@valid_data).should be true
     end
 
     it 'should return false if data is not a hash' do
