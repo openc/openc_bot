@@ -6,10 +6,11 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 # require 'resque/tasks'
 
 Dir.glob('lib/tasks/*.rake').each { |r| import r }
-rspec_present = require 'rspec/core/rake_task' rescue nil
-if rspec_present
+
+begin
   require 'rspec/core/rake_task'
   task :default => :spec
+  RSpec::Core::RakeTask.new
+rescue LoadError
+  #do nothing
 end
-
-RSpec::Core::RakeTask.new
