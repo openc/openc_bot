@@ -53,12 +53,12 @@ describe "A module that extends OpencBot" do
 
   describe '#verbose?' do
     it 'should return false if ENV["VERBOSE"] not set' do
-      FooBot.verbose?.should be_false
+      FooBot.verbose?.should be_falsey
     end
 
-    it 'should return false if ENV["VERBOSE"] set' do
+    it 'should return true if ENV["VERBOSE"] set' do
       ENV["VERBOSE"] = 'true'
-      FooBot.verbose?.should be_true
+      FooBot.verbose?.should be_truthy
       ENV["VERBOSE"] = nil # reset
     end
   end

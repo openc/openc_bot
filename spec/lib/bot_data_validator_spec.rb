@@ -26,43 +26,43 @@ describe OpencBot::BotDataValidator do
     end
 
     it 'should return false if data is not a hash' do
-      OpencBot::BotDataValidator.validate(nil).should be_false
-      OpencBot::BotDataValidator.validate('foo').should be_false
-      OpencBot::BotDataValidator.validate(['foo']).should be_false
+      OpencBot::BotDataValidator.validate(nil).should be false
+      OpencBot::BotDataValidator.validate('foo').should be false
+      OpencBot::BotDataValidator.validate(['foo']).should be false
     end
 
     it 'should return false if company_data is blank' do
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => nil)).should be_false
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => '  ')).should be_false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => nil)).should be false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => '  ')).should be false
     end
 
     it 'should return false if company_data is missing name' do
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => {:name => nil})).should be_false
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => {:name => ' '})).should be_false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => {:name => nil})).should be false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:company => {:name => ' '})).should be false
     end
 
     it 'should return false if source_url is blank' do
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:source_url => nil)).should be_false
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:source_url => '  ')).should be_false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:source_url => nil)).should be false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:source_url => '  ')).should be false
     end
 
     it 'should return false if data is empty' do
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:data => nil)).should be_false
-      OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [])).should be_false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:data => nil)).should be false
+      OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [])).should be false
     end
 
     it 'should return false if data is missing data_type' do
       OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [{:data_type => nil,
-                                                            :properties => {:foo => 'bar'}}])).should be_false
+                                                            :properties => {:foo => 'bar'}}])).should be false
       OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [{:data_type => '  ',
-                                                            :properties => {:foo => 'bar'}}])).should be_false
+                                                            :properties => {:foo => 'bar'}}])).should be false
     end
 
     it 'should return false if properties is blank' do
       OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [{:data_type => :subsidiary_relationship,
-                                                            :properties => {}}])).should be_false
+                                                            :properties => {}}])).should be false
       OpencBot::BotDataValidator.validate(@valid_data.merge(:data => [{:data_type => :subsidiary_relationship,
-                                                            :properties => nil}])).should be_false
+                                                            :properties => nil}])).should be false
     end
 
   end

@@ -45,7 +45,7 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it "should return false if result returned" do
-      ModuleThatIncludesRegisterMethods.datum_exists?('4567').should be_false
+      ModuleThatIncludesRegisterMethods.datum_exists?('4567').should be false
     end
   end
 
@@ -228,7 +228,7 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it "should return true" do
-      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params).should be_true
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params).should be_truthy
     end
   end
 
@@ -321,14 +321,21 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
+      RSpec::Matchers.define :jsonified_output do |expected_output|
+        match { |actual| JSON.parse(actual) == expected_output }
+      end
+
       it "should output jsonified processed data to STDOUT if passed true as second argument" do
         expected_output = @processed_data_with_retrieved_at_and_uid.
-          merge(:retrieved_at => @processed_data_with_retrieved_at_and_uid[:retrieved_at].iso8601)
-        # json output is in different, unknown order, so we test output like this
-        ModuleThatIncludesRegisterMethods.should_receive(:puts) { |output| json_hash = JSON.parse(output); json_hash == expected_output }
+          merge(:retrieved_at => @processed_data_with_retrieved_at_and_uid[:retrieved_at].iso8601).stringify_keys
+        ModuleThatIncludesRegisterMethods.should_receive(:puts).with(jsonified_output(expected_output))
         ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
       end
 
+
+      RSpec::Matchers.define :jsonified_error_details_including do |expected_output|
+        match { |actual| error_details = JSON.parse(actual)['error']; expected_output.all? { |k,v| error_details[k] == v } }
+      end
 
       context "and exception raised" do
         before do
@@ -336,8 +343,9 @@ describe 'a module that includes RegisterMethods' do
         end
 
         it "should output error message as JSON if true passes as second argument" do
-          ModuleThatIncludesRegisterMethods.should_receive(:puts).
-                                            with{ |error_output| error_hash = JSON.parse(error_output); error_hash['error']['message'].should == 'something went wrong' }
+          ModuleThatIncludesRegisterMethods.should_receive(:puts).with(jsonified_error_details_including('message' => 'something went wrong', 'klass' => 'RuntimeError'))
+          # ModuleThatIncludesRegisterMethods.should_receive(:puts).
+          #                                   with{ |error_output| error_hash = JSON.parse(error_output); error_hash['error']['message'].should == 'something went wrong' }
           ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
         end
 
@@ -431,7 +439,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should return true" do
-        ModuleThatIncludesRegisterMethods.save_entity(@params).should be_true
+        ModuleThatIncludesRegisterMethods.save_entity(@params).should be_truthy
       end
     end
 
@@ -472,7 +480,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should return true" do
-        ModuleThatIncludesRegisterMethods.save_entity!(@params).should be_true
+        ModuleThatIncludesRegisterMethods.save_entity!(@params).should be_truthy
       end
     end
 
@@ -539,7 +547,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it 'should remove value from result' do
-        @processed_data.has_key?(:serialised_field_6).should be_false
+        @processed_data.has_key?(:serialised_field_6).should be false
       end
     end
 
