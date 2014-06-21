@@ -5,7 +5,7 @@ module OpencBot
     extend self
     def validate(datum)
       datum.kind_of?(Hash) and
-      datum[:company][:name] and
+      not datum[:company][:name].nil? and
       not datum[:company][:name].strip.empty? and
       not datum[:source_url].strip.empty? and
       not datum[:data].empty? and
