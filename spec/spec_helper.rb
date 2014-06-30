@@ -1,4 +1,4 @@
-require 'rspec/autorun'
+# require 'rspec/autorun'
 require 'debugger'
 
 RSpec.configure do |config|
