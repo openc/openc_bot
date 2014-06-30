@@ -704,7 +704,62 @@ describe 'company-schema' do
     end
   end
 
+  context "and company has industry_codes" do
+    it "should validate if industry_codes are valid" do
+      valid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :industry_codes => [
+              {:code => '1234', :code_scheme_id => 'eu_nace_2', :name => 'Some Industry' },
+              {:code => '22.11', :code_scheme_id => 'uk_sic_2007' },
+              {:code => '43.21', :code_scheme_id => 'us_naics_2007', :name => 'Another Industry', :start_date => '2010-12-22', :end_date => '2011-01-03' }]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            # allow empty arrays
+            :industry_codes => []
+          }
+        ]
+        valid_company_params.each do |valid_params|
+          errors = validate_datum_and_return_errors(valid_params)
+          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        end
+    end
 
+    it "should not validate if industry_codes are not valid" do
+      invalid_company_params =
+        [
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :industry_codes => [ {:code => '1234'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :industry_codes => [ {:code_scheme_id => '1234'}]
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :industry_codes => 'foo code'
+          },
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :industry_codes => ['foo filing']
+          }
+        ]
+      invalid_company_params.each do |invalid_params|
+        errors = validate_datum_and_return_errors(invalid_params)
+        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+      end
+    end
+
+  end
 
   def validate_datum_and_return_errors(record)
     errors = JSON::Validator.fully_validate(
