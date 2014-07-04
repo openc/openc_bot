@@ -322,7 +322,12 @@ describe 'a module that includes RegisterMethods' do
       end
 
       RSpec::Matchers.define :jsonified_output do |expected_output|
-        match { |actual| JSON.parse(actual) == expected_output }
+        match do |actual|
+          parsed_actual_json = JSON.parse(actual)
+          parsed_actual_json.except('retrieved_at') == expected_output.except('retrieved_at') and
+          parsed_actual_json['retrieved_at'].to_time.to_s == expected_output['retrieved_at'].to_time.to_s
+
+        end
       end
 
       it "should output jsonified processed data to STDOUT if passed true as second argument" do

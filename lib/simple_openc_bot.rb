@@ -1,3 +1,4 @@
+require 'active_support'
 require 'active_support/core_ext'
 require 'openc_bot'
 require 'json-schema'
@@ -58,7 +59,7 @@ class SimpleOpencBot
           STDOUT.print(".")
           STDOUT.flush
         end
-      ensure 
+      ensure
         sqlite_magic_connection.execute("COMMIT") if sqlite_magic_connection.database.transaction_active?
       end
     end
@@ -97,7 +98,7 @@ class SimpleOpencBot
 
   def all_stored_records(opts={})
     if opts[:only_unexported]
-      opts[:limit] ||= opts[:batch] 
+      opts[:limit] ||= opts[:batch]
     end
 
     select = opts[:select] || "ocdata.*"
