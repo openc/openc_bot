@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib",'lib/openc_bot/helpers']
 
   gem.add_dependency "rake"
-  gem.add_dependency "activesupport", "3.2.17"
+  gem.add_dependency "activesupport", "4.1.4"
   gem.add_dependency "nokogiri"
   # gem.add_dependency "sqlite3"
   gem.add_dependency "json"
