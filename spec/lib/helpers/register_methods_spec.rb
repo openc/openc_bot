@@ -402,7 +402,7 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it "should check json version of datum against given schema" do
-      JSON::Validator.should_receive(:fully_validate).with(File.expand_path("../../../../schemas/company-schema.json", __FILE__), @valid_params.to_json, anything)
+      JSON::Validator.should_receive(:fully_validate).with(File.expand_path("../../../../schemas/schemas/company-schema.json", __FILE__), @valid_params.to_json, anything)
       ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)
     end
 

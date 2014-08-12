@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'json-schema'
+require 'active_support'
 require 'active_support/core_ext'
 
 module OpencBot
@@ -142,7 +143,7 @@ module OpencBot
       end
 
       def validate_datum(record)
-        schema = File.expand_path("../../../../schemas/#{schema_name}.json", __FILE__)
+        schema = File.expand_path("../../../../schemas/schemas/#{schema_name}.json", __FILE__)
         errors = JSON::Validator.fully_validate(
           schema,
           record.to_json,

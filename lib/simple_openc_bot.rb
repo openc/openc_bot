@@ -224,7 +224,7 @@ class SimpleOpencBot
 
     def self.schema(schema)
       hyphenated_name = schema.to_s.gsub("_", "-")
-      self._schema = File.expand_path("../../schemas/#{hyphenated_name}-schema.json", __FILE__)
+      self._schema = File.expand_path("../../schemas/schemas/#{hyphenated_name}-schema.json", __FILE__)
     end
 
     def initialize(attrs={})
@@ -274,7 +274,7 @@ class SimpleOpencBot
       if data
         if !self._schema
           # backwards compatibility
-          self._schema = File.expand_path("../../schemas/licence-schema.json", __FILE__)
+          self._schema = File.expand_path("../../schemas/schemas/licence-schema.json", __FILE__)
         end
         errors = JSON::Validator.fully_validate(
           self._schema,
