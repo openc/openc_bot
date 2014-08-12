@@ -1,0 +1,6 @@
+[submodule "schemas"]
+	path = schemas
+	url = https://github.com/openc/openc-schema.git
+[submodule "openc-schema"]
+	path = openc-schema
+	url = https://github.com/openc/openc-schema.git

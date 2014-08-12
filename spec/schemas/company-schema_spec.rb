@@ -5,7 +5,7 @@ require 'debugger'
 
 describe 'company-schema' do
   before do
-    @schema = File.join(File.dirname(__FILE__),'..','..','schemas','company-schema.json')
+    @schema = File.join(File.dirname(__FILE__),'..','..','schemas','schemas','company-schema.json')
   end
 
   it "should validate simple company" do
@@ -610,7 +610,7 @@ describe 'company-schema' do
       end
     end
 
-    it "should not validate if share_parcels are not valid" do
+    it "should not validate if total_shares are not valid" do
       invalid_company_params =
         [
           { :name => 'Foo Inc',
