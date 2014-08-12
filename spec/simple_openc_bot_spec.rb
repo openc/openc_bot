@@ -6,7 +6,7 @@ end
 
 class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
   JURISDICTION = "uk"
-  store_fields :name, :type, :sample_date
+  store_fields :name, :type, :sample_date, :source_url, :confidence
   unique_fields :name
   schema :licence
 
@@ -22,14 +22,15 @@ class LicenceRecord < SimpleOpencBot::BaseLicenceRecord
 
   def to_pipeline
     {
-      sample_date: "",
       company: {
         name: name,
         jurisdiction: JURISDICTION,
       },
-      source_url: URL,
       data: [{
         data_type: :licence,
+        sample_date: "",
+        source_url: URL,
+        confidence: 'HIGH',
         properties: {
           category: 'Financial',
           jurisdiction_classification: [jurisdiction_classification],
@@ -138,7 +139,7 @@ describe SimpleOpencBot do
   end
 
 
-  describe ".update_data" do
+  describe "#update_data" do
     before do
       @properties = [
         {:name => 'Company 1', :type => 'Bank'},
@@ -210,8 +211,8 @@ describe SimpleOpencBot do
   describe "export_data" do
     before do
       @properties = [
-        {:name => 'Company 1', :type => 'Bank'},
-        {:name => 'Company 2', :type => 'Insurer'}
+        {:name => 'Company 1', :type => 'Bank', :source_url => 'http://somereg.gov/banks',"sample_date" => "2014-06-01", :confidence => 'MEDIUM'},
+        {:name => 'Company 2', :type => 'Insurer', :source_url => 'http://somereg.gov/insurers',"sample_date" => "2013-01-22", :confidence => 'HIGH'}
       ]
       @bot = TestLicenceBot.new(@properties)
       @bot.update_data
@@ -250,8 +251,8 @@ describe SimpleOpencBot do
   describe "stored data" do
     before do
       @properties = [
-        {:name => 'Company 1', :type => 'Bank'},
-        {:name => 'Company 2', :type => 'Insurer'}
+        {:name => 'Company 1', :type => 'Bank', :source_url => 'http://somereg.gov/banks',:sample_date => "2014-06-01", :confidence => 'MEDIUM'},
+        {:name => 'Company 2', :type => 'Insurer', :source_url => 'http://somereg.gov/insurers',:sample_date => "2013-01-22", :confidence => 'HIGH'}
       ]
       @bot = TestLicenceBot.new(@properties)
       @bot.update_data

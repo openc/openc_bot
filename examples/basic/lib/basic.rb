@@ -41,13 +41,14 @@ class BasicRecord < SimpleOpencBot::BaseLicenceRecord
   # `doc/SCHEMA.md` for documentation.
   def to_pipeline
     {
-      sample_date: last_updated_at,
       company: {
         name: name,
         jurisdiction: JURISDICTION,
       },
-      source_url: URL,
       data: [{
+        source_url: URL,
+        sample_date: last_updated_at,
+        confidence: "MEDIUM",
         data_type: :licence,
         properties: {
           jurisdiction_code: JURISDICTION,
