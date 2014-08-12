@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'json-schema'
+require 'active_support'
 require 'active_support/core_ext'
 
 module OpencBot
