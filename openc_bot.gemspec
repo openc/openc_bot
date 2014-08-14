@@ -14,6 +14,19 @@ Gem::Specification.new do |gem|
 
   gem.files         = `git ls-files`.split($/)
 
+  # get an array of submodule dirs by executing 'pwd' inside each submodule
+  gem_dir = File.expand_path(File.dirname(__FILE__)) + "/"
+  `git submodule --quiet foreach pwd`.split($\).each do |submodule_path|
+    Dir.chdir(submodule_path) do
+      submodule_relative_path = submodule_path.sub gem_dir, ""
+      # issue git ls-files in submodule's directory and
+      # prepend the submodule path to create absolute file paths
+      `git ls-files`.split($\).each do |filename|
+        gem.files << "#{submodule_relative_path}/#{filename}"
+      end
+    end
+  end
+
   gem.executables   = ['openc_bot']
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
