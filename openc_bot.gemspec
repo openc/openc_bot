@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
       # issue git ls-files in submodule's directory and
       # prepend the submodule path to create absolute file paths
       `git ls-files`.split($\).each do |filename|
-        s.files << "#{submodule_relative_path}/#{filename}"
+        gem.files << "#{submodule_relative_path}/#{filename}"
       end
     end
   end
