@@ -332,12 +332,18 @@ describe 'company-schema' do
       require_all_attributes_attribute_to_be_string_or_nil(:registered_agent_address)
     end
 
-    it "should require number_of_employees to be an positive" do
-      valid_params =
+    it "should require number_of_employees to be a positive" do
+      valid_params_1 =
           { :name => 'Foo Inc',
             :company_number => '12345',
             :jurisdiction_code => 'ie',
             :all_attributes => {:number_of_employees => 42}
+          }
+      valid_params_2 =
+          { :name => 'Foo Inc',
+            :company_number => '12345',
+            :jurisdiction_code => 'ie',
+            :all_attributes => {:number_of_employees => '1-5'}
           }
       invalid_params_1 =
           { :name => 'Foo Inc',
@@ -349,18 +355,12 @@ describe 'company-schema' do
           { :name => 'Foo Inc',
             :company_number => '12345',
             :jurisdiction_code => 'ie',
-            :all_attributes => {:number_of_employees => 'foo'}
-          }
-      invalid_params_3 =
-          { :name => 'Foo Inc',
-            :company_number => '12345',
-            :jurisdiction_code => 'ie',
             :all_attributes => {:number_of_employees => -1}
           }
-      validate_datum_and_return_errors(valid_params).should be_empty
+      validate_datum_and_return_errors(valid_params_1).should be_empty
+      validate_datum_and_return_errors(valid_params_2).should be_empty
       validate_datum_and_return_errors(invalid_params_1).should_not be_empty
       validate_datum_and_return_errors(invalid_params_2).should_not be_empty
-      validate_datum_and_return_errors(invalid_params_3).should_not be_empty
     end
   end
 
