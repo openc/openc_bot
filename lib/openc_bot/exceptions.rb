@@ -11,7 +11,10 @@ module OpencBot
 
     def initialize(validation_errors)
       @validation_errors = validation_errors
+      message = "Validation failed:" + validation_errors.collect{ |e| e[:message] }.join("\n")
+      super(message)
     end
+
   end
 
 end
