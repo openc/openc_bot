@@ -384,7 +384,7 @@ describe 'a module that includes IncrementalSearch' do
       end
     end
 
-    context 'and highest_uid in cache' do
+    context 'and highest_entry_uids in cache' do
       before do
         @cached_result = '765432'
         ModuleThatIncludesIncrementalSearch.save_var('highest_entry_uids', @cached_result)
@@ -408,6 +408,18 @@ describe 'a module that includes IncrementalSearch' do
           ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uid_result).with(:prefix => 'H').with(:prefix => 'P')
 
           ModuleThatIncludesIncrementalSearch.highest_entry_uids
+        end
+      end
+
+      context 'and true passed in as argument' do
+        before do
+          ModuleThatIncludesIncrementalSearch.save_var('highest_entry_uids', ['H553311','P1234'])
+        end
+
+        it "should ignore cached value" do
+          ModuleThatIncludesIncrementalSearch.should_receive(:highest_entry_uid_result).with(:prefix => 'H').with(:prefix => 'P')
+
+          ModuleThatIncludesIncrementalSearch.highest_entry_uids(true)
         end
       end
     end

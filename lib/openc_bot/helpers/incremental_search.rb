@@ -21,7 +21,7 @@ module OpencBot
       def highest_entry_uids(force_get = false)
         bad_results = []
         results = get_var('highest_entry_uids')
-        if results.nil? || results.empty? || (results.is_a?(Array) && results.any?{ |r| r.nil? || r.empty? })
+        if force_get || results.nil? || results.empty? || (results.is_a?(Array) && results.any?{ |r| r.nil? || r.empty? })
           results = entity_uid_prefixes.collect do |prefix|
             hcn = highest_entry_uid_result(:prefix => prefix)
             bad_results << prefix if (hcn.nil? || hcn.empty?)
