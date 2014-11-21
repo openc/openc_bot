@@ -131,8 +131,9 @@ module OpencBot
         if output_as_json
           output_json_error_message(e)
         else
-          puts e.inspect if verbose?
-          raise e
+          rich_message = "#{e.message} updating entry with uid: #{uid}"
+          puts rich_message if verbose?
+          raise $!, rich_message, $!.backtrace
         end
       end
 

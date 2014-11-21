@@ -355,7 +355,7 @@ describe 'a module that includes RegisterMethods' do
         end
 
         it "should raise exception if true not passed as second argument" do
-          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error('something went wrong')
+          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error("something went wrong updating entry with uid: #{@uid}")
         end
       end
 
