@@ -355,8 +355,24 @@ describe 'a module that includes RegisterMethods' do
         end
 
         it "should raise exception if true not passed as second argument" do
-          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error('something went wrong')
+          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error("something went wrong updating entry with uid: #{@uid}")
         end
+      end
+
+      context 'and process_datum returns nil' do
+        before do
+          ModuleThatIncludesRegisterMethods.stub(:process_datum).and_return(nil)
+        end
+
+        it 'should return nil' do
+          ModuleThatIncludesRegisterMethods.update_datum(@uid)
+        end
+
+        it 'should not validate_datum' do
+          ModuleThatIncludesRegisterMethods.should_not_receive(:validate_datum)
+          ModuleThatIncludesRegisterMethods.update_datum(@uid)
+        end
+
       end
     end
   end
