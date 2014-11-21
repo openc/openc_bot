@@ -117,7 +117,8 @@ module OpencBot
       def update_datum(uid, output_as_json=false,replace_existing_data=false)
         return unless raw_data = fetch_datum(uid)
         default_options = {primary_key_name => uid, :retrieved_at => Time.now}
-        processed_data = default_options.merge(process_datum(raw_data))
+        return unless base_processed_data = process_datum(raw_data)
+        processed_data = default_options.merge(base_processed_data)
         # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we may not extracting everything from it yet
         save_entity(processed_data.merge(:data => raw_data))
