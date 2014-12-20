@@ -6,6 +6,7 @@ require 'active_support/core_ext'
 module OpencBot
   module Helpers
     module RegisterMethods
+      MAX_BUSY_RETRIES = 3
 
       def use_alpha_search
         self.const_defined?('USE_ALPHA_SEARCH') && self.const_get('USE_ALPHA_SEARCH')
@@ -39,7 +40,21 @@ module OpencBot
 
       def prepare_and_save_data(all_data,options={})
         data_to_be_saved = prepare_for_saving(all_data)
-        insert_or_update([primary_key_name], data_to_be_saved)
+        fail_count, retry_interval = 0, 5
+        begin
+          insert_or_update([primary_key_name], data_to_be_saved)
+        rescue SQLite3::BusyException => e
+          fail_count += 1
+          if fail_count <= MAX_BUSY_RETRIES
+            puts "#{e.inspect} raised #{fail_count} times saving:\n#{all_data}\n\nNow retrying in #{retry_interval} seconds" if verbose?
+            sleep retry_interval
+            retry_interval = retry_interval * 2
+            retry
+          else
+            raise e
+          end
+        end
+
       end
 
       def primary_key_name
