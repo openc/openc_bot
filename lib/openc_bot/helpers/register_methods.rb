@@ -160,7 +160,7 @@ module OpencBot
       end
 
       def validate_datum(record)
-        Dir.chdir('schemas/schemas') do
+        Dir.chdir(File.expand_path('../../../../schemas/schemas', __FILE__)) do
           JSON::Validator.fully_validate(
             "#{schema_name}.json",
             record.to_json,
