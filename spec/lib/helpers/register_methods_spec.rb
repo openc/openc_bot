@@ -8,6 +8,7 @@ module ModuleThatIncludesRegisterMethods
   extend OpencBot::Helpers::RegisterMethods
   PRIMARY_KEY_NAME = :custom_uid
   SCHEMA_NAME = 'company-schema'
+  SLEEP_BEFORE_HTTP_REQ = 2
 end
 
 module ModuleWithNoCustomPrimaryKey
@@ -29,7 +30,6 @@ describe 'a module that includes RegisterMethods' do
   describe "#datum_exists?" do
     before do
       ModuleThatIncludesRegisterMethods.stub(:select).and_return([])
-
     end
 
     it "should select_data from database" do
@@ -405,11 +405,12 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
-  describe "#fetch_registry_page for company_number" do
+  describe "#fetch_registry_page for uid" do
     before do
       @dummy_client = double('http_client', :get_content => nil)
       ModuleThatIncludesRegisterMethods.stub(:_client).and_return(@dummy_client)
       ModuleThatIncludesRegisterMethods.stub(:registry_url).and_return('http://some.registry.url')
+      @dummy_client.stub(:get_content).and_return(:registry_page_html)
     end
 
     it "should GET registry_page for registry_url for company_number" do
@@ -422,6 +423,24 @@ describe 'a module that includes RegisterMethods' do
     it "should return result of GETing registry_page" do
       @dummy_client.stub(:get_content).and_return(:registry_page_html)
       ModuleThatIncludesRegisterMethods.fetch_registry_page('76543').should == :registry_page_html
+    end
+
+    context 'and SLEEP_BEFORE_HTTP_REQ is set' do
+      it 'should sleep for given period' do
+        ModuleThatIncludesRegisterMethods.should_receive(:sleep).with(2)
+        ModuleThatIncludesRegisterMethods.fetch_registry_page('76543')
+      end
+    end
+
+    context 'and SLEEP_BEFORE_HTTP_REQ is not set' do
+      before do
+        ModuleWithNoCustomPrimaryKey.stub(:_client).and_return(@dummy_client)
+      end
+
+      it 'should sleep for given period' do
+        ModuleWithNoCustomPrimaryKey.should_not_receive(:sleep)
+        ModuleWithNoCustomPrimaryKey.fetch_registry_page('76543')
+      end
     end
   end
 

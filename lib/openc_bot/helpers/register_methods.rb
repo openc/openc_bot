@@ -35,6 +35,7 @@ module OpencBot
       end
 
       def fetch_registry_page(company_number)
+        sleep_before_http_req
         _client.get_content(registry_url(company_number))
       end
 
@@ -194,6 +195,15 @@ module OpencBot
           end
         end
         prepared_data
+      end
+
+      def sleep_before_http_req
+        if self.const_defined?('SLEEP_BEFORE_HTTP_REQ')
+          sleep_time = self.const_get('SLEEP_BEFORE_HTTP_REQ')
+          puts "#{self.name} about to sleep for #{sleep_time} before fetching data. Time now: #{Time.now}" if verbose?
+          sleep(sleep_time)
+          puts "#{self.name} slept for #{sleep_time}: Time now #{Time.now}" if verbose?
+        end
       end
 
       def _client(options={})
