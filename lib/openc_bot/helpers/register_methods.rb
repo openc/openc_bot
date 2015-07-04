@@ -16,6 +16,10 @@ module OpencBot
         !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = ? LIMIT 1", uid).first
       end
 
+      def default_stale_count
+        self.const_defined?('STALE_COUNT') ? self.const_get('STALE_COUNT') : 1000
+      end
+
       # fetches and saves data. By default assumes an incremental search, or an alpha search
       # if USE_ALPHA_SEARCH is set. This method should be overridden if you are going to do a
       # different type of data import, e.g from a CSV file.
@@ -95,7 +99,7 @@ module OpencBot
       end
 
       def stale_entry_uids(stale_count=nil)
-        stale_count ||= 1000
+        stale_count ||= default_stale_count
         sql_query = "ocdata.* from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - 30}') LIMIT #{stale_count.to_i}"
         raw_data = select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
