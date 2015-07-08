@@ -131,7 +131,9 @@ describe "A module that extends CompanyFetcherBot" do
     before do
       TestCompaniesFetcher.stub(:fetch_data_via_incremental_search)
       TestCompaniesFetcher.stub(:update_stale)
-      TestCompaniesFetcher.stub(:db_location).and_return(File.join(File.dirname(__FILE__),"..","db","manual_incrementer.db"))
+     #this can be any file that we can stat
+      TestCompaniesFetcher.stub(:db_location).
+        and_return(File.join(File.dirname(__FILE__),"company_fetcher_bot_spec.rb"))
 
       Mail::TestMailer.deliveries.clear
       TestCompaniesFetcher.update_data
