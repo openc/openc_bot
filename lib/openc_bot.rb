@@ -80,6 +80,10 @@ module OpencBot
     end
   end
 
+  def db_location
+    File.expand_path(File.join(@@app_directory, 'db', db_name))
+  end
+
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
     db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))

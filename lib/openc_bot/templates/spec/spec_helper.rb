@@ -11,3 +11,7 @@ end
 def dummy_response(response_name, options={})
   IO.read(File.join(File.dirname(__FILE__),"dummy_responses",response_name.to_s), options)
 end
+
+Mail.defaults do
+  delivery_method :test # no, don't send emails when testing,
+end

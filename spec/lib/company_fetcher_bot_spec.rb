@@ -3,6 +3,10 @@ require_relative '../spec_helper'
 require 'openc_bot'
 require 'openc_bot/company_fetcher_bot'
 
+Mail.defaults do
+  delivery_method :test # no, don't send emails when testing
+end
+
 module TestCompaniesFetcher
   extend OpencBot::CompanyFetcherBot
 end
@@ -120,5 +124,22 @@ describe "A module that extends CompanyFetcherBot" do
         lambda {TestCompaniesFetcher.save_entity!(:name => 'Foo Corp', :company_number => '12345')}.should raise_error(OpencBot::RecordInvalid)
       end
     end
+  end
+
+  describe '#update_data' do
+
+    before do
+      TestCompaniesFetcher.stub(:fetch_data_via_incremental_search)
+      TestCompaniesFetcher.stub(:update_stale)
+      TestCompaniesFetcher.stub(:db_location).and_return(File.join(File.dirname(__FILE__),"..","db","manual_incrementer.db"))
+
+      Mail::TestMailer.deliveries.clear
+      TestCompaniesFetcher.update_data
+    end
+
+    it 'should send success email' do
+      Mail::TestMailer.deliveries.first.subject.should match /successfully ran/
+    end
+
   end
 end

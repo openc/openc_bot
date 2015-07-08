@@ -41,6 +41,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "httpclient"
   gem.add_dependency "backports"
   gem.add_dependency "scraperwiki", "3.0.2"
+  gem.add_dependency "mail"
 
   gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "debugger"
