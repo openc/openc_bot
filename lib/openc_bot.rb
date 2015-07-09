@@ -87,7 +87,12 @@ module OpencBot
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
     db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))
-    @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
+    options = sqlite_busy_timeout ? {:busy_timeout => sqlite_busy_timeout} : {:busy_timeout => 10000}
+    @sqlite_magic_connection ||= SqliteMagic::Connection.new(db, options)
+  end
+
+  def sqlite_busy_timeout
+    self.const_defined?('SQLITE_BUSY_TIMEOUT') && self.const_get('SQLITE_BUSY_TIMEOUT')
   end
 
 end

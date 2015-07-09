@@ -102,7 +102,20 @@ describe "A module that extends OpencBot" do
     it "should override default ScraperWiki#sqlite_magic_connection to use module name and adjacent db directory" do
       FooBot.unstub(:sqlite_magic_connection)
       expected_db_loc = File.expand_path(File.join(File.dirname(__FILE__),'..','db','foobot.db'))
-      SqliteMagic::Connection.should_receive(:new).with(expected_db_loc).and_return(@dummy_sqlite_magic_connection)
+      SqliteMagic::Connection.should_receive(:new).with(expected_db_loc, anything).and_return(@dummy_sqlite_magic_connection)
+      FooBot.sqlite_magic_connection
+    end
+
+    it "should set busy_timeout to be 10000" do
+      FooBot.unstub(:sqlite_magic_connection)
+      SqliteMagic::Connection.should_receive(:new).with(anything, :busy_timeout => 10000).and_return(@dummy_sqlite_magic_connection)
+      FooBot.sqlite_magic_connection
+    end
+
+    it "should user SQLITE_BUSY_TIMEOUT if set" do
+      FooBot.unstub(:sqlite_magic_connection)
+      stub_const("FooBot::SQLITE_BUSY_TIMEOUT", 123)
+      SqliteMagic::Connection.should_receive(:new).with(anything, :busy_timeout => 123).and_return(@dummy_sqlite_magic_connection)
       FooBot.sqlite_magic_connection
     end
   end
