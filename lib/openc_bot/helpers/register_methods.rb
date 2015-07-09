@@ -16,6 +16,10 @@ module OpencBot
         !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = ? LIMIT 1", uid).first
       end
 
+      def default_stale_count
+        self.const_defined?('STALE_COUNT') ? self.const_get('STALE_COUNT') : 1000
+      end
+
       # fetches and saves data. By default assumes an incremental search, or an alpha search
       # if USE_ALPHA_SEARCH is set. This method should be overridden if you are going to do a
       # different type of data import, e.g from a CSV file.
@@ -41,19 +45,19 @@ module OpencBot
 
       def prepare_and_save_data(all_data,options={})
         data_to_be_saved = prepare_for_saving(all_data)
-        fail_count, retry_interval = 0, 5
+        # fail_count, retry_interval = 0, 5
         begin
           insert_or_update([primary_key_name], data_to_be_saved)
         rescue SQLite3::BusyException => e
-          fail_count += 1
-          if fail_count <= MAX_BUSY_RETRIES
-            puts "#{e.inspect} raised #{fail_count} times saving:\n#{all_data}\n\nNow retrying in #{retry_interval} seconds" if verbose?
-            sleep retry_interval
-            retry_interval = retry_interval * 2
-            retry
-          else
-            raise e
-          end
+          # fail_count += 1
+          # if fail_count <= MAX_BUSY_RETRIES
+          puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
+          #   sleep retry_interval
+          #   retry_interval = retry_interval * 2
+          #   retry
+          # else
+          raise e
+          # end
         end
 
       end
@@ -95,7 +99,7 @@ module OpencBot
       end
 
       def stale_entry_uids(stale_count=nil)
-        stale_count ||= 1000
+        stale_count ||= default_stale_count
         sql_query = "ocdata.* from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - 30}') LIMIT #{stale_count.to_i}"
         raw_data = select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
