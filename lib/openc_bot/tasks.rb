@@ -141,7 +141,7 @@ namespace :bot do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       res = runner.table_summary
-      $stdout.puts res.each {|k,v| puts "#{k}:\t#{v}"}
+      res.each {|k,v| puts "#{k}:\t#{v}"}
     end
   end
 
