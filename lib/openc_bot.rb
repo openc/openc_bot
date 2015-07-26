@@ -95,4 +95,10 @@ module OpencBot
     self.const_defined?('SQLITE_BUSY_TIMEOUT') && self.const_get('SQLITE_BUSY_TIMEOUT')
   end
 
+  def table_summary
+    field_names = sqlite_magic_connection.execute('PRAGMA table_info(ocdata)').collect{|c| c['name']}
+    select_sql = "COUNT(1) Total, " + field_names.collect{ |fn| "COUNT(#{fn}) #{fn}_not_null" }.join(', ') + " FROM ocdata"
+    select(select_sql).first
+  end
+
 end

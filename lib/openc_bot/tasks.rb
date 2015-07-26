@@ -134,6 +134,17 @@ namespace :bot do
     end
   end
 
+  desc 'Lists count of non-null values in each field in ocdata table'
+  task :table_summary do
+    only_process_running('table_summary') do
+      bot_name = get_bot_name
+      require_relative File.join(Dir.pwd,'lib', bot_name)
+      runner = callable_from_file_name(bot_name)
+      res = runner.table_summary
+      $stdout.puts res.each {|k,v| puts "#{k}:\t#{v}"}
+    end
+  end
+
   desc 'Summarise data for quality checking (only works for licences at the moment)'
   task :summarise_data do
     def as_sorted_hash(name, data)
@@ -327,7 +338,7 @@ EOF
         puts "Created #{new_file}"
       end
     end
-    
+
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
