@@ -1,5 +1,7 @@
 # require 'rspec/autorun'
-require 'debugger'
+if RUBY_VERSION >= '2.0'
+  require 'debugger'
+end
 
 RSpec.configure do |config|
 end
