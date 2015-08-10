@@ -44,10 +44,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency "mail"
 
   # gem.add_development_dependency "perftools.rb"
-  if RUBY_VERSION < '2.0'
-    gem.add_development_dependency "debugger"
-  else
-    gem.add_development_dependency "byebug"
-  end
+  gem.add_development_dependency "byebug" unless RUBY_VERSION < '2.0'
   gem.add_development_dependency "rspec"
 end
