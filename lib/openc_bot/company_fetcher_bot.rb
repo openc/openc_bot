@@ -1,6 +1,7 @@
 require 'openc_bot'
 require 'openc_bot/helpers/incremental_search'
 require 'openc_bot/helpers/alpha_search'
+require 'openc_bot/asana_notifier'
 require 'mail'
 
 
@@ -53,9 +54,21 @@ module OpencBot
     end
 
     private
+    def mark_bot_as_failing_on_asana(exception)
+      params = {
+        :tag => inferred_jurisdiction_code,
+        :asana_api_key => ASANA_API_KEY,
+        :workspace => ASANA_WORKSPACE,
+        :title => exception.message,
+        :description => "Error details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
+      }
+      AsanaNotifier.create_failed_bot_task(params)
+    end
+
     def send_error_report(e)
       subject = "Error running #{self.name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
+      mark_bot_as_failing_on_asana(e)
       send_report(:subject => subject, :body => body)
     end
 
