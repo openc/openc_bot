@@ -11,7 +11,10 @@ module AsanaNotifier
     failed_bot_project = bot_team_projects.detect{ |project| project.name.downcase == 'failed external bots' } || client.projects.create_in_team(:team => bot_team.id, :name => 'Failed External Bots')
 
     # see if there's already a task for this failed bot
-    return unless task = client.tasks.find_by_project(:projectId => failed_bot_project.id, :per_page => 100).detect { |t| t.tags.any?{ |t| t.name == tag_name} }
+    tasks_for_jurisdiction = client.tasks.find_by_project(:projectId => failed_bot_project.id, :per_page => 100).select { |t| t.tags.any?{ |t| t.name == tag_name} }
+    # crappy Asana gem doesn't let you filter by completed at date, and
+    # find by project only returns compact record
+    return if task = tasks_for_jurisdiction.detect { |t| full_task = client.tasks.find_by_id(t.id); !full_task.completed }
     # otherwise create a new one
     task ||= client.tasks.create(:name => params[:title], :workspace => params[:workspace], :notes => params[:description], :projects => [failed_bot_project.id])
 
