@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 gem "sqlite_magic", :git => 'https://github.com/openc/sqlite_magic.git'
-gem "asana", :git => 'https://github.com/openc/ruby-asana.git'
+
 gem "pry", :group => [:development,:test]
 # Specify your gem's dependencies in openc_bot.gemspec
 gemspec
