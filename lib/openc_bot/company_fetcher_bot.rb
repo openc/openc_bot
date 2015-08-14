@@ -68,7 +68,7 @@ module OpencBot
     def send_error_report(e)
       subject = "Error running #{self.name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
-      mark_bot_as_failing_on_asana(e)
+      mark_bot_as_failing_on_asana(e) if ENV['CREATE_ASANA_TASKS_FOR_BOT_FAILURES']
       send_report(:subject => subject, :body => body)
     end
 
