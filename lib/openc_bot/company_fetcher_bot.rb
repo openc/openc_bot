@@ -82,8 +82,8 @@ module OpencBot
 
     def send_report(params)
       Mail.deliver do
-        from     'bots@opencorporates.com'
-        to       'admin@opencorporates.com'
+        from     'admin@opencorporates.com'
+        to       'bots@opencorporates.com'
         subject  params[:subject]
         body     params[:body]
       end
