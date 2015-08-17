@@ -58,8 +58,8 @@ module OpencBot
       error_description = "Code for this bot: https://github.com/openc/external_bots/tree/master/#{inferred_jurisdiction_code}_companies_fetcher\nError details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
       params = {
         :tag => inferred_jurisdiction_code,
-        :asana_api_key => ASANA_API_KEY,
-        :workspace => ASANA_WORKSPACE,
+        :asana_api_key => ENV['ASANA_API_KEY'],
+        :workspace => ENV['ASANA_WORKSPACE'],
         :title => exception.message,
         :description => error_description
       }
