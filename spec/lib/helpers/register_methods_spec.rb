@@ -9,6 +9,7 @@ module ModuleThatIncludesRegisterMethods
   PRIMARY_KEY_NAME = :custom_uid
   SCHEMA_NAME = 'company-schema'
   SLEEP_BEFORE_HTTP_REQ = 2
+  RAISE_WHEN_SAVING_INVALID_RECORD = true
 end
 
 module ModuleWithNoCustomPrimaryKey
@@ -374,6 +375,15 @@ describe 'a module that includes RegisterMethods' do
         end
       end
 
+      context 'and errors returned validating data' do
+        it "should validate processed data" do
+          ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([{:failed_attribute => 'foo', :message => 'Something not right'}])
+          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error
+        end
+
+
+      end
+
       context 'and process_datum returns nil' do
         before do
           ModuleThatIncludesRegisterMethods.stub(:process_datum).and_return(nil)
@@ -615,4 +625,15 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe 'raise_when_saving_invalid_record' do
+    describe '#primary_key_name' do
+      it 'should return false if RAISE_WHEN_SAVING_INVALID_RECORD not set' do
+        ModuleWithNoCustomPrimaryKey.send(:raise_when_saving_invalid_record).should == false
+      end
+
+      it 'should return true if RAISE_WHEN_SAVING_INVALID_RECORD set' do
+        ModuleThatIncludesRegisterMethods.send(:raise_when_saving_invalid_record).should == true
+      end
+    end
+  end
 end

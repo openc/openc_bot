@@ -66,6 +66,10 @@ module OpencBot
         self.const_defined?('PRIMARY_KEY_NAME') ? self.const_get('PRIMARY_KEY_NAME') : :uid
       end
 
+      def raise_when_saving_invalid_record
+        !!self.const_defined?('RAISE_WHEN_SAVING_INVALID_RECORD')
+      end
+
       # sensible default. Either uses computed version or registry_url in db
       def registry_url(uid)
         computed_registry_url(uid) || registry_url_from_db(uid)
@@ -141,7 +145,7 @@ module OpencBot
         processed_data = default_options.merge(base_processed_data)
         # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we may not extracting everything from it yet
-        save_entity(processed_data.merge(:data => raw_data))
+        raise_when_saving_invalid_record ? save_entity!(processed_data.merge(:data => raw_data)) : save_entity(processed_data.merge(:data => raw_data))
         if output_as_json
           puts processed_data.to_json
         else
