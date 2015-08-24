@@ -12,6 +12,7 @@ module OpencBot
     include OpencBot::Helpers::AlphaSearch
 
     STDOUT.sync = true
+    STDERR.sync = true
     # This is called by #update_datum
     def fetch_datum(company_number)
       company_page = fetch_registry_page(company_number)
