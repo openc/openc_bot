@@ -636,4 +636,62 @@ describe 'a module that includes RegisterMethods' do
       end
     end
   end
+
+  describe '#raw_data_file_location for a uid' do
+    before do
+      @dummy_root_directory = File.join(File.dirname(__FILE__),'..','..','tmp')
+      Dir.mkdir(@dummy_root_directory) unless Dir.exist?(@dummy_root_directory)
+
+      ModuleThatIncludesRegisterMethods.stub(:root_directory).and_return(@dummy_root_directory)
+    end
+
+    after do
+      FileUtils.rmdir(File.join(@dummy_root_directory, 'data'))
+    end
+
+    it 'should return directory built from uid inside root data directory' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('123456', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','3','4','5', '123456.html')
+    end
+
+    it 'should create directory structure if it doesnt exist' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('123456', 'html')
+      Dir.exist?(File.join(@dummy_root_directory, 'data', '1','2','3','4','5')).should == true
+    end
+
+    it 'should ignore leading zeroes when building directory' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('001234', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','3','4', '001234.html')
+    end
+
+    it 'should ignore non alphanum chars when building directory' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('12a-b/3456', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html')
+    end
+  end
+
+  describe '#save_raw_data' do
+    before do
+      @dummy_root_directory = File.join(File.dirname(__FILE__),'..','..','tmp')
+      Dir.mkdir(@dummy_root_directory) unless Dir.exist?(@dummy_root_directory)
+
+      ModuleThatIncludesRegisterMethods.stub(:root_directory).and_return(@dummy_root_directory)
+    end
+
+    it 'should save raw data as in computed raw_data_file_location' do
+      ModuleThatIncludesRegisterMethods.save_raw_data('foo bar', '12a-b/3456', 'html')
+      File.read(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html')).should == 'foo bar'
+    end
+  end
+
+  describe '#get_raw_data' do
+    before do
+      @dummy_root_directory = File.join(File.dirname(__FILE__),'..','..','tmp')
+      Dir.mkdir(@dummy_root_directory) unless Dir.exist?(@dummy_root_directory)
+
+      ModuleThatIncludesRegisterMethods.stub(:root_directory).and_return(@dummy_root_directory)
+    end
+
+    it 'should read raw data in computed raw_data_file_location' do
+      File.open(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html'),'w') { |f| f.print 'foo bar' }
+      ModuleThatIncludesRegisterMethods.get_raw_data('12a-b/3456', 'html').should == 'foo bar'
+    end
+  end
 end
