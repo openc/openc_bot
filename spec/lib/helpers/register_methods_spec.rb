@@ -665,6 +665,14 @@ describe 'a module that includes RegisterMethods' do
     it 'should ignore non alphanum chars when building directory' do
       ModuleThatIncludesRegisterMethods.raw_data_file_location('12a-b/3456', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html')
     end
+
+    it 'should allow format to be missing' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('12a-b/3456').should == File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456')
+    end
+
+    it 'should allow format to be nil' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location('12a-b/3456', nil).should == File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456')
+    end
   end
 
   describe '#save_raw_data' do
@@ -679,6 +687,11 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.save_raw_data('foo bar', '12a-b/3456', 'html')
       File.read(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html')).should == 'foo bar'
     end
+
+    it 'should allow format to be missing' do
+      ModuleThatIncludesRegisterMethods.save_raw_data('foo bar', '12a-b/3456')
+      File.read(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456')).should == 'foo bar'
+    end
   end
 
   describe '#get_raw_data' do
@@ -692,6 +705,11 @@ describe 'a module that includes RegisterMethods' do
     it 'should read raw data in computed raw_data_file_location' do
       File.open(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html'),'w') { |f| f.print 'foo bar' }
       ModuleThatIncludesRegisterMethods.get_raw_data('12a-b/3456', 'html').should == 'foo bar'
+    end
+
+    it 'should allow format to be missing' do
+      File.open(File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456'),'w') { |f| f.print 'foo bar' }
+      ModuleThatIncludesRegisterMethods.get_raw_data('12a-b/3456').should == 'foo bar'
     end
   end
 end

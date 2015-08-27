@@ -117,21 +117,22 @@ module OpencBot
         end
       end
 
-      def get_raw_data(uid, format)
+      def get_raw_data(uid, format=nil)
         file_location = raw_data_file_location(uid, format)
         File.read(file_location) if File.exist?(file_location)
       end
 
-      def save_raw_data(raw_data, uid, format)
+      def save_raw_data(raw_data, uid, format=nil)
         file_location = raw_data_file_location(uid, format)
         File.open(file_location, 'w') { |f| f.print raw_data }
       end
 
-      def raw_data_file_location(uid, format)
+      def raw_data_file_location(uid, format=nil)
         normalised_uid = uid.gsub(/[^[[:alnum:]]]/,'')
         directory = File.join(*([root_directory,'data',normalised_uid.gsub(/^0+/,'').split(//).first(5)].flatten))
         FileUtils.mkdir_p(directory) unless Dir.exist?(directory)
-        File.join(directory,"#{normalised_uid}.#{format}")
+        filename = format ? "#{normalised_uid}.#{format}" : normalised_uid
+        File.join(directory, filename)
       end
 
       def update_data(options={})
