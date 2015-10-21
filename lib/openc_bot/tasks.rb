@@ -3,6 +3,8 @@ require 'optparse'
 require 'json'
 require 'fileutils'
 
+PID_DIR = "/oc/pids"
+
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
   task :create do
@@ -352,7 +354,7 @@ EOF
   end
 
   def only_process_running(task_name)
-    pid_path = File.join(Dir.pwd, 'pids', task_name)
+    pid_path = File.join(PID_DIR, 'pids', task_name)
 
     raise_if_already_running(pid_path)
     write_pid_file(pid_path)
