@@ -48,7 +48,8 @@ namespace :bot do
 
   desc 'Get data from target'
   task :run do |t, args|
-    only_process_running(t.name) do
+    bot_name = get_bot_name
+    only_process_running("#{bot_name}-#{t.name}") do
       options = {}
       options[:specific_ids] = []
       options[:reset_iterator] = false
@@ -72,7 +73,6 @@ namespace :bot do
           options[:max_iterations] = val.to_i
         end
       end.parse!
-      bot_name = get_bot_name
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       count = runner.update_data(options)
@@ -92,8 +92,8 @@ namespace :bot do
 
   desc 'Run bot, but just for record with given uid'
   task :run_for_uid, :uid do |t, args|
-    only_process_running('run_for_uid') do
-      bot_name = get_bot_name
+    bot_name = get_bot_name
+    only_process_running(bot_name) do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       # this should output the updated json data for the given uid to
