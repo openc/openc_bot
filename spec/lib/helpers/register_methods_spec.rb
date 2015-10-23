@@ -415,6 +415,16 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.registry_url('338811').should == 'http://another.url'
       end
     end
+
+    context "and everything returns nil" do
+      it 'should raise appropriate exception' do
+        ModuleThatIncludesRegisterMethods.stub(:computed_registry_url)
+        ModuleThatIncludesRegisterMethods.stub(:registry_url_from_db)
+        lambda {
+          ModuleThatIncludesRegisterMethods.registry_url('338811')
+        }.should raise_error(OpencBot::SingleRecordUpdateNotImplemented)
+      end
+    end
   end
 
   describe "#fetch_registry_page for uid" do
@@ -447,6 +457,8 @@ describe 'a module that includes RegisterMethods' do
     context 'and SLEEP_BEFORE_HTTP_REQ is not set' do
       before do
         ModuleWithNoCustomPrimaryKey.stub(:_client).and_return(@dummy_client)
+        ModuleWithNoCustomPrimaryKey.stub(:registry_url).and_return('http://some.registry.url')
+
       end
 
       it 'should sleep for given period' do

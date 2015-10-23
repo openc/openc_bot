@@ -2,6 +2,7 @@
 require 'json-schema'
 require 'active_support'
 require 'active_support/core_ext'
+require 'openc_bot/exceptions'
 
 module OpencBot
   module Helpers
@@ -72,7 +73,13 @@ module OpencBot
 
       # sensible default. Either uses computed version or registry_url in db
       def registry_url(uid)
-        computed_registry_url(uid) || registry_url_from_db(uid)
+        url = computed_registry_url(uid) || registry_url_from_db(uid)
+        if url.nil?
+          raise OpencBot::SingleRecordUpdateNotImplemented.new(
+                  "No registry_url provided")
+        else
+          url
+        end
       end
 
       # stub method. Override in including module if this can be computed from uid

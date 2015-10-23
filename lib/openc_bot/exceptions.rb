@@ -3,6 +3,8 @@ module OpencBot
   # Generic Error class for OpencBot exceptions
   class OpencBotError < StandardError;end
 
+  class SingleRecordUpdateNotImplemented < OpencBotError; end
+
   #
   # Raised by <tt>save_entity!</tt> when the record is invalid.
   # Use the +validation_errors+ method to retrieve the, er, validation errors.
