@@ -194,7 +194,7 @@ module OpencBot
       end
 
       def validate_datum(record)
-        Dir.chdir(File.expand_path('../../../../schemas/schemas', __FILE__)) do
+        Dir.chdir(schema_path) do
           JSON::Validator.fully_validate(
             "#{schema_name}.json",
             record.to_json,
@@ -206,6 +206,10 @@ module OpencBot
       def post_process(row_hash, skip_nulls=false)
         # many of the fields will be serialized json and so we convert to ruby objects
         convert_json_to_ruby(row_hash.except(:data), skip_nulls)
+      end
+
+      def schema_path
+        File.expand_path('../../../../schemas/schemas', __FILE__)
       end
 
       private
