@@ -354,7 +354,7 @@ EOF
   end
 
   def only_process_running(task_name)
-    pid_path = File.join(PID_DIR, 'pids', task_name)
+    pid_path = File.join(( Dir.exists?( PID_DIR )? PID_DIR : Dir.pwd ), 'pids', task_name)
 
     raise_if_already_running(pid_path)
     write_pid_file(pid_path)
