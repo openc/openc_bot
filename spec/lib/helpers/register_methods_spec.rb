@@ -15,6 +15,7 @@ end
 module ModuleWithNoCustomPrimaryKey
   extend OpencBot
   extend OpencBot::Helpers::RegisterMethods
+  SAVE_RAW_DATA_ON_FILESYSTEM = true
 end
 
 describe 'a module that includes RegisterMethods' do
@@ -310,6 +311,18 @@ describe 'a module that includes RegisterMethods' do
       it "should include data in data to be prepared for saving" do
         ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_including(:data => @fetch_datum_response)).and_return({})
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
+      end
+
+      context 'and module responds true for save_raw_data_on_filesystem' do
+        before do
+          ModuleThatIncludesRegisterMethods.should_receive(:save_raw_data_on_filesystem).and_return(true)
+
+        end
+
+        it "should include data in data to be prepared for saving" do
+          ModuleThatIncludesRegisterMethods.should_receive(:prepare_for_saving).with(hash_not_including(:data => @fetch_datum_response)).and_return({})
+          ModuleThatIncludesRegisterMethods.update_datum(@uid)
+        end
       end
 
       it "should use supplied retrieved_at in preference to default" do
@@ -638,14 +651,22 @@ describe 'a module that includes RegisterMethods' do
   end
 
   describe 'raise_when_saving_invalid_record' do
-    describe '#primary_key_name' do
-      it 'should return false if RAISE_WHEN_SAVING_INVALID_RECORD not set' do
-        ModuleWithNoCustomPrimaryKey.send(:raise_when_saving_invalid_record).should == false
-      end
+    it 'should return false if RAISE_WHEN_SAVING_INVALID_RECORD not set' do
+      ModuleWithNoCustomPrimaryKey.send(:raise_when_saving_invalid_record).should == false
+    end
 
-      it 'should return true if RAISE_WHEN_SAVING_INVALID_RECORD set' do
-        ModuleThatIncludesRegisterMethods.send(:raise_when_saving_invalid_record).should == true
-      end
+    it 'should return true if RAISE_WHEN_SAVING_INVALID_RECORD set' do
+      ModuleThatIncludesRegisterMethods.send(:raise_when_saving_invalid_record).should == true
+    end
+  end
+
+  describe '#save_raw_data_on_filesystem' do
+    it 'should return false if SAVE_RAW_DATA_ON_FILESYSTEM not set' do
+      ModuleThatIncludesRegisterMethods.send(:save_raw_data_on_filesystem).should == false
+    end
+
+    it 'should return true if SAVE_RAW_DATA_ON_FILESYSTEM set' do
+      ModuleWithNoCustomPrimaryKey.send(:save_raw_data_on_filesystem).should == true
     end
   end
 

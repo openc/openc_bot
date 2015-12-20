@@ -82,6 +82,10 @@ module OpencBot
         end
       end
 
+      def save_raw_data_on_filesystem
+        !!self.const_defined?('SAVE_RAW_DATA_ON_FILESYSTEM')
+      end
+
       # stub method. Override in including module if this can be computed from uid
       def computed_registry_url(uid)
       end
@@ -166,11 +170,20 @@ module OpencBot
       def update_datum(uid, output_as_json=false,replace_existing_data=false)
         return unless raw_data = fetch_datum(uid)
         default_options = {primary_key_name => uid, :retrieved_at => Time.now}
+        # prepare the data for saving (converting Arrays, Hashes to json) and
         return unless base_processed_data = process_datum(raw_data)
         processed_data = default_options.merge(base_processed_data)
-        # prepare the data for saving (converting Arrays, Hashes to json) and
         # save the original data too, as we may not extracting everything from it yet
-        raise_when_saving_invalid_record ? save_entity!(processed_data.merge(:data => raw_data)) : save_entity(processed_data.merge(:data => raw_data))
+        if save_raw_data_on_filesystem
+          data_for_saving_in_db = processed_data
+        else
+          data_for_saving_in_db = processed_data.merge(:data => raw_data)
+        end
+        if raise_when_saving_invalid_record
+          save_entity!(data_for_saving_in_db)
+        else
+          save_entity(data_for_saving_in_db)
+        end
         if output_as_json
           puts processed_data.to_json
         else
