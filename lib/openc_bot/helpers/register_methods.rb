@@ -139,7 +139,7 @@ module OpencBot
       end
 
       def raw_data_file_location(uid, format=nil)
-        normalised_uid = uid.gsub(/[^[[:alnum:]]]/,'')
+        normalised_uid = uid.to_s.gsub(/[^[[:alnum:]]]/,'')
         directory = File.join(*([root_directory,'data',normalised_uid.gsub(/^0+/,'').split(//).first(5)].flatten))
         FileUtils.mkdir_p(directory) unless Dir.exist?(directory)
         filename = format ? "#{normalised_uid}.#{format}" : normalised_uid

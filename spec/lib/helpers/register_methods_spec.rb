@@ -695,6 +695,10 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.raw_data_file_location('001234', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','3','4', '001234.html')
     end
 
+    it 'should cope with number as uid' do
+      ModuleThatIncludesRegisterMethods.raw_data_file_location(1234, 'html').should == File.join(@dummy_root_directory, 'data', '1','2','3','4', '1234.html')
+    end
+
     it 'should ignore non alphanum chars when building directory' do
       ModuleThatIncludesRegisterMethods.raw_data_file_location('12a-b/3456', 'html').should == File.join(@dummy_root_directory, 'data', '1','2','a','b','3', '12ab3456.html')
     end
