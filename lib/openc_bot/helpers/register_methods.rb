@@ -3,6 +3,7 @@ require 'json-schema'
 require 'active_support'
 require 'active_support/core_ext'
 require 'openc_bot/exceptions'
+require 'monkey_patches/httpclient'
 
 module OpencBot
   module Helpers
@@ -41,7 +42,7 @@ module OpencBot
 
       def fetch_registry_page(company_number)
         sleep_before_http_req
-        _client.get_content(registry_url(company_number))
+        _client.get_content_with_retry(registry_url(company_number))
       end
 
       def prepare_and_save_data(all_data,options={})
