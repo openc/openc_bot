@@ -32,18 +32,18 @@ namespace :bot do
       begin
         new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/simple_bot/,bot_name)}")
         File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
-        puts "Created #{new_file}"
+        $stderr.puts "Created #{new_file}"
       rescue Errno::EEXIST
-        puts "Skipped creating #{new_file} as it already exists"
+        $stderr.puts "Skipped creating #{new_file} as it already exists"
       end
       FileUtils.chmod(0755, Dir.glob("#{working_dir}/bin/*"))
     end
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file.path}"
+      $stderr.puts "Added rspec and debugger to Gemfile at #{file.path}"
     end
-    puts "Please run 'bundle install'"
+    $stderr.puts "Please run 'bundle install'"
   end
 
   desc 'Get data from target'
@@ -76,7 +76,7 @@ namespace :bot do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       count = runner.update_data(options)
-      puts "Got #{count} records"
+      $stderr.puts "Got #{count} records"
     end
   end
 
@@ -143,7 +143,7 @@ namespace :bot do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       res = runner.table_summary
-      res.each {|k,v| puts "#{k}:\t#{v}"}
+      res.each {|k,v| $stderr.puts "#{k}:\t#{v}"}
     end
   end
 
@@ -151,8 +151,8 @@ namespace :bot do
   task :summarise_data do
     def as_sorted_hash(name, data)
       title = "#{name} counts:"
-      puts title
-      puts "-" * title.length
+      $stderr.puts title
+      $stderr.puts "-" * title.length
       grouped = Hash[*data.group_by{|i| i}.map{|k,v| [Array(k).join(", "), v.count] }.flatten]
       hash = grouped.sort_by do |k, v|
         v
@@ -160,24 +160,24 @@ namespace :bot do
       hash.each do |k, v|
         printf("%-60s %10s\n", k, v)
       end
-      puts
+      $stderr.puts
     end
 
     def as_longest_and_shortest(name, data)
       sorted = data.compact.sort_by do |n|
         n.length
       end
-      puts
+      $stderr.puts
       title = "shortest 5 #{name}"
-      puts title
-      puts "-" * title.length
-      puts sorted[0..5]
-      puts
+      $stderr.puts title
+      $stderr.puts "-" * title.length
+      $stderr.puts sorted[0..5]
+      $stderr.puts
       title = "longest 5 #{name}"
-      puts title
-      puts "-" * title.length
-      puts sorted[-5..-1]
-      puts
+      $stderr.puts title
+      $stderr.puts "-" * title.length
+      $stderr.puts sorted[-5..-1]
+      $stderr.puts
     end
 
     def main
@@ -211,9 +211,9 @@ namespace :bot do
       start_dates = start_dates.compact.sort
       end_dates = end_dates.compact.sort
       sample_dates = sample_dates.compact.sort
-      puts
-      puts "Dates"
-      puts "-----"
+      $stderr.puts
+      $stderr.puts "Dates"
+      $stderr.puts "-----"
       printf("%-22s %10s\n", "Earliest start_date:", start_dates.first)
       printf("%-22s %10s\n", "Earliest end_date:", end_dates.first)
       printf("%-22s %10s\n", "Earliest sample_date:", end_dates.first)
@@ -275,11 +275,11 @@ EOF
       end
     end
     messages.each_with_index do |m, i|
-      puts "#{i + 1}:"
-      puts m
-      puts "------------"
+      $stderr.puts "#{i + 1}:"
+      $stderr.puts m
+      $stderr.puts "------------"
     end
-    puts "No problems!" if messages.empty?
+    $stderr.puts "No problems!" if messages.empty?
   end
 
   task :test do
@@ -298,7 +298,7 @@ EOF
           OpencBot::BotDataValidator.validate(datum)
       end
     end
-    puts "Congratulations! This data appears to be valid"
+    $stderr.puts "Congratulations! This data appears to be valid"
   end
 
   def klass_from_file_name(underscore_file_name)
@@ -337,16 +337,16 @@ EOF
       new_file = File.join(working_dir,"#{template_location.sub(/template/,'').sub(/bot/,bot_name)}")
       unless File.exists? new_file
         File.open(new_file,  File::WRONLY|File::CREAT|File::EXCL) { |f| f.puts template }
-        puts "Created #{new_file}"
+        $stderr.puts "Created #{new_file}"
       end
     end
 
     #Add rspec debugger to gemfile
     File.open(File.join(working_dir,'Gemfile'),'a') do |file|
       file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file}"
+      $stderr.puts "Added rspec and debugger to Gemfile at #{file}"
     end
-    puts "Please run 'bundle install'"
+    $stderr.puts "Please run 'bundle install'"
   end
 
   def get_bot_name

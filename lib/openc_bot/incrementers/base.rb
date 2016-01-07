@@ -23,7 +23,7 @@ module OpencBot
     end
 
     def log_progress(percent)
-      puts "Iterator #{@name} progress: " + (percent.to_s + "%") if @show_progress
+      $stderr.puts "Iterator #{@name} progress: " + (percent.to_s + "%") if @show_progress
     end
 
     def progress_percent

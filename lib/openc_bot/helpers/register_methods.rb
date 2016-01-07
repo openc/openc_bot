@@ -52,7 +52,7 @@ module OpencBot
         rescue SQLite3::BusyException => e
           # fail_count += 1
           # if fail_count <= MAX_BUSY_RETRIES
-          puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
+          $stderr.puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
           #   sleep retry_interval
           #   retry_interval = retry_interval * 2
           #   retry
@@ -185,7 +185,7 @@ module OpencBot
           save_entity(data_for_saving_in_db)
         end
         if output_as_json
-          puts processed_data.to_json
+          $stdout.puts processed_data.to_json
         else
           processed_data
         end
@@ -194,7 +194,7 @@ module OpencBot
           output_json_error_message(e)
         else
           rich_message = "#{e.message} updating entry with uid: #{uid}"
-          puts rich_message if verbose?
+          $stderr.puts rich_message if verbose?
           raise $!, rich_message, $!.backtrace
         end
       end
@@ -230,7 +230,7 @@ module OpencBot
       # (which can then be handled by the importer)
       def output_json_error_message(err_obj)
         err_msg = {'error' => {'klass' => err_obj.class.to_s, 'message' => err_obj.message, 'backtrace' => err_obj.backtrace}}
-        puts err_msg.to_json
+        $stderr.puts err_msg.to_json
       end
 
       def prepare_for_saving(raw_data_hash)
@@ -250,9 +250,9 @@ module OpencBot
       def sleep_before_http_req
         if self.const_defined?('SLEEP_BEFORE_HTTP_REQ')
           sleep_time = self.const_get('SLEEP_BEFORE_HTTP_REQ')
-          puts "#{self.name} about to sleep for #{sleep_time} before fetching data. Time now: #{Time.now}" if verbose?
+          $stderr.puts "#{self.name} about to sleep for #{sleep_time} before fetching data. Time now: #{Time.now}" if verbose?
           sleep(sleep_time)
-          puts "#{self.name} slept for #{sleep_time}: Time now #{Time.now}" if verbose?
+          $stderr.puts "#{self.name} slept for #{sleep_time}: Time now #{Time.now}" if verbose?
         end
       end
 

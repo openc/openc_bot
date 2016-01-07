@@ -53,12 +53,12 @@ module OpencBot
             begin
               html = open(url).read.encode!('utf-8','iso-8859-1')
             rescue Exception, Timeout::Error => e
-              puts "Problem getting/parsing data from #{url}: #{e.inspect}"
+              $stderr.puts "Problem getting/parsing data from #{url}: #{e.inspect}"
               nil
             end
           next unless response
           if response.match(/webservices\/HRG/) # check has links to companies
-            puts "****Scraping page #{(search_offset+10)/10}"
+            $stderr.puts "****Scraping page #{(search_offset+10)/10}"
             scrape_search_results_page(response, url)
             save_var('search_offset', search_offset)
             search_offset += 10

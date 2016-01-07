@@ -36,7 +36,7 @@ class BotWithSimpleIterator < SimpleOpencBot
     ascii_incrementer.resumable.each do |letters|
       # This will iterate over all two-digit combinations of 0-9 and
       # a-z.
-      puts "http://assets.opencorporates.com/test_bot_page_#{letters}.html"
+      $stderr.puts "http://assets.opencorporates.com/test_bot_page_#{letters}.html"
     end
   end
 
@@ -50,7 +50,7 @@ class BotWithSimpleIterator < SimpleOpencBot
 
     numeric_incrementer.resumable.each do |number|
       # This will iterate over numbers 0 - 20
-      puts "http://assets.opencorporates.com/test_bot_page_#{number}.html"
+      $stderr.puts "http://assets.opencorporates.com/test_bot_page_#{number}.html"
     end
   end
 
@@ -73,7 +73,7 @@ class BotWithSimpleIterator < SimpleOpencBot
 
     manual_incrementer.resumable.each do |row|
       # This will iterate over all the rows added previously.
-      puts "http://assets.opencorporates.com/test_bot_page_#{row["name"]}.html"
+      $stderr.puts "http://assets.opencorporates.com/test_bot_page_#{row["name"]}.html"
     end
   end
 
@@ -96,7 +96,7 @@ class BotWithSimpleIterator < SimpleOpencBot
     end
 
     manual_incrementer.resumable.each do |row|
-      puts row["url"]
+      $stderr.puts row["url"]
     end
 
   end

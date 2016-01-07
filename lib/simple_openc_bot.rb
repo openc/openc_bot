@@ -119,11 +119,11 @@ class SimpleOpencBot
 
     if opts[:count]
       sql = "COUNT(*) AS count from #{table} #{where}"
-      puts sql if opts[:debug]
+      $stderr.puts sql if opts[:debug]
       select(sql)
     else
       sql = "#{select} from #{table} #{where} #{order} #{limit}"
-      puts sql if opts[:debug]
+      $stderr.puts sql if opts[:debug]
       select_records(sql)
     end
   end
@@ -199,7 +199,7 @@ class SimpleOpencBot
     end.compact
     total = count_stored_records
     selected = [opts[:limit], total].min
-    puts "NOTICE: only validated first #{selected} of #{total} records"
+    $stderr.puts "NOTICE: only validated first #{selected} of #{total} records"
     errors
   end
 

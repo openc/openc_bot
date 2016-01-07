@@ -77,7 +77,7 @@ module OpencBot
             error_count = 0 # reset error count
           else
             error_count += 1
-            puts "Failed to find company with uid #{current_number}. Error count: #{error_count}" if verbose?
+            $stderr.puts "Failed to find company with uid #{current_number}. Error count: #{error_count}" if verbose?
             break if error_count > max_failed_count
           end
           uid = increment_number(uid)
