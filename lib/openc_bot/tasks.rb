@@ -3,7 +3,17 @@ require 'optparse'
 require 'json'
 require 'fileutils'
 
-PID_DIR = "/oc/pids"
+PRODUCTION_PID_DIR = "/oc/pids/external_bots"
+
+def pid_dir
+  if Dir.exist?(PRODUCTION_PID_DIR)
+    PRODUCTION_PID_DIR
+  else
+    pd = File.join(Dir.pwd, 'pids')
+    FileUtils.mkdir(pd) unless Dir.exist?(pd)
+    pd
+  end
+end
 
 namespace :bot do
   desc "create a skeleton bot that can be used in OpenCorporates"
@@ -354,7 +364,7 @@ EOF
   end
 
   def only_process_running(task_name)
-    pid_path = Dir.exist?(PID_DIR) ? File.join(PID_DIR, 'pids', task_name) : File.join(Dir.pwd, 'pids', task_name)
+    pid_path = File.join(pid_dir, task_name)
 
     raise_if_already_running(pid_path)
     write_pid_file(pid_path)
