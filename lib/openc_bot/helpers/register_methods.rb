@@ -257,7 +257,7 @@ module OpencBot
       end
 
       def _client(options={})
-        return @client if @client
+        return @client if @client and not options[:flush_client]
         @client = HTTPClient.new(options.delete(:proxy))
         @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE if options.delete(:skip_ssl_verification)
         @client.agent_name = options.delete(:user_agent)
@@ -266,6 +266,24 @@ module OpencBot
           @client.ssl_config.add_trust_ca(ssl_certificate) # Above cert
         end
         @client
+      end
+
+      def _http_get(url, options={})
+        _client(options).get_content(url)
+      end
+
+      def _http_get_with_retry(url, options={})
+        log_info = Proc.new do |exception, tries|
+           $stderr.puts( "Retrying #{url} because of #{exception.class}: '#{exception.message}' - #{tries} attempts.")
+        end
+        tries = options.delete(:tries)||5
+        base_interval = options.delete(:tries)||5
+        Retriable.retriable :on => [SystemCallError, SocketError, EOFError, HTTPClient::BadResponseError, HTTPClient::ReceiveTimeoutError, HTTPClient::ConnectTimeoutError, Errno::ETIMEDOUT],
+          :tries => tries,
+          :base_interval => base_interval,
+          :on_retry => log_info do
+            _http_get(url, options)
+        end
       end
 
       def deep_clone_hash(given_hash)
