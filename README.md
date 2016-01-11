@@ -11,7 +11,7 @@ To start writing a new bot, run the following to create a skeleton bot:
 ```bash
 mkdir your_bot_name
 cd your_bot_name
-curl -s https://raw.githubusercontent.com/openc/openc_bot/master/create_simple_licence_bot.sh | bash
+curl -s https://raw.githubusercontent.com/openc/openc_bot/master/create_bot.sh | bash
 ```
 
 The default bot doesn't scrape, it just outputs some dummy data. You can try:
@@ -161,93 +161,11 @@ options in the config work for us:
     dontTrustVaryETag = yes
     proxyOffline = no
 
-# Targetting specific records
+# Targeting specific records
 
 If you define an (optional) `fetch_specific_records` method in your
 bot, then you can specify particular records you wish to be
 fetched, thus:
 
-    bundle exec openc_bot rake bot:run -- --identifier "Foo Corp"
+    bundle exec openc_bot rake bot:run_for_uid[1234]
 
-You can also target specific records to export with:
-
-    bundle exec openc_bot rake bot:export -- --identifier "Foo Corp"
-
-# Incremental, resumable searches
-
-It's often necessary to do incremental searches or scrapes to get a
-full set of data. For example, you may know that all the records exist
-at urls like http://foo.com/?page=1, http://foo.com/?page=2, etc.
-
-Another common use case is where you can only access records with a
-search. In these cases, there's no alternative except to search for
-all the possible permutations of the letters A-Z and numbers 0-9 (in
-the case of ASCII-searchable databases).
-
-In the latter case, this is 46656 different possible
-permutations. This will take a long time to scrape. If for some reason
-the scraper gets interrupted, you don't want to have to start again.
-
-We provide some convenience iterators, which save their current state,
-and restart unless told otherwise. They are probably not worth using for 
-small scrapes (e.g. ones that take 10 mins) as they add to the complexity 
-of your code; however, they are invaluable for large scrapes that may well 
-get interrupted.
-
-    # currently provides a NumericIncrementer and an AsciiIncrementer:
-    require 'openc_bot/incrementers'
-
-    def fetch_all_records(opts={})
-        counter = NumericIncrementer.new(
-          :my_incrementer,
-          opts.merge(
-              :start_val => 0,
-              :end_val => 20))
-
-        # yield records one at a time, resuming by default
-        counter.resumable.each do |num|
-          url = "http://assets.opencorporates.com/test_bot_page_#{num}.html"
-          yield record_from_url(url)
-        end
-    end
-
-The above code would resume an incremental search automatically. To
-reset, run the bot thus:
-
-    bundle exec openc_bot rake bot:run -- --reset
-
-When debugging, it is useful to test out only a few iterations at a time. To do this:
-
-    bundle exec openc_bot rake bot:run -- --max-iterations=3
-
-This will restrict all iterators to a maximum of three iterations.
-
-There's also an incrementer which you can manually fill with records
-(arbitrary hashes), thus:
-
-    incrementer =  OpencBot::ManualIncrementer.new(
-        :my_incrementer,
-        opts.merge(:fields => [:num]))
-
-    (0..10).each do |num|
-        incrementer.add_row({'num' => num})
-    end
-
-    # now increment over its values, resuming where we left off last time if interrupted
-    incrementer.resumable.each do |item|
-      doc = agent.get("http://assets.opencorporates.com/document_number#{item["num"]}"
-    end
-
-ManualIncrementers also have a persisted field named `populated`,
-which you can use to skip expensive record-filling if it's already
-been done:
-
-    if !incrementer.populated
-        (0..10).each do |num|
-            incrementer.add_row({'num' => num})
-        end
-    end
-    incrementer.populated = true
-
-There are examples of how this can work in
-`examples/bot_with_simple_iterator`.
