@@ -126,4 +126,10 @@ describe "A module that extends OpencBot" do
     end
   end
 
+  describe "#data_dir" do
+    it "should return data directory as a child of the root directory" do
+      FooBot.data_dir.should == File.expand_path(File.join(File.dirname(__FILE__), '..', 'data'))
+    end
+  end
+
 end
