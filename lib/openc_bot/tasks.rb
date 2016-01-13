@@ -172,7 +172,7 @@ namespace :bot do
   end
 
   def remove_pid_file(pid_path)
-    File.delete(pid_path)
+    File.delete(pid_path) if File.exist?(pid_path)
   end
 
 end
