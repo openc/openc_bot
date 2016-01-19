@@ -32,6 +32,12 @@ module OpencBot
 
   # Returns the root directory of the bot (not this gem).
   # Assumes the bot file that extends its functionality using this bot is in a directory (lib) inside the root directory
+  def data_dir
+    File.join(root_directory, 'data')
+  end
+
+  # Returns the root directory of the bot (not this gem).
+  # Assumes the bot file that extends its functionality using this bot is in a directory (lib) inside the root directory
   def root_directory
     @@app_directory
   end
