@@ -3,6 +3,7 @@ require 'json-schema'
 require 'active_support'
 require 'active_support/core_ext'
 require 'openc_bot/exceptions'
+require 'retriable'
 
 module OpencBot
   module Helpers
