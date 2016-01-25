@@ -72,7 +72,7 @@ namespace :bot do
   desc 'Run bot, but just for record with given uid'
   task :run_for_uid, :uid do |t, args|
     bot_name = get_bot_name
-    only_process_running(bot_name) do
+    only_process_running("#{bot_name}-#{t.name}-#{args[:uid]}") do
       require_relative File.join(Dir.pwd,'lib', bot_name)
       runner = callable_from_file_name(bot_name)
       # this should output the updated json data for the given uid to
