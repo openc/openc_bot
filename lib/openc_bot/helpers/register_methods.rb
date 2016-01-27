@@ -28,9 +28,12 @@ module OpencBot
       def fetch_data
         if use_alpha_search
           fetch_data_via_alpha_search
+          bot_type = 'incremental'
         else
           fetch_data_via_incremental_search
+          bot_type = 'alpha'
         end
+        {:bot_type => bot_type}
       end
 
       def export_data
