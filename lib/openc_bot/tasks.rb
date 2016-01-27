@@ -28,35 +28,41 @@ namespace :bot do
   desc 'Get data from target'
   task :run do |t, args|
     bot_name = get_bot_name
-    only_process_running("#{bot_name}-#{t.name}") do
-      options = {}
-      options[:specific_ids] = []
-      options[:reset_iterator] = false
-      OptionParser.new(args) do |opts|
-        opts.banner = "Usage: rake #{t.name} -- [options]"
-        opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
-          "Identifier of specific record to fetch",
-          " (may specify multiple times; refer to bot for its unique_fields)") do |val|
-          options[:specific_ids] << val
-        end
-        opts.on("-t", "--test-mode",
-          "Pass 'test' flag to bot") do |val|
-          options[:test_mode] = true
-        end
-        opts.on("-r", "--reset",
-          "Don't resume incremental bots; reset and start from the beginning") do |val|
-          options[:reset_iterator] = true
-        end
-        opts.on("-m", "--max-iterations MAX_ITERATIONS",
-          "Exit all iterators after MAX_ITERATIONS iterations. Useful for debugging.") do |val|
-          options[:max_iterations] = val.to_i
-        end
-      end.parse!
-      require_relative File.join(Dir.pwd,'lib', bot_name)
-      runner = callable_from_file_name(bot_name)
-      count = runner.update_data(options)
-      puts "Got #{count} records"
+    begin
+      only_process_running("#{bot_name}-#{t.name}") do
+        options = {}
+        options[:specific_ids] = []
+        options[:reset_iterator] = false
+        OptionParser.new(args) do |opts|
+          opts.banner = "Usage: rake #{t.name} -- [options]"
+          opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
+            "Identifier of specific record to fetch",
+            " (may specify multiple times; refer to bot for its unique_fields)") do |val|
+            options[:specific_ids] << val
+          end
+          opts.on("-t", "--test-mode",
+            "Pass 'test' flag to bot") do |val|
+            options[:test_mode] = true
+          end
+          opts.on("-r", "--reset",
+            "Don't resume incremental bots; reset and start from the beginning") do |val|
+            options[:reset_iterator] = true
+          end
+          opts.on("-m", "--max-iterations MAX_ITERATIONS",
+            "Exit all iterators after MAX_ITERATIONS iterations. Useful for debugging.") do |val|
+            options[:max_iterations] = val.to_i
+          end
+        end.parse!
+        require_relative File.join(Dir.pwd,'lib', bot_name)
+        runner = callable_from_file_name(bot_name)
+        count = runner.update_data(options)
+        puts "Got #{count} records"
+      end
+    rescue Exception => e
+      raise e unless e.message[/already running/i]
+      puts "Skipping running #{bot_name}: #{e.message}"
     end
+
   end
 
   desc 'Update stale data from target'
@@ -163,7 +169,7 @@ namespace :bot do
     else
       # Process with PID does exist
       # TODO Log this
-      raise 'Already running'
+      raise "Already running #{pid_path}"
     end
   end
 
