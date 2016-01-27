@@ -10,7 +10,8 @@ module OpencBot
     include OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
-    OC_RUN_REPORT_URL = 'https://OpenCorporates.com/runs'
+    # this is only available inside the VPN
+    OC_RUN_REPORT_URL = 'https://opencorporates.internal/runs'
 
     STDOUT.sync = true
     STDERR.sync = true
