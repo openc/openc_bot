@@ -65,6 +65,25 @@ namespace :bot do
 
   end
 
+  desc 'Get data from target'
+  task :run2 do |t, args|
+    bot_name = get_bot_name
+    begin
+      only_process_running("#{bot_name}-bot:run") do
+        options = {}
+        require_relative File.join(Dir.pwd,'lib', bot_name)
+        runner = callable_from_file_name(bot_name)
+        puts "Starting running #{bot_name} at #{Time.now}"
+        count = runner.run
+        puts "Finished running #{bot_name} at #{Time.now}"
+      end
+    rescue Exception => e
+      raise e unless e.message[/already running/i]
+      puts "Skipping running #{bot_name}: #{e.message}"
+    end
+
+  end
+
   desc 'Update stale data from target'
   task :update_stale do
     only_process_running('update_stale') do

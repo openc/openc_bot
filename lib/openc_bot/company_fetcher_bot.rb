@@ -11,7 +11,15 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
     # this is only available inside the VPN
-    OC_RUN_REPORT_URL = 'https://opencorporates.internal/runs'
+    OC_RUN_REPORT_URL = 'http://web/runs'
+    RUN_ATTRIBUTES = [
+      :started_at,
+      :ended_at,
+      :status_code,
+      :run_type,
+      :output
+    ]
+
 
     STDOUT.sync = true
     STDERR.sync = true
@@ -30,6 +38,11 @@ module OpencBot
       :company_number
     end
 
+    def report_run_results(results)
+      send_run_report(results)
+      report_run_to_oc(results)
+    end
+
     # This overrides default #save_entity (defined in RegisterMethods) and adds
     # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
@@ -44,32 +57,33 @@ module OpencBot
       super(default_options.merge(entity_info))
     end
 
+    # wraps #update_data with reporting so that methods can be overridden by company_fetchers
+    # and reporting will still happen (also allows update_data to be run without reporting).
+    def run(options={})
+      start_time = Time.now
+      update_data_results = update_data(options) || {}
+      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1'))
+    end
+
     def schema_name
       super || 'company-schema'
     end
 
+    # this is what is called every time the bot is run using @my_bot.run, or more likely from
+    # cron/command line using: bundle exec openc_bot rake bot:run
+    # It should return some information to be included in the bot run report, and any
+    # that is returned from fetch_data or update_stale (which you should override in preference to
+    # overriding this method) will be included in the run report
     def update_data(options={})
       fetch_data_results = fetch_data
-      update_stale
-      send_run_report(options.merge(fetch_data_results||{}))
+      update_stale_results = update_stale
+      {:fetch_data => fetch_data_results, :update_stale => update_stale_results}
     rescue Exception => e
       send_error_report(e)
       raise e
     end
 
     private
-    def mark_bot_as_failing_on_asana(exception)
-      # error_description = "Code for this bot: https://github.com/openc/external_bots/tree/master/#{inferred_jurisdiction_code}_companies_fetcher\nError details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
-      # params = {
-      #   :tag => inferred_jurisdiction_code,
-      #   :asana_api_key => ENV['ASANA_API_KEY'],
-      #   :workspace => ENV['ASANA_WORKSPACE'],
-      #   :title => exception.message,
-      #   :description => error_description
-      # }
-      # AsanaNotifier.create_failed_bot_task(params)
-    end
-
     def send_error_report(e)
       subject = "Error running #{self.name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
@@ -83,7 +97,6 @@ module OpencBot
       body = "No problems to report. db is #{db_location}, #{db_filesize} bytes. Last modified: #{File.stat(db_location).mtime}"
       body += "\nRun results = #{run_results.inspect}" unless run_results.blank?
       send_report(:subject => subject, :body => body)
-      report_run_to_oc(:output => body, :status_code => '1', :ended_at => Time.now.to_s)
     end
 
     def send_report(params)
@@ -97,8 +110,10 @@ module OpencBot
 
     def report_run_to_oc(params)
       bot_id = self.to_s.underscore
-      run_params = params.merge(:bot_id => bot_id, :bot_type => 'external')
-      # this will (correctly) fail in test and development as it will be outside internal IP range
+      run_params = params.slice!(*RUN_ATTRIBUTES)
+      run_params.merge!(:bot_id => bot_id, :bot_type => 'external')
+      run_params[:output] ||= params.to_s unless params.blank?
+      # this will (correctly) fail in development as it will be outside internal IP range
       _client.post(OC_RUN_REPORT_URL, {:run => run_params}.to_query)
     rescue Exception => e
       puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
