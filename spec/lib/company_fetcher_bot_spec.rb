@@ -20,6 +20,7 @@ describe "A module that extends CompanyFetcherBot" do
   before do
     @dummy_connection = double('database_connection', :save_data => nil)
     TestCompaniesFetcher.stub(:sqlite_magic_connection).and_return(@dummy_connection)
+    TestCompaniesFetcher.stub(:_http_post)
   end
 
   it "should include OpencBot methods" do
@@ -127,20 +128,57 @@ describe "A module that extends CompanyFetcherBot" do
   end
 
   describe '#update_data' do
-
     before do
-      TestCompaniesFetcher.stub(:fetch_data_via_incremental_search)
-      TestCompaniesFetcher.stub(:update_stale)
+      TestCompaniesFetcher.stub(:fetch_data).and_return('6 companies added')
+      TestCompaniesFetcher.stub(:update_stale).and_return('42 stale companies updated')
      #this can be any file that we can stat
       TestCompaniesFetcher.stub(:db_location).
         and_return(File.join(File.dirname(__FILE__),"company_fetcher_bot_spec.rb"))
+    end
 
-      Mail::TestMailer.deliveries.clear
+    it 'should fetch_data' do
+      TestCompaniesFetcher.should_receive(:update_stale)
       TestCompaniesFetcher.update_data
     end
 
-    it 'should send success email' do
-      Mail::TestMailer.deliveries.first.subject.should match /successfully ran/
+    it 'should update_stale' do
+      TestCompaniesFetcher.should_receive(:fetch_data)
+      TestCompaniesFetcher.update_data
+    end
+
+    it 'should return the results of fetching/updating stale' do
+      result = TestCompaniesFetcher.update_data
+      result.should == {:fetch_data => '6 companies added', :update_stale => '42 stale companies updated'}
+    end
+  end
+
+  describe '#run' do
+    before do
+      TestCompaniesFetcher.stub(:db_location).
+        and_return(File.join(File.dirname(__FILE__),"company_fetcher_bot_spec.rb"))
+      TestCompaniesFetcher.stub(:update_data).and_return({:foo => 'bar'})
+      Mail::TestMailer.deliveries.clear
+    end
+
+    it 'should update_data' do
+      TestCompaniesFetcher.should_receive(:update_data)
+      TestCompaniesFetcher.run
+    end
+
+    it 'should send report_run_results with results of update_data' do
+      TestCompaniesFetcher.should_receive(:report_run_results).with(hash_including({:foo => 'bar'}))
+      TestCompaniesFetcher.run
+    end
+
+    it 'should send report_run_results with start and end times of bot' do
+      TestCompaniesFetcher.should_receive(:report_run_results).with(hash_including(:started_at, :ended_at))
+      TestCompaniesFetcher.run
+    end
+
+    it 'should post report to OpenCorporates' do
+      expected_params = {:run => hash_including({:foo=>"bar", :bot_id=>"test_companies_fetcher", :bot_type=>"external", :status_code=>"1"})}
+      TestCompaniesFetcher.should_receive(:_http_post).with(OpencBot::CompanyFetcherBot::OC_RUN_REPORT_URL, expected_params)
+      TestCompaniesFetcher.run
     end
 
   end

@@ -10,6 +10,16 @@ module OpencBot
     include OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
+    # this is only available inside the VPN
+    OC_RUN_REPORT_URL = 'http://web1:81/runs'
+    RUN_ATTRIBUTES = [
+      :started_at,
+      :ended_at,
+      :status_code,
+      :run_type,
+      :output
+    ]
+
 
     STDOUT.sync = true
     STDERR.sync = true
@@ -28,6 +38,11 @@ module OpencBot
       :company_number
     end
 
+    def report_run_results(results)
+      send_run_report(results)
+      report_run_to_oc(results)
+    end
+
     # This overrides default #save_entity (defined in RegisterMethods) and adds
     # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
@@ -42,43 +57,47 @@ module OpencBot
       super(default_options.merge(entity_info))
     end
 
+    # wraps #update_data with reporting so that methods can be overridden by company_fetchers
+    # and reporting will still happen (also allows update_data to be run without reporting).
+    def run(options={})
+      start_time = Time.now
+      update_data_results = update_data(options) || {}
+      # we may get a string back, or something else
+      update_data_results = {:output => update_data_results.to_s} unless update_data_results.is_a?(Hash)
+      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1'))
+    end
+
     def schema_name
       super || 'company-schema'
     end
 
+    # this is what is called every time the bot is run using @my_bot.run, or more likely from
+    # cron/command line using: bundle exec openc_bot rake bot:run
+    # It should return some information to be included in the bot run report, and any
+    # that is returned from fetch_data or update_stale (which you should override in preference to
+    # overriding this method) will be included in the run report
     def update_data(options={})
-      fetch_data
-      update_stale
-      send_run_report
+      fetch_data_results = fetch_data
+      update_stale_results = update_stale
+      {:fetch_data => fetch_data_results, :update_stale => update_stale_results}
     rescue Exception => e
       send_error_report(e)
       raise e
     end
 
     private
-    def mark_bot_as_failing_on_asana(exception)
-      # error_description = "Code for this bot: https://github.com/openc/external_bots/tree/master/#{inferred_jurisdiction_code}_companies_fetcher\nError details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
-      # params = {
-      #   :tag => inferred_jurisdiction_code,
-      #   :asana_api_key => ENV['ASANA_API_KEY'],
-      #   :workspace => ENV['ASANA_WORKSPACE'],
-      #   :title => exception.message,
-      #   :description => error_description
-      # }
-      # AsanaNotifier.create_failed_bot_task(params)
-    end
-
     def send_error_report(e)
       subject = "Error running #{self.name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
-      mark_bot_as_failing_on_asana(e) if ENV['CREATE_ASANA_TASKS_FOR_BOT_FAILURES']
       send_report(:subject => subject, :body => body)
+      report_run_to_oc(:output => body, :status_code => '0', :ended_at => Time.now.to_s)
     end
 
-    def send_run_report
+    def send_run_report(run_results=nil)
       subject = "#{self.name} successfully ran"
       db_filesize = File.size?(db_location)
       body = "No problems to report. db is #{db_location}, #{db_filesize} bytes. Last modified: #{File.stat(db_location).mtime}"
+      body += "\nRun results = #{run_results.inspect}" unless run_results.blank?
       send_report(:subject => subject, :body => body)
     end
 
@@ -89,6 +108,21 @@ module OpencBot
         subject  params[:subject]
         body     params[:body]
       end
+    end
+
+    def report_run_to_oc(params)
+      bot_id = self.to_s.underscore
+      run_params = params.slice!(RUN_ATTRIBUTES)
+      run_params.merge!(:bot_id => bot_id, :bot_type => 'external')
+      run_params[:output] ||= params.to_s unless params.blank?
+      _http_post(OC_RUN_REPORT_URL, {:run => run_params})
+    rescue Exception => e
+      puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
+    end
+
+    def _http_post(url, params)
+      # this will (correctly) fail in development as it will be outside internal IP range
+      _client.post(OC_RUN_REPORT_URL, params.to_query)
     end
 
 
