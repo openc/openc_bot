@@ -11,7 +11,7 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
     # this is only available inside the VPN
-    OC_RUN_REPORT_URL = 'http://web/runs'
+    OC_RUN_REPORT_URL = 'http://web1:81/runs'
     RUN_ATTRIBUTES = [
       :started_at,
       :ended_at,
