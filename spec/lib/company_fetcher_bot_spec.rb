@@ -20,7 +20,7 @@ describe "A module that extends CompanyFetcherBot" do
   before do
     @dummy_connection = double('database_connection', :save_data => nil)
     TestCompaniesFetcher.stub(:sqlite_magic_connection).and_return(@dummy_connection)
-    HTTPClient.any_instance.stub(:post)
+    TestCompaniesFetcher.stub(:_http_post)
   end
 
   it "should include OpencBot methods" do
@@ -172,6 +172,12 @@ describe "A module that extends CompanyFetcherBot" do
 
     it 'should send report_run_results with start and end times of bot' do
       TestCompaniesFetcher.should_receive(:report_run_results).with(hash_including(:started_at, :ended_at))
+      TestCompaniesFetcher.run
+    end
+
+    it 'should post report to OpenCorporates' do
+      expected_params = {:run => hash_including({:foo=>"bar", :bot_id=>"test_companies_fetcher", :bot_type=>"external", :status_code=>"1"})}
+      TestCompaniesFetcher.should_receive(:_http_post).with(OpencBot::CompanyFetcherBot::OC_RUN_REPORT_URL, expected_params)
       TestCompaniesFetcher.run
     end
 

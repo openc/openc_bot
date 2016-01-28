@@ -62,6 +62,8 @@ module OpencBot
     def run(options={})
       start_time = Time.now
       update_data_results = update_data(options) || {}
+      # we may get a string back, or something else
+      update_data_results = {:output => update_data_results.to_s} unless update_data_results.is_a?(Hash)
       report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1'))
     end
 
@@ -110,13 +112,17 @@ module OpencBot
 
     def report_run_to_oc(params)
       bot_id = self.to_s.underscore
-      run_params = params.slice!(*RUN_ATTRIBUTES)
+      run_params = params.slice!(RUN_ATTRIBUTES)
       run_params.merge!(:bot_id => bot_id, :bot_type => 'external')
       run_params[:output] ||= params.to_s unless params.blank?
-      # this will (correctly) fail in development as it will be outside internal IP range
-      _client.post(OC_RUN_REPORT_URL, {:run => run_params}.to_query)
+      _http_post(OC_RUN_REPORT_URL, {:run => run_params})
     rescue Exception => e
       puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
+    end
+
+    def _http_post(url, params)
+      # this will (correctly) fail in development as it will be outside internal IP range
+      _client.post(OC_RUN_REPORT_URL, params.to_query)
     end
 
 
