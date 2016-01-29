@@ -26,6 +26,7 @@ module OpencBot
       # if USE_ALPHA_SEARCH is set. This method should be overridden if you are going to do a
       # different type of data import, e.g from a CSV file.
       def fetch_data
+        original_count = record_count
         if use_alpha_search
           fetch_data_via_alpha_search
           run_type = 'incremental'
@@ -33,7 +34,8 @@ module OpencBot
           fetch_data_via_incremental_search
           run_type = 'alpha'
         end
-        {:run_type => run_type}
+        records_added = record_count - original_count
+        {:run_type => run_type, :added => records_added}
       end
 
       def export_data
@@ -73,6 +75,10 @@ module OpencBot
 
       def raise_when_saving_invalid_record
         !!self.const_defined?('RAISE_WHEN_SAVING_INVALID_RECORD')
+      end
+
+      def record_count
+        select("COUNT(#{primary_key_name}) as count from ocdata").first['count'] rescue 0
       end
 
       # sensible default. Either uses computed version or registry_url in db
@@ -120,7 +126,7 @@ module OpencBot
       def stale_entry_uids(stale_count=nil)
         stale_count ||= default_stale_count
         sql_query = "ocdata.* from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - 30}') LIMIT #{stale_count.to_i}"
-        raw_data = select(sql_query).each do |res|
+        select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
         end
       rescue SQLite3::SQLException => e
@@ -204,10 +210,12 @@ module OpencBot
       end
 
       def update_stale(stale_count=nil)
-        stale_entry_uids(stale_count) do |stale_entry_uid|
+        count = 0
+        records_updated_count = stale_entry_uids(stale_count) do |stale_entry_uid|
           update_datum(stale_entry_uid)
+          count += 1
         end
-
+        {:updated => count}
       end
 
       def validate_datum(record)

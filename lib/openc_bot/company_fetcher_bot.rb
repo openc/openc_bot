@@ -79,7 +79,10 @@ module OpencBot
     def update_data(options={})
       fetch_data_results = fetch_data
       update_stale_results = update_stale
-      {:fetch_data => fetch_data_results, :update_stale => update_stale_results}
+      res = {}
+      res.merge!(fetch_data_results) if fetch_data_results.is_a?(Hash)
+      res.merge!(update_stale_results) if update_stale_results.is_a?(Hash)
+      res
     rescue Exception => e
       send_error_report(e)
       raise e
