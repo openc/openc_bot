@@ -129,8 +129,8 @@ describe "A module that extends CompanyFetcherBot" do
 
   describe '#update_data' do
     before do
-      TestCompaniesFetcher.stub(:fetch_data).and_return('6 companies added')
-      TestCompaniesFetcher.stub(:update_stale).and_return('42 stale companies updated')
+      TestCompaniesFetcher.stub(:fetch_data).and_return({:added => 3})
+      TestCompaniesFetcher.stub(:update_stale).and_return({:updated => 42})
      #this can be any file that we can stat
       TestCompaniesFetcher.stub(:db_location).
         and_return(File.join(File.dirname(__FILE__),"company_fetcher_bot_spec.rb"))
@@ -148,7 +148,7 @@ describe "A module that extends CompanyFetcherBot" do
 
     it 'should return the results of fetching/updating stale' do
       result = TestCompaniesFetcher.update_data
-      result.should == {:fetch_data => '6 companies added', :update_stale => '42 stale companies updated'}
+      result.should == {:added => 3, :updated => 42}
     end
   end
 

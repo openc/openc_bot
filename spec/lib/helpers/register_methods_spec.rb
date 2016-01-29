@@ -165,6 +165,12 @@ describe 'a module that includes RegisterMethods' do
         ModuleThatIncludesRegisterMethods.update_stale(42)
       end
     end
+
+    it 'should return number of entries updated' do
+      ModuleThatIncludesRegisterMethods.stub(:stale_entry_uids).and_yield('234').and_yield('666').and_yield('876')
+      ModuleThatIncludesRegisterMethods.stub(:update_datum)
+      ModuleThatIncludesRegisterMethods.update_stale.should == {:updated => 3}
+    end
   end
 
   describe "#stale_entry_uids" do
