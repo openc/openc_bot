@@ -16,6 +16,7 @@ module OpencBot
           incremental_search(old_highest_number, options)
         end
         save_var(:highest_entry_uids, new_highest_numbers)
+        new_highest_numbers
       end
 
       def highest_entry_uids(force_get = false)
