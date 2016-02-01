@@ -27,15 +27,17 @@ module OpencBot
       # different type of data import, e.g from a CSV file.
       def fetch_data
         original_count = record_count
+        res = {}
         if use_alpha_search
           fetch_data_via_alpha_search
-          run_type = 'incremental'
+          res[:run_type] = 'alpha'
         else
-          fetch_data_via_incremental_search
-          run_type = 'alpha'
+          new_highest_numbers = fetch_data_via_incremental_search
+          res[:run_type] = 'incremental'
+          res[:output] = "New highest numbers = #{new_highest_numbers}"
         end
         records_added = record_count - original_count
-        {:run_type => run_type, :added => records_added}
+        res.merge(:added => records_added)
       end
 
       def export_data
