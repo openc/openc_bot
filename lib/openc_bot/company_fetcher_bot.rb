@@ -64,7 +64,7 @@ module OpencBot
       update_data_results = update_data(options) || {}
       # we may get a string back, or something else
       update_data_results = {:output => update_data_results.to_s} unless update_data_results.is_a?(Hash)
-      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1'))
+      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1', :git_commit => current_git_commit))
     end
 
     def schema_name

@@ -14,6 +14,10 @@ module OpencBot
         self.const_defined?('USE_ALPHA_SEARCH') && self.const_get('USE_ALPHA_SEARCH')
       end
 
+      def current_git_commit
+        `git log -1 --format="%H"`.strip
+      end
+
       def datum_exists?(uid)
         !!select("ocdata.#{primary_key_name} FROM ocdata WHERE #{primary_key_name} = ? LIMIT 1", uid).first
       end
@@ -34,7 +38,7 @@ module OpencBot
         else
           new_highest_numbers = fetch_data_via_incremental_search
           res[:run_type] = 'incremental'
-          res[:output] = "New highest numbers = #{new_highest_numbers}"
+          res[:output] = "New highest numbers = #{new_highest_numbers.inspect}"
         end
         records_added = record_count - original_count
         res.merge(:added => records_added)

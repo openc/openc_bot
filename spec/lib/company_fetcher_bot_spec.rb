@@ -157,6 +157,7 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.stub(:db_location).
         and_return(File.join(File.dirname(__FILE__),"company_fetcher_bot_spec.rb"))
       TestCompaniesFetcher.stub(:update_data).and_return({:foo => 'bar'})
+      TestCompaniesFetcher.stub(:current_git_commit).and_return('abc12345')
       Mail::TestMailer.deliveries.clear
     end
 
@@ -176,7 +177,7 @@ describe "A module that extends CompanyFetcherBot" do
     end
 
     it 'should post report to OpenCorporates' do
-      expected_params = {:run => hash_including({:foo=>"bar", :bot_id=>"test_companies_fetcher", :bot_type=>"external", :status_code=>"1"})}
+      expected_params = {:run => hash_including({:foo=>"bar", :bot_id=>"test_companies_fetcher", :bot_type=>"external", :status_code=>"1", :git_commit => 'abc12345'})}
       TestCompaniesFetcher.should_receive(:_http_post).with(OpencBot::CompanyFetcherBot::OC_RUN_REPORT_URL, expected_params)
       TestCompaniesFetcher.run
     end
