@@ -61,7 +61,7 @@ module OpencBot
     # and reporting will still happen (also allows update_data to be run without reporting).
     def run(options={})
       start_time = Time.now
-      update_data_results = update_data(options) || {}
+      update_data_results = update_data(options.merge(:started_at => start_time)) || {}
       # we may get a string back, or something else
       update_data_results = {:output => update_data_results.to_s} unless update_data_results.is_a?(Hash)
       report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1', :git_commit => current_git_commit))
@@ -84,16 +84,16 @@ module OpencBot
       res.merge!(update_stale_results) if update_stale_results.is_a?(Hash)
       res
     rescue Exception => e
-      send_error_report(e)
+      send_error_report(e, options)
       raise e
     end
 
     private
-    def send_error_report(e)
+    def send_error_report(e, options={})
       subject = "Error running #{self.name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
       send_report(:subject => subject, :body => body)
-      report_run_to_oc(:output => body, :status_code => '0', :ended_at => Time.now.to_s)
+      report_run_to_oc(:output => body, :status_code => '0', :ended_at => Time.now.to_s, :started_at => options[:started_at])
     end
 
     def send_run_report(run_results=nil)
