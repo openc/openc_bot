@@ -4,6 +4,7 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'openc_bot/exceptions'
 require 'retriable'
+require 'tzinfo'
 
 module OpencBot
   module Helpers
@@ -11,7 +12,20 @@ module OpencBot
       MAX_BUSY_RETRIES = 3
 
       def allowed_hours
-        self.const_defined?('ALLOWED_HOURS') && self.const_get('ALLOWED_HOURS')
+        if self.const_defined?('ALLOWED_HOURS')
+          self.const_get('ALLOWED_HOURS').to_a
+        elsif self.const_defined?('TIMEZONE')
+          # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for definitions/examples
+          # eg TIMEZONE = "America/Panama"
+          tz = TZInfo::Timezone.get(self.const_get('TIMEZONE'))
+          non_working_hours_starts = tz.local_to_utc(Time.parse("#{Date.today} 18:00")).hour
+          non_working_hours_ends = tz.local_to_utc(Time.parse("#{Date.today} 08:00")).hour
+          if non_working_hours_starts < non_working_hours_ends
+            (non_working_hours_starts..non_working_hours_end).to_a
+          else
+            (non_working_hours_starts..24).to_a + (0..non_working_hours_ends).to_a
+          end
+        end
       end
 
       def use_alpha_search
@@ -297,6 +311,7 @@ module OpencBot
       end
 
       def _http_get(url, options={})
+        raise OutOfPermittedHours.new("Request at #{Time.now} is not out business hours (#{allowed_hours})") if options[:restrict_to_out_of_hours] && in_prohibited_time?
         _client(options).get_content(url)
       end
 

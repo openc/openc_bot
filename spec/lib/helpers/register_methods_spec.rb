@@ -656,6 +656,24 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe 'allowed_hours' do
+    it "should return ALLOWED_HOURS if ALLOWED_HOURS defined" do
+      stub_const("ModuleThatIncludesRegisterMethods::ALLOWED_HOURS", (2..5))
+      ModuleThatIncludesRegisterMethods.allowed_hours.should == [2,3,4,5]
+    end
+
+    it "should return nil if ALLOWED_HOURS not defined" do
+      ModuleThatIncludesRegisterMethods.allowed_hours.should be_nil
+    end
+
+    context 'and TIMEZONE defined' do
+      it "should return non-working hours in timezone" do
+        stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
+        ModuleThatIncludesRegisterMethods.allowed_hours.should == [23,24,0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+      end
+    end
+  end
+
   describe 'in_prohibited_time?' do
     before do
       ModuleThatIncludesRegisterMethods.stub(:allowed_hours).and_return((0..12))
@@ -677,7 +695,7 @@ describe 'a module that includes RegisterMethods' do
       end
     end
 
-    it 'should return nil if allowed_hours not defined' do
+    it 'should return false if allowed_hours not defined' do
       Time.stub(:now).and_return(Time.parse("2014-10-10 15:14:25 +0100"))
       ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_false
     end

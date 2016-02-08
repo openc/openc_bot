@@ -5,6 +5,8 @@ module OpencBot
 
   class SingleRecordUpdateNotImplemented < OpencBotError; end
 
+  class OutOfPermittedHours < OpencBotError; end
+
   #
   # Raised by <tt>save_entity!</tt> when the record is invalid.
   # Use the +validation_errors+ method to retrieve the, er, validation errors.
