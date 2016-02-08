@@ -656,6 +656,33 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe 'in_prohibited_time?' do
+    before do
+      ModuleThatIncludesRegisterMethods.stub(:allowed_hours).and_return((0..12))
+    end
+
+    after do
+      Time.unstub(:now)
+    end
+
+    it 'should return true only for out of office hours' do
+      times_and_truthiness = {
+        "2014-10-09 10:14:25 +0100" => false, # in time span
+        # "2014-10-11 15:14:25 +0100" => true, # in weekend
+        "2014-10-10 15:14:25 +0100" => true # weekday working time in hours
+      }
+      times_and_truthiness.each do |datetime, truthiness|
+        Time.stub(:now).and_return(Time.parse(datetime))
+        ModuleThatIncludesRegisterMethods.in_prohibited_time?.should == truthiness
+      end
+    end
+
+    it 'should return nil if allowed_hours not defined' do
+      Time.stub(:now).and_return(Time.parse("2014-10-10 15:14:25 +0100"))
+      ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_false
+    end
+  end
+
   describe 'raise_when_saving_invalid_record' do
     it 'should return false if RAISE_WHEN_SAVING_INVALID_RECORD not set' do
       ModuleWithNoCustomPrimaryKey.send(:raise_when_saving_invalid_record).should == false

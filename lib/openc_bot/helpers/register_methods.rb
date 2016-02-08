@@ -10,6 +10,10 @@ module OpencBot
     module RegisterMethods
       MAX_BUSY_RETRIES = 3
 
+      def allowed_hours
+        self.const_defined?('ALLOWED_HOURS') && self.const_get('ALLOWED_HOURS')
+      end
+
       def use_alpha_search
         self.const_defined?('USE_ALPHA_SEARCH') && self.const_get('USE_ALPHA_SEARCH')
       end
@@ -54,6 +58,12 @@ module OpencBot
       def fetch_registry_page(company_number)
         sleep_before_http_req
         _client.get_content(registry_url(company_number))
+      end
+
+      def in_prohibited_time?
+        current_time = Time.now
+
+        allowed_hours && !allowed_hours.include?(current_time.hour)# || current_time.saturday? || current_time.sunday?
       end
 
       def prepare_and_save_data(all_data,options={})
