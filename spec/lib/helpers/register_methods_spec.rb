@@ -690,13 +690,15 @@ describe 'a module that includes RegisterMethods' do
         "2014-10-10 15:14:25 +0100" => true # weekday working time in hours
       }
       times_and_truthiness.each do |datetime, truthiness|
-        Time.stub(:now).and_return(Time.parse(datetime))
+        parsed_time = Time.parse(datetime)
+        Time.stub(:now).and_return(parsed_time)
         ModuleThatIncludesRegisterMethods.in_prohibited_time?.should == truthiness
       end
     end
 
     it 'should return false if allowed_hours not defined' do
-      Time.stub(:now).and_return(Time.parse("2014-10-10 15:14:25 +0100"))
+      parsed_time = Time.parse("2014-10-10 15:14:25 +0100")
+      Time.stub(:now).and_return(parsed_time)
       ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_false
     end
   end
