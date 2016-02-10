@@ -45,13 +45,20 @@ describe "A module that extends CompanyFetcherBot" do
     end
 
     it "should #fetch_registry_page for company_numbers" do
-      TestCompaniesFetcher.should_receive(:fetch_registry_page).with('76543')
+      TestCompaniesFetcher.should_receive(:fetch_registry_page).with('76543',{})
       TestCompaniesFetcher.fetch_datum('76543')
     end
 
     it "should stored result of #fetch_registry_page in hash keyed to :company_page" do
       TestCompaniesFetcher.stub(:fetch_registry_page).and_return(:registry_page_html)
       TestCompaniesFetcher.fetch_datum('76543').should == {:company_page => :registry_page_html}
+    end
+
+    context 'and options passed in' do
+      it 'should pass on to fetch_registry_page' do
+        TestCompaniesFetcher.should_receive(:fetch_registry_page).with('76543', :foo => 'bar')
+        TestCompaniesFetcher.fetch_datum('76543', :foo => 'bar')
+      end
     end
   end
 

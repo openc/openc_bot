@@ -365,14 +365,6 @@ describe 'a module that includes RegisterMethods' do
         end
       end
 
-      it "should output jsonified processed data to STDOUT if passed true as second argument" do
-        expected_output = @processed_data_with_retrieved_at_and_uid.
-          merge(:retrieved_at => @processed_data_with_retrieved_at_and_uid[:retrieved_at].iso8601).stringify_keys
-        ModuleThatIncludesRegisterMethods.should_receive(:puts).with(jsonified_output(expected_output))
-        ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
-      end
-
-
       RSpec::Matchers.define :jsonified_error_details_including do |expected_output|
         match { |actual| error_details = JSON.parse(actual)['error']; expected_output.all? { |k,v| error_details[k] == v } }
       end
@@ -391,6 +383,33 @@ describe 'a module that includes RegisterMethods' do
 
         it "should raise exception if true not passed as second argument" do
           lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error("something went wrong updating entry with uid: #{@uid}")
+        end
+      end
+
+      context 'and passed true as to signal called_externally' do
+        it 'should pass :ignore_out_of_hours_settings => true to fetch_datum' do
+          ModuleThatIncludesRegisterMethods.should_receive(:fetch_datum).with(@uid, :ignore_out_of_hours_settings => true).and_return(@fetch_datum_response)
+          ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
+        end
+
+        it "should output jsonified processed data to STDOUT" do
+          expected_output = @processed_data_with_retrieved_at_and_uid.
+            merge(:retrieved_at => @processed_data_with_retrieved_at_and_uid[:retrieved_at].iso8601).stringify_keys
+          ModuleThatIncludesRegisterMethods.should_receive(:puts).with(jsonified_output(expected_output))
+          ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
+        end
+
+        context "and exception raised" do
+          before do
+            ModuleThatIncludesRegisterMethods.stub(:process_datum).and_raise('something went wrong')
+          end
+
+          it "should output error message as JSON" do
+            ModuleThatIncludesRegisterMethods.should_receive(:puts).with(jsonified_error_details_including('message' => 'something went wrong', 'klass' => 'RuntimeError'))
+            # ModuleThatIncludesRegisterMethods.should_receive(:puts).
+            #                                   with{ |error_output| error_hash = JSON.parse(error_output); error_hash['error']['message'].should == 'something went wrong' }
+            ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
+          end
         end
       end
 
@@ -448,22 +467,27 @@ describe 'a module that includes RegisterMethods' do
 
   describe "#fetch_registry_page for uid" do
     before do
-      @dummy_client = double('http_client', :get_content => nil)
-      ModuleThatIncludesRegisterMethods.stub(:_client).and_return(@dummy_client)
       ModuleThatIncludesRegisterMethods.stub(:registry_url).and_return('http://some.registry.url')
-      @dummy_client.stub(:get_content).and_return(:registry_page_html)
+      ModuleThatIncludesRegisterMethods.stub(:_http_get).and_return(:registry_page_html)
     end
 
     it "should GET registry_page for registry_url for company_number" do
       ModuleThatIncludesRegisterMethods.should_receive(:registry_url).
                                         with('76543').and_return('http://some.registry.url')
-      @dummy_client.should_receive(:get_content).with('http://some.registry.url')
+      ModuleThatIncludesRegisterMethods.should_receive(:_http_get).with('http://some.registry.url',{})
       ModuleThatIncludesRegisterMethods.fetch_registry_page('76543')
     end
 
     it "should return result of GETing registry_page" do
-      @dummy_client.stub(:get_content).and_return(:registry_page_html)
+      ModuleThatIncludesRegisterMethods.stub(:_http_get).and_return(:registry_page_html)
       ModuleThatIncludesRegisterMethods.fetch_registry_page('76543').should == :registry_page_html
+    end
+
+    it "should pass on options" do
+      ModuleThatIncludesRegisterMethods.should_receive(:registry_url).
+                                        with('76543').and_return('http://some.registry.url')
+      ModuleThatIncludesRegisterMethods.should_receive(:_http_get).with('http://some.registry.url', :foo => 'bar')
+      ModuleThatIncludesRegisterMethods.fetch_registry_page('76543', :foo => 'bar')
     end
 
     context 'and SLEEP_BEFORE_HTTP_REQ is set' do
@@ -475,7 +499,7 @@ describe 'a module that includes RegisterMethods' do
 
     context 'and SLEEP_BEFORE_HTTP_REQ is not set' do
       before do
-        ModuleWithNoCustomPrimaryKey.stub(:_client).and_return(@dummy_client)
+        ModuleWithNoCustomPrimaryKey.stub(:_http_get)
         ModuleWithNoCustomPrimaryKey.stub(:registry_url).and_return('http://some.registry.url')
 
       end
