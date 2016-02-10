@@ -699,7 +699,7 @@ describe 'a module that includes RegisterMethods' do
     it 'should return false if allowed_hours not defined' do
       parsed_time = Time.parse("2014-10-10 15:14:25 +0100")
       Time.stub(:now).and_return(parsed_time)
-      ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_false
+      ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_nil
     end
   end
 
