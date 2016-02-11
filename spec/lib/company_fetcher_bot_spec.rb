@@ -163,7 +163,7 @@ describe "A module that extends CompanyFetcherBot" do
         exception = RuntimeError.new('something went wrong')
         TestCompaniesFetcher.stub(:fetch_data).and_raise(exception)
         TestCompaniesFetcher.should_receive(:send_error_report).with(exception, :foo => 'bar')
-        result = TestCompaniesFetcher.update_data(:foo => 'bar')
+        lambda{TestCompaniesFetcher.update_data(:foo => 'bar')}.should raise_error(exception)
       end
     end
   end
