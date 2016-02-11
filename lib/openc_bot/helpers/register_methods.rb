@@ -251,6 +251,8 @@ module OpencBot
           count += 1
         end
         {:updated => count}
+      rescue OutOfPermittedHours, SourceClosedForMaintenance => e
+        {:updated => count, :output => e.message}
       end
 
       def validate_datum(record)

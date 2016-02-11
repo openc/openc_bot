@@ -157,6 +157,15 @@ describe "A module that extends CompanyFetcherBot" do
       result = TestCompaniesFetcher.update_data
       result.should == {:added => 3, :updated => 42}
     end
+
+    context 'and Exception raised' do
+      it 'should send error report with options passed in to update_data' do
+        exception = RuntimeError.new('something went wrong')
+        TestCompaniesFetcher.stub(:fetch_data).and_raise(exception)
+        TestCompaniesFetcher.should_receive(:send_error_report).with(exception, :foo => 'bar')
+        result = TestCompaniesFetcher.update_data(:foo => 'bar')
+      end
+    end
   end
 
   describe '#run' do

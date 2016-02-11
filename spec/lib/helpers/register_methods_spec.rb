@@ -171,6 +171,36 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stub(:update_datum)
       ModuleThatIncludesRegisterMethods.update_stale.should == {:updated => 3}
     end
+
+    context 'and OutOfPermittedHours raised' do
+      before do
+        @exception = OpencBot::OutOfPermittedHours.new('not supposed to be running')
+      end
+
+      it 'should return number updated and exception message' do
+        ModuleThatIncludesRegisterMethods.stub(:stale_entry_uids).
+          and_yield('234').
+          and_yield('666').
+          and_raise(@exception)
+        ModuleThatIncludesRegisterMethods.stub(:update_datum)
+        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
+      end
+    end
+
+    context 'and SourceClosedForMaintenance raised' do
+      before do
+        @exception = OpencBot::SourceClosedForMaintenance.new('site is down')
+      end
+
+      it 'should return number updated and exception message' do
+        ModuleThatIncludesRegisterMethods.stub(:stale_entry_uids).
+          and_yield('234').
+          and_yield('666').
+          and_raise(@exception)
+        ModuleThatIncludesRegisterMethods.stub(:update_datum)
+        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
+      end
+    end
   end
 
   describe "#stale_entry_uids" do
