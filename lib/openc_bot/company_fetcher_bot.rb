@@ -64,7 +64,7 @@ module OpencBot
       update_data_results = update_data(options.merge(:started_at => start_time)) || {}
       # we may get a string back, or something else
       update_data_results = {:output => update_data_results.to_s} unless update_data_results.is_a?(Hash)
-      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1', :git_commit => current_git_commit))
+      report_run_results(update_data_results.merge(:started_at => start_time, :ended_at => Time.now, :status_code => '1'))
     end
 
     def schema_name
@@ -116,7 +116,7 @@ module OpencBot
     def report_run_to_oc(params)
       bot_id = self.to_s.underscore
       run_params = params.slice!(RUN_ATTRIBUTES)
-      run_params.merge!(:bot_id => bot_id, :bot_type => 'external')
+      run_params.merge!(:bot_id => bot_id, :bot_type => 'external', :git_commit => current_git_commit)
       run_params[:output] ||= params.to_s unless params.blank?
       _http_post(OC_RUN_REPORT_URL, {:run => run_params})
     rescue Exception => e
