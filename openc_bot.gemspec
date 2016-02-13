@@ -43,6 +43,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "scraperwiki", "3.0.2"
   gem.add_dependency "mail"
   gem.add_dependency "retriable", "~> 2.1"
+  gem.add_dependency "tzinfo"
   # gem.add_dependency "openc-asana" unless RUBY_VERSION < '2.0'
 
   # gem.add_development_dependency "perftools.rb"

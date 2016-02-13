@@ -4,11 +4,29 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'openc_bot/exceptions'
 require 'retriable'
+require 'tzinfo'
 
 module OpencBot
   module Helpers
     module RegisterMethods
       MAX_BUSY_RETRIES = 3
+
+      def allowed_hours
+        if self.const_defined?('ALLOWED_HOURS')
+          self.const_get('ALLOWED_HOURS').to_a
+        elsif self.const_defined?('TIMEZONE')
+          # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for definitions/examples
+          # eg TIMEZONE = "America/Panama"
+          tz = TZInfo::Timezone.get(self.const_get('TIMEZONE'))
+          non_working_hours_starts = tz.local_to_utc(Time.parse("#{Date.today} 18:00")).hour
+          non_working_hours_ends = tz.local_to_utc(Time.parse("#{Date.today} 08:00")).hour
+          if non_working_hours_starts < non_working_hours_ends
+            (non_working_hours_starts..non_working_hours_end).to_a
+          else
+            (non_working_hours_starts..24).to_a + (0..non_working_hours_ends).to_a
+          end
+        end
+      end
 
       def use_alpha_search
         self.const_defined?('USE_ALPHA_SEARCH') && self.const_get('USE_ALPHA_SEARCH')
@@ -51,9 +69,15 @@ module OpencBot
         end
       end
 
-      def fetch_registry_page(company_number)
+      def fetch_registry_page(company_number, options={})
         sleep_before_http_req
-        _client.get_content(registry_url(company_number))
+        _http_get(registry_url(company_number), options)
+      end
+
+      def in_prohibited_time?
+        current_time = Time.now
+
+        allowed_hours && !allowed_hours.include?(current_time.hour)# || current_time.saturday? || current_time.sunday?
       end
 
       def prepare_and_save_data(all_data,options={})
@@ -172,19 +196,24 @@ module OpencBot
       # and then saving it. It assumes the methods for doing this (#fetch_datum and #process_datum) are implemented
       # in the module that includes this method.
       #
-      # If no second argument is passed to this method (i.e. output_as_json is not
+      # If no second argument is passed to this method (i.e. called_externally is not
        # requested), or false is passed, the method will return the processed data hash.
-      # If true is passed as the second argument, the method will output the
+      # If called_externally is true, the method will output the
       # updated result as json to STDOUT, which can then be consumed by, say,
       # something which triggered this method, for example if it was called by
       # a rake task, which in turn might have been called by the main
       # OpenCorporates application
       #
       # If the data to be saved is invalid then either the exception is raised,
-      # or, if output_as_json is requested then the validation error is included
+      # or, if called_externally is true then the validation error is included
       # in the JSON error message
-      def update_datum(uid, output_as_json=false,replace_existing_data=false)
-        return unless raw_data = fetch_datum(uid)
+      #
+      # Finally, unless called_externally is true, then fetch_datum (which actually
+      # is what gets the data from the source) is called with
+      # ignore_out_of_hours_settings as true
+      def update_datum(uid, called_externally=false, replace_existing_data=false)
+        ignore_out_of_hours_settings = true
+        return unless raw_data = called_externally ? fetch_datum(uid, :ignore_out_of_hours_settings => true) : fetch_datum(uid)
         default_options = {primary_key_name => uid, :retrieved_at => Time.now}
         # prepare the data for saving (converting Arrays, Hashes to json) and
         return unless base_processed_data = process_datum(raw_data)
@@ -200,13 +229,13 @@ module OpencBot
         else
           save_entity(data_for_saving_in_db)
         end
-        if output_as_json
+        if called_externally
           puts processed_data.to_json
         else
           processed_data
         end
       rescue Exception => e
-        if output_as_json
+        if called_externally
           output_json_error_message(e)
         else
           rich_message = "#{e.message} updating entry with uid: #{uid}"
@@ -222,6 +251,8 @@ module OpencBot
           count += 1
         end
         {:updated => count}
+      rescue OutOfPermittedHours, SourceClosedForMaintenance => e
+        {:updated => count, :output => e.message}
       end
 
       def validate_datum(record)
@@ -287,6 +318,7 @@ module OpencBot
       end
 
       def _http_get(url, options={})
+        raise OutOfPermittedHours.new("Request at #{Time.now} is not out business hours (#{allowed_hours})") if options[:restrict_to_out_of_hours] && in_prohibited_time?
         _client(options).get_content(url)
       end
 
