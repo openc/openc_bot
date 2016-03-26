@@ -21,7 +21,7 @@ module OpencBot
           non_working_hours_starts = tz.local_to_utc(Time.parse("#{Date.today} 18:00")).hour
           non_working_hours_ends = tz.local_to_utc(Time.parse("#{Date.today} 08:00")).hour
           if non_working_hours_starts < non_working_hours_ends
-            (non_working_hours_starts..non_working_hours_end).to_a
+            (non_working_hours_starts..non_working_hours_ends).to_a
           else
             (non_working_hours_starts..24).to_a + (0..non_working_hours_ends).to_a
           end
