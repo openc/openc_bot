@@ -724,6 +724,8 @@ describe 'a module that includes RegisterMethods' do
       it "should return non-working hours in timezone" do
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
         ModuleThatIncludesRegisterMethods.allowed_hours.should == [23,24,0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+        stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", "Australia/Adelaide")
+        ModuleThatIncludesRegisterMethods.allowed_hours.should == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
       end
     end
   end
