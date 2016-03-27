@@ -232,6 +232,20 @@ describe 'a module that includes RegisterMethods' do
     end
   end
 
+  describe 'stale_entry?' do
+
+    it "should return true if entry is older than stale date" do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+      ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
+      ModuleThatIncludesRegisterMethods.stale_entry?('9234567').should == false
+    end
+
+    it 'should return true if record doesnt exist' do
+      ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
+    end
+  end
+
   describe '#prepare_and_save_data' do
     before do
       @params = {:name => 'Foo Inc', :custom_uid => '12345', :foo => ['bar','baz'], :foo2 => {:bar => 'baz'}}
