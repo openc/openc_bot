@@ -155,7 +155,7 @@ module OpencBot
 
       def stale_entry_uids(stale_count=nil)
         stale_count ||= default_stale_count
-        sql_query = "ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - 30}') LIMIT #{stale_count.to_i}"
+        sql_query = "ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') LIMIT #{stale_count.to_i}"
         select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
         end
@@ -171,6 +171,18 @@ module OpencBot
       def get_raw_data(uid, format=nil)
         file_location = raw_data_file_location(uid, format)
         File.read(file_location) if File.exist?(file_location)
+      end
+
+      def days_till_stale
+        self.const_defined?('DAYS_TILL_STALE') ? self.const_get('DAYS_TILL_STALE') : 30
+      end
+
+      def stale_entry?(uid)
+        retrieved_at = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid ).first['retrieved_at']
+        !!( Date.parse( retrieved_at ) < (Date.today - days_till_stale) )
+      rescue SqliteMagic::NoSuchTable
+        # don't worry -- just report as stale
+        true
       end
 
       def save_raw_data(raw_data, uid, format=nil)
