@@ -113,9 +113,9 @@ namespace :bot do
     runner = callable_from_file_name(bot_name)
     db_location = runner.db_location
     new_db_location = db_location + '.new'
-    command = "sqlite3 #{db_location} #{db_location}."
+    command = "sqlite3 #{db_location} '.backup #{new_db_location}'"
     FileUtils.mv db_location, db_location + '.bak'
-    FileUtils.mv new_db_location, new_db_location
+    FileUtils.mv new_db_location, db_location
   end
 
   def klass_from_file_name(underscore_file_name)
