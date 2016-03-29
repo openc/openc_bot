@@ -106,6 +106,22 @@ namespace :bot do
     end
   end
 
+  desc 'Unlock Sqlite db via backup'
+  task :unlock_sqlite_db_via_backup do
+    # see http://stackoverflow.com/questions/9449399/scheduling-a-rails-task-to-safely-backup-the-database-file?answertab=votes#tab-top
+    bot_name = get_bot_name
+    require_relative File.join(Dir.pwd,'lib', bot_name)
+    runner = callable_from_file_name(bot_name)
+    db_location = runner.db_location
+    new_db_location = db_location + '.new'
+    backup_db_location = db_location + '.bak'
+    command = "sqlite3 #{db_location} '.backup #{new_db_location}'"
+    puts `#{command}`
+    FileUtils.mv db_location, backup_db_location
+    FileUtils.mv new_db_location, db_location
+    puts "Successfully recreated database via backup.\nNew db: #{db_location}\nOriginal db: #{backup_db_location}"
+  end
+
   def klass_from_file_name(underscore_file_name)
     camelcase_version = underscore_file_name.split('_').map{ |e| e.capitalize }.join
     Object.const_get(camelcase_version)
