@@ -17,14 +17,7 @@ module OpencBot
         elsif self.const_defined?('TIMEZONE')
           # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for definitions/examples
           # eg TIMEZONE = "America/Panama"
-          tz = TZInfo::Timezone.get(self.const_get('TIMEZONE'))
-          non_working_hours_starts = tz.local_to_utc(Time.parse("#{Date.today} 18:00")).hour
-          non_working_hours_ends = tz.local_to_utc(Time.parse("#{Date.today} 08:00")).hour
-          if non_working_hours_starts < non_working_hours_ends
-            (non_working_hours_starts..non_working_hours_ends).to_a
-          else
-            (non_working_hours_starts..24).to_a + (0..non_working_hours_ends).to_a
-          end
+          (18..24).to_a + (0..8).to_a
         end
       end
 
@@ -34,6 +27,17 @@ module OpencBot
 
       def current_git_commit
         `git log -1 --format="%H"`.strip
+      end
+
+      def current_time_in_zone
+        if self.const_defined?('TIMEZONE')
+          # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for definitions/examples
+          # eg TIMEZONE = "America/Panama"
+          tz = TZInfo::Timezone.get(self.const_get('TIMEZONE'))
+          tz.now
+        else
+          Time.now
+        end
       end
 
       def datum_exists?(uid)
@@ -75,9 +79,9 @@ module OpencBot
       end
 
       def in_prohibited_time?
-        current_time = Time.now
+        current_time = current_time_in_zone
 
-        allowed_hours && !allowed_hours.include?(current_time.hour)# || current_time.saturday? || current_time.sunday?
+        allowed_hours && !allowed_hours.include?(current_time.hour) && !current_time.saturday? && !current_time.sunday?
       end
 
       def prepare_and_save_data(all_data,options={})
@@ -224,7 +228,6 @@ module OpencBot
       # is what gets the data from the source) is called with
       # ignore_out_of_hours_settings as true
       def update_datum(uid, called_externally=false, replace_existing_data=false)
-        ignore_out_of_hours_settings = true
         return unless raw_data = called_externally ? fetch_datum(uid, :ignore_out_of_hours_settings => true) : fetch_datum(uid)
         default_options = {primary_key_name => uid, :retrieved_at => Time.now}
         # prepare the data for saving (converting Arrays, Hashes to json) and
