@@ -735,11 +735,35 @@ describe 'a module that includes RegisterMethods' do
     end
 
     context 'and TIMEZONE defined' do
-      it "should return non-working hours in timezone" do
+      it "should return default non-working hours" do
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
-        ModuleThatIncludesRegisterMethods.allowed_hours.should == [23,24,0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+        ModuleThatIncludesRegisterMethods.allowed_hours.should == [18, 19, 20, 21, 22, 23, 24, 0, 1, 2, 3, 4, 5, 6, 7, 8]
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", "Australia/Adelaide")
-        ModuleThatIncludesRegisterMethods.allowed_hours.should == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+        ModuleThatIncludesRegisterMethods.allowed_hours.should == [18, 19, 20, 21, 22, 23, 24, 0, 1, 2, 3, 4, 5, 6, 7, 8]
+      end
+    end
+  end
+
+  describe 'current_time_in_zone' do
+    before do
+      @dummy_time = Time.now
+      Time.stub(:now).and_return(@dummy_time)
+    end
+
+    after do
+      Time.unstub(:now)
+    end
+
+    it 'should return time now' do
+      ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time
+    end
+
+    context 'and TIMEZONE defined' do
+      it "should return time in timezone" do
+        stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
+        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time - 5.hours
+        stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", "Australia/Adelaide")
+        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time + (9.5).hours
       end
     end
   end
@@ -749,26 +773,21 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stub(:allowed_hours).and_return((0..12))
     end
 
-    after do
-      Time.unstub(:now)
-    end
-
-    it 'should return true only for out of office hours' do
+    it 'should return true only if current_time_in_zone out of office hours' do
       times_and_truthiness = {
-        "2014-10-09 10:14:25 +0100" => false, # in time span
-        # "2014-10-11 15:14:25 +0100" => true, # in weekend
-        "2014-10-10 15:14:25 +0100" => true # weekday working time in hours
+        "2014-10-09 04:14:25 +0100" => false, # weekday out of hours
+        "2014-10-11 15:14:25 +0100" => false, # in weekend
+        "2014-10-10 15:14:25 +0100" => true # weekday in business hours
       }
       times_and_truthiness.each do |datetime, truthiness|
-        parsed_time = Time.parse(datetime)
-        Time.stub(:now).and_return(parsed_time)
-        ModuleThatIncludesRegisterMethods.in_prohibited_time?.should == truthiness
+        ModuleThatIncludesRegisterMethods.stub(:current_time_in_zone).and_return(Time.parse(datetime))
+        # Time.stub(:now).and_return(parsed_time)
+        ModuleThatIncludesRegisterMethods.in_prohibited_time?.should eq(truthiness), "Wrong result for #{datetime} and in_prohibited_time (was #{!truthiness}, expected #{truthiness}) "
       end
     end
 
     it 'should return false if allowed_hours not defined' do
       parsed_time = Time.parse("2014-10-10 15:14:25 +0100")
-      Time.stub(:now).and_return(parsed_time)
       ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_nil
     end
   end
