@@ -159,11 +159,7 @@ module OpencBot
 
       def stale_entry_uids(stale_count=nil)
         stale_count ||= default_stale_count
-        sql_query = "ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') LIMIT #{stale_count.to_i}"
-        entries = select(sql_query)
-        if entries.blank?
-          entries = select( "ocdata.#{ primary_key_name } from ocdata limit #{stale_count.to_i}" )
-        end
+        entries = select("ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by retrieved_at is null asc, datetime(retrieved_at) asc LIMIT #{stale_count.to_i}")
         entries.each do |res|
           yield res[primary_key_name.to_s]
         end
