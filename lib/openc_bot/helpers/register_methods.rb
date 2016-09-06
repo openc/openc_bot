@@ -182,7 +182,15 @@ module OpencBot
       end
 
       def stale_entry?(uid)
-        retrieved_at = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid ).first['retrieved_at']
+        tuples = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid )
+        retrieved_at = nil
+        if tuples.blank?
+          return true
+        elsif tuples.size > 1
+          raise 'Unhandled case of multiple results while checking staleness against the identifier: ' + uid
+        else
+          retrieved_at = tuples.first['retrieved_at']
+        end
         !!( Date.parse( retrieved_at ) < (Date.today - days_till_stale) )
       rescue SqliteMagic::NoSuchTable
         # don't worry -- just report as stale

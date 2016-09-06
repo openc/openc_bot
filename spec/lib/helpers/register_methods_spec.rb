@@ -242,6 +242,8 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it 'should return true if record doesnt exist' do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+      ModuleThatIncludesRegisterMethods.stale_entry?('9234567').should == false
       ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
     end
   end
