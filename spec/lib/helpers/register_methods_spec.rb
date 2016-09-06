@@ -246,6 +246,13 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stale_entry?('9234567').should == false
       ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
     end
+
+    it 'should raise expection when multiple records exist' do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid, :retrieved_at], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid, :retrieved_at], :custom_uid => '9234567', :retrieved_at => (Date.today-40).to_time)
+      lambda { ModuleThatIncludesRegisterMethods.stale_entry?('9234567') }.should raise_error( RuntimeError )
+    end
+
   end
 
   describe '#prepare_and_save_data' do

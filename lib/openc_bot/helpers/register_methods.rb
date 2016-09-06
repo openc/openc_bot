@@ -187,7 +187,7 @@ module OpencBot
         if tuples.blank?
           return true
         elsif tuples.size > 1
-          raise 'Unhandled case of multiple results while checking staleness against the identifier: ' + uid
+          raise "Unhandled case of multiple results while checking staleness against the identifier: #{ uid }"
         else
           retrieved_at = tuples.first['retrieved_at']
         end
