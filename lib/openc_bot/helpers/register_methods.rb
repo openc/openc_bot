@@ -159,7 +159,7 @@ module OpencBot
 
       def stale_entry_uids(stale_count=nil)
         stale_count ||= default_stale_count
-        sql_query = "ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') LIMIT #{stale_count.to_i}"
+        sql_query = "ocdata.#{ primary_key_name } from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
         select(sql_query).each do |res|
           yield res[primary_key_name.to_s]
         end
@@ -182,8 +182,10 @@ module OpencBot
       end
 
       def stale_entry?(uid)
-        retrieved_at = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid ).first['retrieved_at']
-        !!( Date.parse( retrieved_at ) < (Date.today - days_till_stale) )
+        tuples = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid )
+        return true if tuples.blank?
+        raise "Unhandled case of multiple results while checking staleness against the identifier: #{ uid }" if tuples.size > 1
+        !!( Date.parse( tuples.first['retrieved_at'] ) < (Date.today - days_till_stale) )
       rescue SqliteMagic::NoSuchTable
         # don't worry -- just report as stale
         true
