@@ -242,9 +242,15 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stale_entry?('9234567').should == false
     end
 
-    it 'should return true if record doesnt exist' do
-      ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
+    it 'should return true if ocdata table doesnt exist' do
+      ModuleThatIncludesRegisterMethods.stale_entry?('foo').should == true
     end
+
+    it 'should return true if record doesnt exist' do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-2).to_time) # note: this creates the ocdata table, otherwise we get true returned because that's behaviour for such situations
+      ModuleThatIncludesRegisterMethods.stale_entry?('foo').should == true
+    end
+
   end
 
   describe '#prepare_and_save_data' do

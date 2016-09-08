@@ -182,8 +182,9 @@ module OpencBot
       end
 
       def stale_entry?(uid)
-        retrieved_at = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid ).first['retrieved_at']
-        !!( Date.parse( retrieved_at ) < (Date.today - days_till_stale) )
+        rec = select( "retrieved_at from ocdata where #{primary_key_name}=?", uid ).first
+        return true if rec.nil? || rec['retrieved_at'].blank?
+        !!( Date.parse( rec['retrieved_at'] ) < (Date.today - days_till_stale) )
       rescue SqliteMagic::NoSuchTable
         # don't worry -- just report as stale
         true
