@@ -209,11 +209,12 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => 'A094567')
     end
 
-    it "should get entries which have not been retrieved or are more than 1 month old" do
+    it "should get entries which have not been retrieved or are more than 1 month old, oldest first" do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-40).to_time)
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '87654', :retrieved_at => (Date.today-50)) # date, not time.
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '9234567', :retrieved_at => (Date.today-2).to_time) # not stale
 
-      expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999', 'A094567', '5234888')
+      expect {|b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b)}.to yield_successive_args('99999', 'A094567', '87654', '5234888')
     end
 
     context "and no retrieved_at column" do
@@ -241,9 +242,15 @@ describe 'a module that includes RegisterMethods' do
       ModuleThatIncludesRegisterMethods.stale_entry?('9234567').should == false
     end
 
-    it 'should return true if record doesnt exist' do
-      ModuleThatIncludesRegisterMethods.stale_entry?('5234888').should == true
+    it 'should return true if ocdata table doesnt exist' do
+      ModuleThatIncludesRegisterMethods.stale_entry?('foo').should == true
     end
+
+    it 'should return true if record doesnt exist' do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], :custom_uid => '5234888', :retrieved_at => (Date.today-2).to_time) # note: this creates the ocdata table, otherwise we get true returned because that's behaviour for such situations
+      ModuleThatIncludesRegisterMethods.stale_entry?('foo').should == true
+    end
+
   end
 
   describe '#prepare_and_save_data' do
