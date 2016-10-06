@@ -55,8 +55,7 @@ namespace :bot do
         end.parse!
         require_relative File.join(Dir.pwd,'lib', bot_name)
         runner = callable_from_file_name(bot_name)
-        count = runner.update_data(options)
-        puts "Got #{count} records"
+        puts runner.update_data(options).to_json
       end
     rescue Exception => e
       raise e unless e.message[/already running/i]
