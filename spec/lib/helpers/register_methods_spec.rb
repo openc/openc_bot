@@ -183,7 +183,7 @@ describe 'a module that includes RegisterMethods' do
           and_yield('666').
           and_raise(@exception)
         ModuleThatIncludesRegisterMethods.stub(:update_datum)
-        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
+        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :update_stale_output => {'error' => {'klass' => @exception.class.to_s, 'message' => @exception.message, 'backtrace' => @exception.backtrace} } }
       end
     end
 
@@ -198,7 +198,7 @@ describe 'a module that includes RegisterMethods' do
           and_yield('666').
           and_raise(@exception)
         ModuleThatIncludesRegisterMethods.stub(:update_datum)
-        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
+        ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :update_stale_output => {'error' => {'klass' => @exception.class.to_s, 'message' => @exception.message, 'backtrace' => @exception.backtrace} } }
       end
     end
   end

@@ -64,6 +64,10 @@ module OpencBot
         end
         records_added = record_count - original_count
         res.merge(:added => records_added)
+      rescue SystemExit,Interrupt
+        raise
+      rescue Exception => ex
+        {:added => ( record_count - original_count ) || 0, :fetch_data_output => {'error' => {'klass' => ex.class.to_s, 'message' => ex.message, 'backtrace' => ex.backtrace}} }
       end
 
       def export_data
@@ -267,8 +271,10 @@ module OpencBot
           count += 1
         end
         {:updated => count}
-      rescue OutOfPermittedHours, SourceClosedForMaintenance => e
-        {:updated => count, :output => e.message}
+      rescue SystemExit,Interrupt
+        raise
+      rescue Exception => ex
+        {:updated => count || 0, :update_stale_output => {'error' => {'klass' => ex.class.to_s, 'message' => ex.message, 'backtrace' => ex.backtrace}} }
       end
 
       def validate_datum(record)
