@@ -263,8 +263,9 @@ module OpencBot
       def update_stale(stale_count=nil)
         count = 0
         records_updated_count = stale_entry_uids(stale_count) do |stale_entry_uid|
-          update_datum(stale_entry_uid)
-          count += 1
+          if update_datum(stale_entry_uid)
+            count += 1
+          end
         end
         {:updated => count}
       rescue OutOfPermittedHours, SourceClosedForMaintenance => e
