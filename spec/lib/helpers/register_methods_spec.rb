@@ -770,7 +770,7 @@ describe 'a module that includes RegisterMethods' do
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
         ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time - 5.hours
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", "Australia/Adelaide")
-        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time + (9.5).hours
+        ModuleThatIncludesRegisterMethods.current_time_in_zone.should be_in( [@dummy_time + (9.5).hours, @dummy_time + (10.5).hours] )
       end
     end
   end
