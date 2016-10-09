@@ -768,9 +768,9 @@ describe 'a module that includes RegisterMethods' do
     context 'and TIMEZONE defined' do
       it "should return time in timezone" do
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", 'America/Panama')
-        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time - 5.hours
+        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == TZInfo::Timezone.get('America/Panama').now
         stub_const("ModuleThatIncludesRegisterMethods::TIMEZONE", "Australia/Adelaide")
-        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == @dummy_time + (9.5).hours
+        ModuleThatIncludesRegisterMethods.current_time_in_zone.should == TZInfo::Timezone.get("Australia/Adelaide").now
       end
     end
   end
