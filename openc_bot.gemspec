@@ -49,6 +49,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "retriable", "~> 2.1"
   gem.add_dependency "tzinfo"
   # gem.add_dependency "openc-asana" unless RUBY_VERSION < '2.0'
+  gem.add_dependency "addressable", "< 2.5.0" if RUBY_VERSION < '2.0' # via `json-schema`
 
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug" unless RUBY_VERSION < '2.0'
