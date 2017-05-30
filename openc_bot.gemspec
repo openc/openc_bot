@@ -45,11 +45,14 @@ Gem::Specification.new do |gem|
   gem.add_dependency "httpclient"
   gem.add_dependency "backports"
   gem.add_dependency "scraperwiki", "3.0.2"
-  gem.add_dependency "mail"
+  gem.add_dependency "mail", "~> 2.0"
   gem.add_dependency "retriable", "~> 2.1"
   gem.add_dependency "tzinfo"
   # gem.add_dependency "openc-asana" unless RUBY_VERSION < '2.0'
-  gem.add_dependency "addressable", "< 2.5.0" if RUBY_VERSION < '2.0' # via `json-schema`
+  if RUBY_VERSION < '2.0'
+    gem.add_dependency "addressable", "< 2.5.0" # via `json-schema`
+    gem.add_dependency "mime-types", "< 3.0" # via `mail`
+  end
 
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug" unless RUBY_VERSION < '2.0'
