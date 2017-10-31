@@ -166,10 +166,22 @@ describe 'a module that includes RegisterMethods' do
       end
     end
 
-    it 'should return number of entries updated' do
+    it 'should return number of entries updated, take 1' do
       ModuleThatIncludesRegisterMethods.stub(:stale_entry_uids).and_yield('234').and_yield('666').and_yield('876')
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('234').and_return( true )
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('666').and_return( true )
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('876').and_return( true )
       ModuleThatIncludesRegisterMethods.stub(:update_datum)
       ModuleThatIncludesRegisterMethods.update_stale.should == {:updated => 3}
+    end
+
+    it 'should return number of entries updated, take 2' do
+      ModuleThatIncludesRegisterMethods.stub(:stale_entry_uids).and_yield('234').and_yield('666').and_yield('876')
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('234').and_return( true )
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('666').and_return( true )
+      ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('876').and_return( false )
+      ModuleThatIncludesRegisterMethods.stub(:update_datum)
+      ModuleThatIncludesRegisterMethods.update_stale.should == {:updated => 2}
     end
 
     context 'and OutOfPermittedHours raised' do
@@ -182,6 +194,8 @@ describe 'a module that includes RegisterMethods' do
           and_yield('234').
           and_yield('666').
           and_raise(@exception)
+        ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('234').and_return( true )
+        ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('666').and_return( true )
         ModuleThatIncludesRegisterMethods.stub(:update_datum)
         ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
       end
@@ -197,6 +211,8 @@ describe 'a module that includes RegisterMethods' do
           and_yield('234').
           and_yield('666').
           and_raise(@exception)
+        ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('234').and_return( true )
+        ModuleThatIncludesRegisterMethods.should_receive(:update_datum).with('666').and_return( true )
         ModuleThatIncludesRegisterMethods.stub(:update_datum)
         ModuleThatIncludesRegisterMethods.update_stale.should == { :updated => 2, :output => @exception.message }
       end
