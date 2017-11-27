@@ -34,11 +34,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "rake"
   gem.add_dependency "activesupport", "~> 4.1"
-  if RUBY_VERSION < '2.1'
-    gem.add_dependency "nokogiri", "< 1.7.0"
-  else
-    gem.add_dependency "nokogiri"
-  end
+  gem.add_dependency "nokogiri"
   gem.add_dependency "sqlite_magic", "0.0.6"
   gem.add_dependency "json"
   gem.add_dependency "json-schema"
@@ -48,14 +44,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency "mail", "~> 2.0"
   gem.add_dependency "retriable", "~> 2.1"
   gem.add_dependency "tzinfo"
-  # gem.add_dependency "openc-asana" unless RUBY_VERSION < '2.0'
-  if RUBY_VERSION < '2.0'
-    gem.add_dependency "addressable", "< 2.5.0" # via `json-schema`
-    gem.add_dependency "mime-types", "< 3.0" # via `mail`
-  end
 
   # gem.add_development_dependency "perftools.rb"
-  gem.add_development_dependency "byebug" unless RUBY_VERSION < '2.0'
-  gem.add_development_dependency "debugger" if RUBY_VERSION < '2.0'
+  gem.add_development_dependency "byebug"
   gem.add_development_dependency "rspec"
 end
