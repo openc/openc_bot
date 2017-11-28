@@ -1,7 +1,5 @@
 # require 'rspec/autorun'
-if RUBY_VERSION >= '2.0'
-  require 'byebug'
-end
+require 'byebug'
 
 RSpec.configure do |config|
 end

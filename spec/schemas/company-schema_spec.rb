@@ -2,7 +2,6 @@
 require 'json-schema'
 require 'active_support'
 require 'active_support/core_ext'
-# require 'debugger'
 
 describe 'company-schema' do
   before do
