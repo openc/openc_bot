@@ -91,13 +91,13 @@ describe "A module that extends CompanyFetcherBot" do
     end
 
     it "save_entities with inferred_jurisdiction_code" do
-      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "ab_cd")
-      TestCompaniesFetcher.save_entity(name: "Foo Corp", company_number: "12345")
+      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "ab_cd", retrieved_at: "2018-01-01")
+      TestCompaniesFetcher.save_entity(name: "Foo Corp", company_number: "12345", retrieved_at: "2018-01-01")
     end
 
     it "save_entities with given jurisdiction_code" do
-      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx")
-      TestCompaniesFetcher.save_entity(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx")
+      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx", retrieved_at: "2018-01-01")
+      TestCompaniesFetcher.save_entity(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx", retrieved_at: "2018-01-01")
     end
   end
 
@@ -107,13 +107,13 @@ describe "A module that extends CompanyFetcherBot" do
     end
 
     it "save_entities with inferred_jurisdiction_code" do
-      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "ab_cd")
-      TestCompaniesFetcher.save_entity!(name: "Foo Corp", company_number: "12345")
+      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "ab_cd", retrieved_at: "2018-01-01")
+      TestCompaniesFetcher.save_entity!(name: "Foo Corp", company_number: "12345", retrieved_at: "2018-01-01")
     end
 
     it "save_entities with given jurisdiction_code" do
-      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx")
-      TestCompaniesFetcher.save_entity!(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx")
+      expect(TestCompaniesFetcher).to receive(:prepare_and_save_data).with(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx", retrieved_at: "2018-01-01")
+      TestCompaniesFetcher.save_entity!(name: "Foo Corp", company_number: "12345", jurisdiction_code: "xx", retrieved_at: "2018-01-01")
     end
 
     context "and entity_data is not valid" do

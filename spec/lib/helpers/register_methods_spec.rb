@@ -535,7 +535,7 @@ describe "a module that includes RegisterMethods" do
 
   describe "#validate_datum" do
     before do
-      @valid_params = { name: "Foo Inc", company_number: "12345", jurisdiction_code: "ie" }
+      @valid_params = { name: "Foo Inc", company_number: "12345", jurisdiction_code: "ie", retrieved_at: "2018-01-01" }
     end
 
     it "checks json version of datum against given schema" do
@@ -551,7 +551,7 @@ describe "a module that includes RegisterMethods" do
 
     context "and datum is not valid" do
       it "returns errors" do
-        result = ModuleThatIncludesRegisterMethods.validate_datum(name: "Foo Inc", jurisdiction_code: "ie")
+        result = ModuleThatIncludesRegisterMethods.validate_datum(name: "Foo Inc", jurisdiction_code: "ie", retrieved_at: "2018-01-01")
         expect(result).to be_kind_of Array
         expect(result.size).to eq(1)
         expect(result.first[:failed_attribute]).to eq("Required")

@@ -12,10 +12,12 @@ describe "company-schema" do
       [
         { name: "Foo Inc",
           company_number: "12345",
-          jurisdiction_code: "ie" },
+          jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01" },
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           registered_address: "32 Foo St, Footown," },
       ]
     valid_company_params.each do |valid_params|
@@ -29,6 +31,7 @@ describe "company-schema" do
       { name: "Foo Inc",
         company_number: "12345",
         jurisdiction_code: "us_de",
+        retrieved_at: "2018-01-01",
         incorporation_date: "2010-10-20",
         dissolution_date: "2012-01-12" }
     errors = validate_datum_and_return_errors(valid_company_params)
@@ -39,21 +42,27 @@ describe "company-schema" do
     invalid_company_params =
       [
         { name: "Foo Inc",
-          jurisdiction_code: "ie" },
+          jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01" },
         { name: "Foo Inc",
           jurisdiction_code: "usa_de",
+          retrieved_at: "2018-01-01",
           company_number: "12345" },
         { name: "Bar",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           company_number: "" },
         { name: "Foo Inc",
           jurisdiction_code: "a",
+          retrieved_at: "2018-01-01",
           company_number: "12345" },
         { name: "",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           company_number: "12345" },
         { name: "Foo Inc",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           company_number: "12345",
           foo: "bar" },
       ]
@@ -69,6 +78,7 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           registered_address: "32 Foo St, Footown," }
       errors = validate_datum_and_return_errors(valid_company_params)
       expect(errors).to be_empty
@@ -79,6 +89,7 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "us_de",
+          retrieved_at: "2018-01-01",
           registered_address: nil }
       errors = validate_datum_and_return_errors(valid_company_params)
       expect(errors).to be_empty
@@ -90,14 +101,17 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             registered_address: { street_address: "32 Foo St", locality: "Footown", region: "Fooshire", postal_code: "FO1 2BA" } },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             registered_address: { street_address: "32 Foo St" } },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             registered_address: { postal_code: "FO1 2BA" } },
         ]
       valid_company_params.each do |valid_params|
@@ -112,18 +126,22 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             registered_address: [] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             registered_address: "" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             registered_address: { country: "Germany" } },
           # { :name => 'Foo Inc',
           #   :company_number => '12345',
           #   :jurisdiction_code => 'us_de',
+          #   :retrieved_at => '2018-01-01',
           #   :registered_address => {:country => 'Germany'}
           # }
         ]
@@ -141,12 +159,14 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             previous_names: [{ company_name: "FooBar Inc" },
                              { company_name: "FooBaz", con_date: "2012-07-22" },
                              { company_name: "FooBaz", con_date: "2012-07-22", start_date: "2008-01-08" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             # allow empty arrays
             previous_names: [] },
         ]
@@ -162,18 +182,22 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             previous_names: "some name" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             previous_names: ["some name"] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             previous_names: [{ name: "Baz Inc" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             previous_names: [{ company_name: "" }] },
         ]
 
@@ -191,14 +215,17 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             branch: "F" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             branch: "L" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             branch: nil },
         ]
       valid_company_params.each do |valid_params|
@@ -213,14 +240,17 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             branch: "X" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             branch: "FOO" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             branch: "" },
         ]
       invalid_company_params.each do |invalid_params|
@@ -237,10 +267,12 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             all_attributes: { foo: "bar", some_number: 42, an_array: [1, 2, 3] } },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "us_de",
+            retrieved_at: "2018-01-01",
             all_attributes: {} },
         ]
       valid_company_params.each do |valid_params|
@@ -254,21 +286,25 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { jurisdiction_of_origin: "Some Country" } }
       valid_params_2 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { jurisdiction_of_origin: nil } }
       invalid_params_1 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { jurisdiction_of_origin: "" } }
       invalid_params_2 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { jurisdiction_of_origin: 43 } }
       expect(validate_datum_and_return_errors(valid_params_1)).to be_empty
       expect(validate_datum_and_return_errors(valid_params_2)).to be_empty
@@ -297,21 +333,25 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { number_of_employees: 42 } }
       valid_params_2 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { number_of_employees: "1-5" } }
       invalid_params_1 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { number_of_employees: "" } }
       invalid_params_2 =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { number_of_employees: -1 } }
       expect(validate_datum_and_return_errors(valid_params_1)).to be_empty
       expect(validate_datum_and_return_errors(valid_params_2)).to be_empty
@@ -327,6 +367,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: [{ name: "Fred Flintstone" },
                        { name: "Barney Rubble", position: "Director" },
                        { name: "Barney Rubble", other_attributes: { foo: "bar" } },
@@ -334,6 +375,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             # allow empty arrays
             officers: [] },
         ]
@@ -349,22 +391,27 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: [{ name: "" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: [{ position: "Director" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: "some body" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: [{ name: "Fred", other_attributes: "non object" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             officers: ["some body"] },
         ]
       invalid_company_params.each do |invalid_params|
@@ -381,6 +428,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ title: "Annual Report", date: "2010-11-22" },
                       { description: "Another type of filing", date: "2010-11-22" },
                       { title: "Annual Report", description: "Another type of filing", uid: "12345A321", date: "2010-11-22" },
@@ -388,11 +436,13 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ title: "Annual Report", date: "2010-11-22", other_attributes: { foo: "bar" } },
                       { filing_type_name: "Some type", filing_type_code: "10-K", date: "2010-11-22" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             # allow empty arrays
             filings: [] },
         ]
@@ -408,14 +458,17 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ filing_type_name: "Some type" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: "foo filing" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: ["foo filing"] },
         ]
       invalid_company_params.each do |invalid_params|
@@ -430,20 +483,24 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ filing_type_name: "Some type", date: "2010-11-22" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ description: "Some type", date: "2010-11-22" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             filings: [{ title: "Some type", date: "2010-11-22" }] },
         ]
       invalid_params =
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           filings: [{ uid: "12345", date: "2010-11-22" }] }
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
@@ -461,6 +518,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: [{ number_of_shares: 1234,
                               shareholders: [{ name: "Fred Flintstone" }],
                               confidence: 42 },
@@ -470,6 +528,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             # allow empty arrays
             share_parcels: [] },
         ]
@@ -485,24 +544,29 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: [{ percentage_of_shares: "23.5",
                               shareholders: [{ name: "" }] }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: [{ percentage_of_shares: "23.5",
                               shareholders: [] }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: [{ percentage_of_shares: "23.5" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: "foo filing" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             share_parcels: ["foo filing"] },
         ]
       invalid_company_params.each do |invalid_params|
@@ -519,11 +583,13 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             total_shares: { number: 123,
                             share_class: "Ordinary" } },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             total_shares: { number: 123 } },
         ]
       valid_company_params.each do |valid_params|
@@ -542,15 +608,18 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             total_shares: { number: 123,
                             share_class: "" } },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             total_shares: "foo filing" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             total_shares: ["foo filing"] },
         ]
       invalid_company_params.each do |invalid_params|
@@ -567,6 +636,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: [{ company_name: "Foobar Inc",
                                   type: :trading },
                                 { company_name: "Foobar Inc",
@@ -575,6 +645,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: [] },
         ]
 
@@ -583,22 +654,27 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: [{ company_name: "Foobar Inc" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: [{ company_name: "Foobar Inc", type: "foobar" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: [{ company_name: "Foobar Inc", language: "French" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: "foo name" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             alternative_names: ["foo name"] },
         ]
       valid_company_params.each do |valid_params|
@@ -615,6 +691,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             industry_codes: [
               { code: "1234", code_scheme_id: "eu_nace_2", name: "Some Industry" },
               { code: "22.11", code_scheme_id: "uk_sic_2007" },
@@ -623,6 +700,7 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             # allow empty arrays
             industry_codes: [] },
         ]
@@ -638,18 +716,22 @@ describe "company-schema" do
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             industry_codes: [{ code: "1234" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             industry_codes: [{ code_scheme_id: "1234" }] },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             industry_codes: "foo code" },
           { name: "Foo Inc",
             company_number: "12345",
             jurisdiction_code: "ie",
+            retrieved_at: "2018-01-01",
             industry_codes: ["foo filing"] },
         ]
       invalid_company_params.each do |invalid_params|
@@ -673,6 +755,7 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { attribute_name => val } }
       expect(validate_datum_and_return_errors(valid_params)).to be_empty, "Valid params were not validated: #{valid_params}"
     end
@@ -682,6 +765,7 @@ describe "company-schema" do
         { name: "Foo Inc",
           company_number: "12345",
           jurisdiction_code: "ie",
+          retrieved_at: "2018-01-01",
           all_attributes: { attribute_name => val } }
       expect(validate_datum_and_return_errors(invalid_params)).not_to be_empty, "Invalid params were validated: #{invalid_params}"
     end
