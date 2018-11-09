@@ -10,17 +10,17 @@ PATH
   specs:
     openc_bot (0.0.66)
       activesupport (~> 4.1)
-      backports
-      httpclient
-      json
-      json-schema
+      backports (~> 3.11)
+      httpclient (~> 2.8)
+      json (~> 2.1)
+      json-schema (~> 2.8)
       mail (~> 2.0)
-      nokogiri
-      rake
+      nokogiri (~> 1.8)
+      rake (~> 12.3)
       retriable (~> 2.1)
       scraperwiki (= 3.0.2)
       sqlite_magic (= 0.0.6)
-      tzinfo
+      tzinfo (~> 1.2)
 
 GEM
   remote: https://rubygems.org/
@@ -82,10 +82,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  byebug
+  byebug (~> 10.0)
   openc_bot!
   pry
-  rspec
+  rspec (~> 3.8)
   sqlite_magic!
 
 BUNDLED WITH
