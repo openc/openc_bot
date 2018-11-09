@@ -148,12 +148,6 @@ describe 'a module that includes IncrementalSearch' do
       ModuleThatIncludesIncrementalSearch.incremental_search('1234568').should == '1234568'
     end
 
-    it 'should pass on any options' do
-      pending 'deciding whether this is useful (implementation carried over from openc)'
-      ModuleThatIncludesIncrementalSearch.stub(:update_datum).with(anything, :foo => 'bar')
-      ModuleThatIncludesIncrementalSearch.incremental_search('1234568', :foo => 'bar')
-    end
-
     context 'and :skip_existing_entries passed in' do
       before do
         ModuleThatIncludesIncrementalSearch.stub(:datum_exists?).and_return(false)
