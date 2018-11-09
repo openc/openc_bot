@@ -8,7 +8,6 @@ module ModuleThatIncludesRegisterMethods
   extend OpencBot::Helpers::RegisterMethods
   PRIMARY_KEY_NAME = :custom_uid
   SCHEMA_NAME = 'company-schema'
-  SLEEP_BEFORE_HTTP_REQ = 2
   RAISE_WHEN_SAVING_INVALID_RECORD = true
 end
 
@@ -524,6 +523,10 @@ describe 'a module that includes RegisterMethods' do
     end
 
     context 'and SLEEP_BEFORE_HTTP_REQ is set' do
+      before do
+        stub_const("ModuleThatIncludesRegisterMethods::SLEEP_BEFORE_HTTP_REQ", 2)
+      end
+
       it 'should sleep for given period' do
         expect(ModuleThatIncludesRegisterMethods).to receive(:sleep).with(2)
         ModuleThatIncludesRegisterMethods.fetch_registry_page('76543')
