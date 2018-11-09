@@ -388,7 +388,7 @@ describe 'a module that includes RegisterMethods' do
       end
 
       it "should not output jsonified processed data by default" do
-        expect(ModuleThatIncludesRegisterMethods).not_to receive(:puts).with(@processed_data_with_retrieved_at_and_uid.to_json)
+        expect(ModuleThatIncludesRegisterMethods).not_to receive(:puts)
         ModuleThatIncludesRegisterMethods.update_datum(@uid)
       end
 
