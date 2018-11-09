@@ -1,17 +1,16 @@
-# encoding: UTF-8
 module OpencBot
   module BotDataValidator
+    module_function
 
-    extend self
     def validate(datum)
-      datum.kind_of?(Hash) and
-      not datum[:company][:name].nil? and
-      not datum[:company][:name].strip.empty? and
-      not datum[:source_url].strip.empty? and
-      not datum[:data].empty? and
-      datum[:data].all?{ |data| not data[:data_type].to_s.strip.empty? and not data[:properties].empty? }
+      datum.is_a?(Hash) &&
+        !datum[:company][:name].nil? &&
+        !datum[:company][:name].strip.empty? &&
+        !datum[:source_url].strip.empty? &&
+        !datum[:data].empty? &&
+        datum[:data].all? { |data| !data[:data_type].to_s.strip.empty? && !data[:properties].empty? }
     rescue Exception => e
-      #any probs then it's invalid
+      # any probs then it's invalid
       false
     end
   end

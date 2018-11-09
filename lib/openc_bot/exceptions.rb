@@ -1,7 +1,6 @@
 module OpencBot
-
   # Generic Error class for OpencBot exceptions
-  class OpencBotError < StandardError;end
+  class OpencBotError < StandardError; end
 
   class SingleRecordUpdateNotImplemented < OpencBotError; end
 
@@ -17,10 +16,8 @@ module OpencBot
 
     def initialize(validation_errors)
       @validation_errors = validation_errors
-      message = "Validation failed:" + validation_errors.collect{ |e| e[:message] }.join("\n")
+      message = "Validation failed:" + validation_errors.collect { |e| e[:message] }.join("\n")
       super(message)
     end
-
   end
-
 end
