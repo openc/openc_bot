@@ -1,0 +1,24 @@
+require: rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 2.2
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  Exclude:
+    - schemas/**/*
+    - vendor/bundle/**/*
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma

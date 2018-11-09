@@ -49,4 +49,6 @@ Gem::Specification.new do |gem|
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug", "~> 10.0"
   gem.add_development_dependency "rspec", "~> 3.8"
+  gem.add_development_dependency "rubocop", "~> 0.55"
+  gem.add_development_dependency "rubocop-rspec", "~> 1.30"
 end
