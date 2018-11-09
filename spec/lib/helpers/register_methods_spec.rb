@@ -424,6 +424,7 @@ describe 'a module that includes RegisterMethods' do
 
       context 'and passed true as to signal called_externally' do
         it 'should pass :ignore_out_of_hours_settings => true to fetch_datum' do
+          allow(ModuleThatIncludesRegisterMethods).to receive(:puts)
           ModuleThatIncludesRegisterMethods.should_receive(:fetch_datum).with(@uid, :ignore_out_of_hours_settings => true).and_return(@fetch_datum_response)
           ModuleThatIncludesRegisterMethods.update_datum(@uid, true)
         end
