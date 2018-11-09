@@ -289,21 +289,6 @@ describe 'a module that includes RegisterMethods' do
     it "should return true" do
       ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params).should be_truthy
     end
-
-    context 'and SQLite3::BusyException raised' do
-      it 'should retry up to 3 times' do
-        pending "deciding whether to allow this in some circumstances"
-        ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).exactly(4).times.and_raise(SQLite3::BusyException)
-        lambda { ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params) }.should raise_error(SQLite3::BusyException)
-      end
-      it 'should not raise error if successful before limit' do
-        pending "deciding whether to allow this in some circumstances"
-        ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).exactly(3).times.ordered.and_raise(SQLite3::BusyException)
-        ModuleThatIncludesRegisterMethods.should_receive(:insert_or_update).ordered
-        lambda { ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params) }.should_not raise_error
-      end
-    end
-
   end
 
 
