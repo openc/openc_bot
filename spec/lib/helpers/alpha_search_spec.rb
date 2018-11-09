@@ -156,7 +156,7 @@ describe 'a module that includes AlphaSearch' do
         ModuleThatIncludesAlphaSearch.should_receive(:search_for_entities_for_term).
                                       with(@alpha_terms[1], anything).and_raise('Something has gone wrong')
 
-        lambda { ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search }.should raise_error
+        lambda { ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search }.should raise_error(RuntimeError, "Something has gone wrong")
         ModuleThatIncludesAlphaSearch.get_var('starting_term').should == @alpha_terms[1]
       end
     end

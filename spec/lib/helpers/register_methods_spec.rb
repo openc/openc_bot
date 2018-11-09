@@ -452,7 +452,7 @@ describe 'a module that includes RegisterMethods' do
       context 'and errors returned validating data' do
         it "should validate processed data" do
           ModuleThatIncludesRegisterMethods.stub(:validate_datum).and_return([{:failed_attribute => 'foo', :message => 'Something not right'}])
-          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error
+          lambda { ModuleThatIncludesRegisterMethods.update_datum(@uid)}.should raise_error(OpencBot::RecordInvalid)
         end
 
 
