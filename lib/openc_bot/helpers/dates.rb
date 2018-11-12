@@ -25,13 +25,13 @@ module OpencBot
         to_date(iso_date, true).to_s
       end
 
-      private
-
       def to_date(date, comp = false)
         return if date.nil?
 
         Date.parse(date, comp)
       end
+
+      private_class_method :to_date
     end
   end
 end
