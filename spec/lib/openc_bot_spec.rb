@@ -7,23 +7,23 @@ describe "A module that extends OpencBot" do
 
   before do
     @dummy_connection = double('database_connection')
-    FooBot.stub(:sqlite_magic_connection).and_return(@dummy_connection)
+    allow(FooBot).to receive(:sqlite_magic_connection).and_return(@dummy_connection)
   end
 
   it "should include ScraperWiki methods" do
-    FooBot.should respond_to(:save_sqlite)
+    expect(FooBot).to respond_to(:save_sqlite)
   end
 
   it "should define OpencBotError exception as subclass of StandardError" do
-    OpencBot::OpencBotError.superclass.should be StandardError
+    expect(OpencBot::OpencBotError.superclass).to be StandardError
   end
 
   it "should define DatabaseError exception as subclass of OpencBotError" do
-    OpencBot::DatabaseError.superclass.should be OpencBot::OpencBotError
+    expect(OpencBot::DatabaseError.superclass).to be OpencBot::OpencBotError
   end
 
   it "should define InvalidDataError exception as subclass of OpencBotError" do
-    OpencBot::InvalidDataError.superclass.should be OpencBot::OpencBotError
+    expect(OpencBot::InvalidDataError.superclass).to be OpencBot::OpencBotError
   end
 
   describe '#insert_or_update' do
@@ -34,31 +34,31 @@ describe "A module that extends OpencBot" do
     end
 
     it "should delegate to connection" do
-      @dummy_connection.should_receive(:insert_or_update).with(@unique_keys, @datum, 'foo_table')
+      expect(@dummy_connection).to receive(:insert_or_update).with(@unique_keys, @datum, 'foo_table')
       FooBot.insert_or_update(@unique_keys, @datum, 'foo_table')
     end
 
     it "should use ocdata table by default" do
-      @dummy_connection.should_receive(:insert_or_update).with(@unique_keys, @datum, 'ocdata')
+      expect(@dummy_connection).to receive(:insert_or_update).with(@unique_keys, @datum, 'ocdata')
       FooBot.insert_or_update(@unique_keys, @datum)
     end
   end
 
   describe '#unlock_database' do
     it "should start and end transaction on database" do
-      @dummy_connection.should_receive(:execute).with('BEGIN TRANSACTION; END;')
+      expect(@dummy_connection).to receive(:execute).with('BEGIN TRANSACTION; END;')
       FooBot.unlock_database
     end
   end
 
   describe '#verbose?' do
     it 'should return false if ENV["VERBOSE"] not set' do
-      FooBot.verbose?.should be_falsey
+      expect(FooBot.verbose?).to be_falsey
     end
 
     it 'should return true if ENV["VERBOSE"] set' do
       ENV["VERBOSE"] = 'true'
-      FooBot.verbose?.should be_truthy
+      expect(FooBot.verbose?).to be_truthy
       ENV["VERBOSE"] = nil # reset
     end
   end
@@ -66,20 +66,20 @@ describe "A module that extends OpencBot" do
   describe '#save_run_report' do
 
     it 'should save_data in ocrunreports table' do
-      FooBot.should_receive(:save_data).with(anything, anything, :ocrunreports)
+      expect(FooBot).to receive(:save_data).with(anything, anything, :ocrunreports)
       FooBot.save_run_report(:foo => 'bar')
     end
 
     it 'should convert run data into JSON' do
       dummy_time = Time.now
-      Time.stub(:now).and_return(dummy_time)
+      allow(Time).to receive(:now).and_return(dummy_time)
       expected_run_report = ({ :foo => 'bar' }).to_json
-      FooBot.should_receive(:save_data).with(anything, { :report => expected_run_report, :run_at => dummy_time.to_s }, anything)
+      expect(FooBot).to receive(:save_data).with(anything, { :report => expected_run_report, :run_at => dummy_time.to_s }, anything)
       FooBot.save_run_report(:foo => 'bar')
     end
 
     it 'should use timestamp as unique key' do
-      FooBot.should_receive(:save_data).with([:run_at], anything, anything)
+      expect(FooBot).to receive(:save_data).with([:run_at], anything, anything)
       FooBot.save_run_report(:foo => 'bar')
     end
   end
@@ -93,42 +93,42 @@ describe "A module that extends OpencBot" do
         " \xC2\xA0\xC2\xA0 Mr Fred Flintstone  \xC2\xA0" => '    Mr Fred Flintstone   ',
                                   }
       raw_and_normalised_text.each do |raw_text, normalised_text|
-        FooBot.send(:normalise_utf8_spaces, raw_text).should == normalised_text
+        expect(FooBot.send(:normalise_utf8_spaces, raw_text)).to eq(normalised_text)
       end
     end
   end
 
   describe "#sqlite_magic_connection" do
     it "should override default ScraperWiki#sqlite_magic_connection to use module name and adjacent db directory" do
-      FooBot.unstub(:sqlite_magic_connection)
+      allow(FooBot).to receive(:sqlite_magic_connection).and_call_original
       expected_db_loc = File.expand_path(File.join(File.dirname(__FILE__),'..','db','foobot.db'))
-      SqliteMagic::Connection.should_receive(:new).with(expected_db_loc, anything).and_return(@dummy_sqlite_magic_connection)
+      expect(SqliteMagic::Connection).to receive(:new).with(expected_db_loc, anything).and_return(@dummy_sqlite_magic_connection)
       FooBot.sqlite_magic_connection
     end
 
     it "should set busy_timeout to be 10000" do
-      FooBot.unstub(:sqlite_magic_connection)
-      SqliteMagic::Connection.should_receive(:new).with(anything, :busy_timeout => 10000).and_return(@dummy_sqlite_magic_connection)
+      allow(FooBot).to receive(:sqlite_magic_connection).and_call_original
+      expect(SqliteMagic::Connection).to receive(:new).with(anything, :busy_timeout => 10000).and_return(@dummy_sqlite_magic_connection)
       FooBot.sqlite_magic_connection
     end
 
     it "should user SQLITE_BUSY_TIMEOUT if set" do
-      FooBot.unstub(:sqlite_magic_connection)
+      allow(FooBot).to receive(:sqlite_magic_connection).and_call_original
       stub_const("FooBot::SQLITE_BUSY_TIMEOUT", 123)
-      SqliteMagic::Connection.should_receive(:new).with(anything, :busy_timeout => 123).and_return(@dummy_sqlite_magic_connection)
+      expect(SqliteMagic::Connection).to receive(:new).with(anything, :busy_timeout => 123).and_return(@dummy_sqlite_magic_connection)
       FooBot.sqlite_magic_connection
     end
   end
 
   describe "#root_directory" do
     it "should return directory one up from that containing module" do
-      FooBot.root_directory.should == File.expand_path(File.join(File.dirname(__FILE__), '..'))
+      expect(FooBot.root_directory).to eq(File.expand_path(File.join(File.dirname(__FILE__), '..')))
     end
   end
 
   describe "#data_dir" do
     it "should return data directory as a child of the root directory" do
-      FooBot.data_dir.should == File.expand_path(File.join(File.dirname(__FILE__), '..', 'data'))
+      expect(FooBot.data_dir).to eq(File.expand_path(File.join(File.dirname(__FILE__), '..', 'data')))
     end
   end
 

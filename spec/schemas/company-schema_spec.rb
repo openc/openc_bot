@@ -23,7 +23,7 @@ describe 'company-schema' do
       ]
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
-        errors.should be_empty, "Valid params were not valid: #{valid_params}"
+        expect(errors).to be_empty, "Valid params were not valid: #{valid_params}"
       end
   end
 
@@ -36,7 +36,7 @@ describe 'company-schema' do
         :dissolution_date => '2012-01-12'
       }
     errors = validate_datum_and_return_errors(valid_company_params)
-    errors.should be_empty
+    expect(errors).to be_empty
   end
 
   it "should not validate invalid company" do
@@ -69,7 +69,7 @@ describe 'company-schema' do
     ]
     invalid_company_params.each do |invalid_params|
       errors = validate_datum_and_return_errors(invalid_params)
-      errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+      expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
     end
   end
 
@@ -82,7 +82,7 @@ describe 'company-schema' do
           :registered_address => '32 Foo St, Footown,'
         }
       errors = validate_datum_and_return_errors(valid_company_params)
-      errors.should be_empty
+      expect(errors).to be_empty
     end
 
     it "should be valid if it is nil" do
@@ -93,7 +93,7 @@ describe 'company-schema' do
           :registered_address => nil
         }
       errors = validate_datum_and_return_errors(valid_company_params)
-      errors.should be_empty
+      expect(errors).to be_empty
     end
 
     it "should be valid if it is a valid address object" do
@@ -117,7 +117,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -147,7 +147,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
   end
@@ -172,7 +172,7 @@ describe 'company-schema' do
         ]
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
-        errors.should be_empty, "Valid params were not valid: #{valid_params}"
+        expect(errors).to be_empty, "Valid params were not valid: #{valid_params}"
       end
     end
 
@@ -203,7 +203,7 @@ describe 'company-schema' do
 
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
 
     end
@@ -231,7 +231,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
 
     end
@@ -257,7 +257,7 @@ describe 'company-schema' do
         ]
         invalid_company_params.each do |invalid_params|
           errors = validate_datum_and_return_errors(invalid_params)
-          errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+          expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
         end
 
     end
@@ -280,7 +280,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -309,10 +309,10 @@ describe 'company-schema' do
             :jurisdiction_code => 'ie',
             :all_attributes => {:jurisdiction_of_origin => 43}
           }
-      validate_datum_and_return_errors(valid_params_1).should be_empty
-      validate_datum_and_return_errors(valid_params_2).should be_empty
-      validate_datum_and_return_errors(invalid_params_1).should_not be_empty
-      validate_datum_and_return_errors(invalid_params_2).should_not be_empty
+      expect(validate_datum_and_return_errors(valid_params_1)).to be_empty
+      expect(validate_datum_and_return_errors(valid_params_2)).to be_empty
+      expect(validate_datum_and_return_errors(invalid_params_1)).not_to be_empty
+      expect(validate_datum_and_return_errors(invalid_params_2)).not_to be_empty
     end
 
     it "should require home_company_number to be a non-empty string or null" do
@@ -356,10 +356,10 @@ describe 'company-schema' do
             :jurisdiction_code => 'ie',
             :all_attributes => {:number_of_employees => -1}
           }
-      validate_datum_and_return_errors(valid_params_1).should be_empty
-      validate_datum_and_return_errors(valid_params_2).should be_empty
-      validate_datum_and_return_errors(invalid_params_1).should_not be_empty
-      validate_datum_and_return_errors(invalid_params_2).should_not be_empty
+      expect(validate_datum_and_return_errors(valid_params_1)).to be_empty
+      expect(validate_datum_and_return_errors(valid_params_2)).to be_empty
+      expect(validate_datum_and_return_errors(invalid_params_1)).not_to be_empty
+      expect(validate_datum_and_return_errors(invalid_params_2)).not_to be_empty
     end
   end
 
@@ -384,7 +384,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}"
         end
     end
 
@@ -419,7 +419,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
   end
@@ -451,7 +451,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -476,7 +476,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
 
@@ -507,10 +507,10 @@ describe 'company-schema' do
           }
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
-        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
       end
 
-      validate_datum_and_return_errors(invalid_params).should_not be_empty
+      expect(validate_datum_and_return_errors(invalid_params)).not_to be_empty
     end
   end
 
@@ -541,7 +541,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -581,7 +581,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
   end
@@ -606,7 +606,7 @@ describe 'company-schema' do
         ]
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
-        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
       end
     end
 
@@ -639,7 +639,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
   end
@@ -699,7 +699,7 @@ describe 'company-schema' do
         ]
       valid_company_params.each do |valid_params|
         errors = validate_datum_and_return_errors(valid_params)
-        errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+        expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
       end
     end
   end
@@ -725,7 +725,7 @@ describe 'company-schema' do
         ]
         valid_company_params.each do |valid_params|
           errors = validate_datum_and_return_errors(valid_params)
-          errors.should be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
+          expect(errors).to be_empty, "Valid params were not valid: #{valid_params}.Errors = #{errors}"
         end
     end
 
@@ -755,7 +755,7 @@ describe 'company-schema' do
         ]
       invalid_company_params.each do |invalid_params|
         errors = validate_datum_and_return_errors(invalid_params)
-        errors.should_not be_empty, "Invalid params were not invalid: #{invalid_params}"
+        expect(errors).not_to be_empty, "Invalid params were not invalid: #{invalid_params}"
       end
     end
 
@@ -776,7 +776,7 @@ describe 'company-schema' do
               :jurisdiction_code => 'ie',
               :all_attributes => {attribute_name => val}
             }
-        validate_datum_and_return_errors(valid_params).should be_empty, "Valid params were not validated: #{valid_params}"
+        expect(validate_datum_and_return_errors(valid_params)).to be_empty, "Valid params were not validated: #{valid_params}"
       end
 
       ['', 43].each do |val|
@@ -786,7 +786,7 @@ describe 'company-schema' do
               :jurisdiction_code => 'ie',
               :all_attributes => {attribute_name => val}
             }
-        validate_datum_and_return_errors(invalid_params).should_not be_empty, "Invalid params were validated: #{invalid_params}"
+        expect(validate_datum_and_return_errors(invalid_params)).not_to be_empty, "Invalid params were validated: #{invalid_params}"
       end
   end
 

@@ -8,7 +8,7 @@ describe 'OpencBot exceptions' do
   describe OpencBot::OpencBotError do
 
     it 'should have StandardError as superclass' do
-      OpencBot::OpencBotError.superclass.should == StandardError
+      expect(OpencBot::OpencBotError.superclass).to eq(StandardError)
     end
   end
 
@@ -26,18 +26,18 @@ describe 'OpencBot exceptions' do
     end
 
     it 'should have OpencBotError as superclass' do
-      OpencBot::RecordInvalid.superclass.should == OpencBot::OpencBotError
+      expect(OpencBot::RecordInvalid.superclass).to eq(OpencBot::OpencBotError)
     end
 
     it "should have set validation_errors accessor on instantiation" do
-      @error.validation_errors.should == @validation_errors
+      expect(@error.validation_errors).to eq(@validation_errors)
     end
 
     describe 'message' do
       it 'should include validation_errors' do
-        @error.message.should match 'Validation failed'
-        @error.message.should match "did not contain a required property of 'company_number'"
-        @error.message.should match "did not contain a required property of 'jurisdiction_code'"
+        expect(@error.message).to match 'Validation failed'
+        expect(@error.message).to match "did not contain a required property of 'company_number'"
+        expect(@error.message).to match "did not contain a required property of 'jurisdiction_code'"
       end
 
       # context 'and given message when instantiated' do

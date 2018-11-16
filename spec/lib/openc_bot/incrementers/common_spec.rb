@@ -26,7 +26,7 @@ describe OpencBot::ManualIncrementer do
     end
     @incrementer.enum.each.with_index(1) do |row, i|
       # id assignment in sqlite is 1 indexed, not 0
-      row.should == hashes[i - 1].merge("_id" => i)
+      expect(row).to eq(hashes[i - 1].merge("_id" => i))
     end
   end
 
@@ -40,14 +40,14 @@ describe OpencBot::ManualIncrementer do
       @incrementer.add_row(h)
     end
     counter = @incrementer.enum
-    counter.next.should == hashes[0].merge("_id" => 1)
-    counter.next.should == hashes[1].merge("_id" => 2)
+    expect(counter.next).to eq(hashes[0].merge("_id" => 1))
+    expect(counter.next).to eq(hashes[1].merge("_id" => 2))
 
     @new_incrementer = OpencBot::ManualIncrementer.new(:manual_incrementer, :app_path => @app_path, :fields => [:url])
     # TODO: effectively performs id >= current_row['_id'] which results
     # in the same row being run twice across the two separate runs.
     # Is this desired behaviour?
-    @new_incrementer.resumable.next.should == hashes[1].merge("_id" => 2)
+    expect(@new_incrementer.resumable.next).to eq(hashes[1].merge("_id" => 2))
   end
 
   it "should be relatively fast to save" do
@@ -78,6 +78,6 @@ describe OpencBot::ManualIncrementer do
     # TODO: effectively performs id >= current_row['_id'] which results
     # in the same row being run twice across the two separate runs.
     # Is this desired behaviour?
-    @new_incrementer.resumable.next["number"].should == 999
+    expect(@new_incrementer.resumable.next["number"]).to eq(999)
   end
 end
