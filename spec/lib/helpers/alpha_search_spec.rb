@@ -75,7 +75,7 @@ describe 'a module that includes AlphaSearch' do
 
   describe "each_search_term" do
     before do
-      expect(ModuleThatIncludesAlphaSearch).to receive(:alpha_terms).with('B').and_return(['C','D'])
+      allow(ModuleThatIncludesAlphaSearch).to receive(:alpha_terms).with('B').and_return(['C','D'])
     end
 
     it "should iterate through alpha_terms and yield them" do
