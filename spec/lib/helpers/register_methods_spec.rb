@@ -775,7 +775,6 @@ describe 'a module that includes RegisterMethods' do
     end
 
     it 'should return false if allowed_hours not defined' do
-      parsed_time = Time.parse("2014-10-10 15:14:25 +0100")
       ModuleWithNoCustomPrimaryKey.in_prohibited_time?.should be_nil
     end
   end
