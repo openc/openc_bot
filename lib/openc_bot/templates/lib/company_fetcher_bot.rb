@@ -1,6 +1,5 @@
-# encoding: UTF-8
-require 'openc_bot'
-require 'openc_bot/company_fetcher_bot'
+require "openc_bot"
+require "openc_bot/company_fetcher_bot"
 
 # you may need to require other libraries here
 #
@@ -15,15 +14,14 @@ module MyModule
   extend OpencBot::CompanyFetcherBot
   # uncomment to get Date helper methods
   # extend OpencBot::Helpers::Dates
-  extend self # make these methods as Module methods, rather than instance ones
 
+  module_function # make these methods as Module methods, rather than instance ones
 
   # Uncomment to use alpha search – default is incremental search
   # USE_ALPHA_SEARCH = true
 
   # Default number of characters used for search terms in alpha search. Default is 1 (i.e. 'A','B'...)
   # NUMBER_OF_CHARS_IN_SEARCH = 3
-
 
   # If the register has a GET'able URL based on the company_number define it here. This should mean that
   # #fetch_datum 'just works'.
@@ -88,8 +86,7 @@ module MyModule
   # This method is called by #fetch_data_via_alpha_search (defined in AlphaSearch helper),
   # and is passed a search term, typically search term of a number of characters (e.g. 'AB', 'AC'...).
   # This method should yield a hash of company data which can be validated to the company-schema
-  def search_for_entities_for_term(term, options={})
+  def search_for_entities_for_term(term, options = {})
     # write your code to search all the pages for the given term, and yield a series of company hashes
   end
-
 end

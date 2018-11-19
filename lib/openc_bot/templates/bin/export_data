@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-require 'open3'
-require 'fileutils'
+require "open3"
+require "fileutils"
 
 command = "bundle exec openc_bot rake bot:export"
 options = { chdir: File.join(File.dirname(__FILE__), "..") }
-_, stdout, stderr, wait_thread = Open3::popen3(command, options)
+_, stdout, stderr, wait_thread = Open3.popen3(command, options)
 result = wait_thread.value
 
 if result.success?
@@ -13,7 +13,7 @@ if result.success?
     dir = "data/#{Time.now.strftime('%Y-%m-%d')}"
     FileUtils.mkdir_p(dir)
     export_number = Dir.glob("#{dir}/export-*.json").count + 1
-    dest  ="#{dir}/export-#{export_number}.json"
+    dest = "#{dir}/export-#{export_number}.json"
     File.open(dest, "w") do |f|
       f.write(data)
     end

@@ -1,3 +1,3 @@
 module OpencBot
-  VERSION = "0.0.66"
+  VERSION = "0.0.66".freeze
 end

@@ -1,9 +1,8 @@
-require 'backports/2.0.0/enumerable/lazy'
-require 'json'
+require "backports/2.0.0/enumerable/lazy"
+require "json"
 module OpencBot
   class BaseIncrementer
-
-    def initialize(name, opts={})
+    def initialize(name, opts = {})
       @name = name
       @expected_count = opts[:expected_count]
       @count = 0
@@ -18,7 +17,7 @@ module OpencBot
       path, = caller[0].partition(":")
       path = File.expand_path(File.join(File.dirname(path), ".."))
       args << {} if args.count == 1
-      args[1][:app_path] = path if !args[1][:app_path]
+      args[1][:app_path] = path unless args[1][:app_path]
       super(*args)
     end
 
@@ -33,11 +32,11 @@ module OpencBot
     def each
       Enumerator.new do |yielder|
         increment_yielder do |result|
-          if result.is_a? Hash
-            formatted_result = result.to_json
-          else
-            formatted_result = result
-          end
+          formatted_result = if result.is_a? Hash
+                               result.to_json
+                             else
+                               result
+                             end
           write_current(formatted_result)
           yielder.yield(result)
           @count += 1
@@ -90,21 +89,16 @@ module OpencBot
     end
 
     def read_current
-      begin
-        File.open(position_file_name, "r") do |f|
-          f.read
-        end
-      rescue Errno::ENOENT
-        nil
-      end
+      File.open(position_file_name, "r", &:read)
+    rescue Errno::ENOENT
+      nil
     end
   end
 
   class ManualIncrementer < OpencBot::BaseIncrementer
-
     include ScraperWiki
 
-    ITEMS_TABLE = "items"
+    ITEMS_TABLE = "items".freeze
 
     def single_transaction
       sqlite_magic_connection.execute("BEGIN TRANSACTION")
@@ -112,23 +106,24 @@ module OpencBot
       sqlite_magic_connection.execute("COMMIT")
     end
 
-    def initialize(name, opts={})
+    def initialize(name, opts = {})
       super(name, opts)
       raise "Fields must be defined for this Record" if opts[:fields].nil?
+
       query = "CREATE TABLE IF NOT EXISTS #{ITEMS_TABLE} (#{opts[:fields].join(',')}, _id INTEGER PRIMARY KEY)"
       sqlite_magic_connection.execute query
-      query = "CREATE UNIQUE INDEX IF NOT EXISTS #{opts[:fields].join('_')} " +
-        "ON #{ITEMS_TABLE} (#{opts[:fields].join(',')})"
+      query = "CREATE UNIQUE INDEX IF NOT EXISTS #{opts[:fields].join('_')} " \
+              "ON #{ITEMS_TABLE} (#{opts[:fields].join(',')})"
       sqlite_magic_connection.execute query
     end
 
     # Override default in ScraperWiki gem
     def sqlite_magic_connection
-      db = File.expand_path(File.join(@app_path, 'db', "#{db_name}.db"))
+      db = File.expand_path(File.join(@app_path, "db", "#{db_name}.db"))
       @sqlite_magic_connection ||= SqliteMagic::Connection.new(db)
     end
 
-    def increment_yielder(start_row=nil)
+    def increment_yielder(start_row = nil)
       start_id = start_row && start_row["_id"].to_i
       @expected_count = count_all_items
       @count = count_processed_items(start_id)
@@ -142,34 +137,31 @@ module OpencBot
     end
 
     def populated
-      begin
-        result = select("populated FROM misc").first['populated']
-        result && result == "true"
-      rescue SqliteMagic::NoSuchTable
-      end
+      result = select("populated FROM misc").first["populated"]
+      result && result == "true"
+    rescue SqliteMagic::NoSuchTable
     end
 
     def populated=(val)
-      if val && val == "true" || val == true
-        save_sqlite([:populated], {:populated => "true"}, "misc")
-      end
+      save_sqlite([:populated], { populated: "true" }, "misc") if val && val == "true" || val == true
     end
 
-    def enum(*args)
+    def enum(*_args)
       self.populated = true
       each
     end
 
     def add_row(val)
       sqlite_magic_connection.insert_or_update(
-        val.keys, val, ITEMS_TABLE, :update_unique_keys => true)
+        val.keys, val, ITEMS_TABLE, update_unique_keys: true
+      )
     end
 
     def count_processed_items(start_id)
       if start_id
         begin
           result = select("count(*) as count FROM #{ITEMS_TABLE} WHERE _id < #{start_id}").first
-          result && result['count']
+          result && result["count"]
         rescue SqliteMagic::NoSuchTable
           0
         end
@@ -179,17 +171,13 @@ module OpencBot
     end
 
     def count_all_items
-      begin
-        select("count(*) as count FROM #{ITEMS_TABLE}").first['count']
-      rescue SqliteMagic::NoSuchTable
-      end
+      select("count(*) as count FROM #{ITEMS_TABLE}").first["count"]
+    rescue SqliteMagic::NoSuchTable
     end
 
-    def read_batch(start_id=nil)
+    def read_batch(start_id = nil)
       sql = "* FROM #{ITEMS_TABLE}"
-      if start_id
-        sql += " WHERE _id >= #{start_id}"
-      end
+      sql += " WHERE _id >= #{start_id}" if start_id
       sql += " LIMIT 100"
       select(sql)
     end

@@ -1,7 +1,12 @@
 language: ruby
 sudo: false
+cache: bundler
 rvm:
   - "2.2"
 before_install:
   - gem update --system
   - gem update bundler
+  - rm Gemfile.lock
+before_script:
+  - bin/rubocop
+  - bin/rubocop --auto-gen-config --exclude-limit 999 --no-offense-counts --no-auto-gen-timestamp >/dev/null || true; git --no-pager diff --exit-code

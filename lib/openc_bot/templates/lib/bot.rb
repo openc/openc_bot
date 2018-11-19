@@ -1,5 +1,4 @@
-# encoding: UTF-8
-require 'openc_bot'
+require "openc_bot"
 
 # you may need to require other libraries here
 #
@@ -7,7 +6,8 @@ require 'openc_bot'
 
 module MyModule
   extend OpencBot
-  extend self # make these methods as Module methods, rather than instance ones
+
+  module_function # make these methods as Module methods, rather than instance ones
 
   def export_data
     # This is the basic functionality for exporting the data from the database. By default the data
@@ -37,7 +37,6 @@ module MyModule
     #
     # After updating the data you should run save_run_report, which
     # saves the status (and other data, if applicable)
-    save_run_report(:status => 'success')
+    save_run_report(status: "success")
   end
-
 end

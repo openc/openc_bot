@@ -23,7 +23,7 @@ class Mechanize::HTTP::Agent
     referer   = current_page,
     redirects = 0
   )
-    action      = "#{method.to_s.upcase} #{uri.to_s}"
+    action      = "#{method.to_s.upcase} #{uri}"
     retry_count = 0
 
     begin
@@ -41,13 +41,13 @@ class Mechanize::HTTP::Agent
       # Otherwise, shutdown the persistent HTTP connection and try again.
       puts "**** WARN: Mechanize retrying connection reset error: #{action}"
       retry_count += 1
-      self.http.shutdown
+      http.shutdown
       retry
     end
   end
 
   # Alias so #fetch actually uses our new #fetch_with_retry to wrap the
   # old one aliased as #fetch_without_retry.
-  alias_method :fetch_without_retry, :fetch
-  alias_method :fetch, :fetch_with_retry
+  alias fetch_without_retry fetch
+  alias fetch fetch_with_retry
 end

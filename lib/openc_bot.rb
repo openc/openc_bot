@@ -1,39 +1,37 @@
-# encoding: UTF-8
-require 'openc_bot/version'
-require 'json'
-require 'scraperwiki'
-require_relative 'openc_bot/bot_data_validator'
-require 'openc_bot/helpers/text'
-require 'openc_bot/exceptions'
+require "openc_bot/version"
+require "json"
+require "scraperwiki"
+require_relative "openc_bot/bot_data_validator"
+require "openc_bot/helpers/text"
+require "openc_bot/exceptions"
 
 module OpencBot
-
-  class OpencBotError < StandardError;end
-  class DatabaseError < OpencBotError;end
-  class InvalidDataError < OpencBotError;end
-  class NotFoundError < OpencBotError;end
+  class OpencBotError < StandardError; end
+  class DatabaseError < OpencBotError; end
+  class InvalidDataError < OpencBotError; end
+  class NotFoundError < OpencBotError; end
 
   include ScraperWiki
   # include by default, as some were previously in made openc_bot file
   include Helpers::Text
 
-  def insert_or_update(uniq_keys, values_hash, tbl_name='ocdata')
+  def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
 
-  def save_data(uniq_keys, values_array, tbl_name='ocdata')
+  def save_data(uniq_keys, values_array, tbl_name = "ocdata")
     save_sqlite(uniq_keys, values_array, tbl_name)
   end
 
   def save_run_report(report_hash)
     json_report = report_hash.to_json
-    save_data([:run_at], { :report => json_report, :run_at => Time.now.to_s }, :ocrunreports)
+    save_data([:run_at], { report: json_report, run_at: Time.now.to_s }, :ocrunreports)
   end
 
   # Returns the root directory of the bot (not this gem).
   # Assumes the bot file that extends its functionality using this bot is in a directory (lib) inside the root directory
   def data_dir
-    File.join(root_directory, 'data')
+    File.join(root_directory, "data")
   end
 
   # Returns the root directory of the bot (not this gem).
@@ -48,10 +46,10 @@ module OpencBot
 
   # Convenience method that returns true if VERBOSE environmental variable set (at the moment whatever it is set to)
   def verbose?
-    ENV['VERBOSE']
+    ENV["VERBOSE"]
   end
 
-  def export(opts={})
+  def export(opts = {})
     export_data(opts).each do |record|
       $stdout.puts record.to_json
       $stdout.flush
@@ -72,39 +70,38 @@ module OpencBot
   # stored (which means we can't use Dir.pwd etc). The only time we
   # know about the directory is when the module is called to extend
   # the file, and we capture that in the @app_directory class variable
-  def self.extended(obj)
+  def self.extended(_obj)
     path, = caller[0].partition(":")
-    path = File.expand_path(File.join(File.dirname(path),'..'))
+    path = File.expand_path(File.join(File.dirname(path), ".."))
     @@app_directory = path
   end
 
   def db_name
     if is_a?(Module)
-      "#{self.name.downcase}.db"
+      "#{name.downcase}.db"
     else
       "#{self.class.name.downcase}.db"
     end
   end
 
   def db_location
-    File.expand_path(File.join(@@app_directory, 'db', db_name))
+    File.expand_path(File.join(@@app_directory, "db", db_name))
   end
 
   # Override default in ScraperWiki gem
   def sqlite_magic_connection
-    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, 'db', db_name))
-    options = sqlite_busy_timeout ? {:busy_timeout => sqlite_busy_timeout} : {:busy_timeout => 10000}
+    db = @config ? @config[:db] : File.expand_path(File.join(@@app_directory, "db", db_name))
+    options = sqlite_busy_timeout ? { busy_timeout: sqlite_busy_timeout } : { busy_timeout: 10_000 }
     @sqlite_magic_connection ||= SqliteMagic::Connection.new(db, options)
   end
 
   def sqlite_busy_timeout
-    self.const_defined?('SQLITE_BUSY_TIMEOUT') && self.const_get('SQLITE_BUSY_TIMEOUT')
+    const_defined?("SQLITE_BUSY_TIMEOUT") && const_get("SQLITE_BUSY_TIMEOUT")
   end
 
   def table_summary
-    field_names = sqlite_magic_connection.execute('PRAGMA table_info(ocdata)').collect{|c| c['name']}
-    select_sql = "COUNT(1) Total, " + field_names.collect{ |fn| "COUNT(#{fn}) #{fn}_not_null" }.join(', ') + " FROM ocdata"
+    field_names = sqlite_magic_connection.execute("PRAGMA table_info(ocdata)").collect { |c| c["name"] }
+    select_sql = "COUNT(1) Total, " + field_names.collect { |fn| "COUNT(#{fn}) #{fn}_not_null" }.join(", ") + " FROM ocdata"
     select(select_sql).first
   end
-
 end
