@@ -190,9 +190,11 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.run
     end
 
-    it "posts report to OpenCorporates" do
-      expected_params = { run: hash_including(foo: "bar", bot_id: "test_companies_fetcher", bot_type: "external", status_code: "1", git_commit: "abc12345") }
-      expect(TestCompaniesFetcher).to receive(:_http_post).with(OpencBot::CompanyFetcherBot::OC_RUN_REPORT_URL, expected_params)
+    it "posts report to the analysis app" do
+      expected_params = {
+        run: hash_including(foo: "bar", bot_id: "test_companies_fetcher", bot_type: "external", status_code: "1", git_commit: "abc12345"),
+      }
+      expect(TestCompaniesFetcher).to receive(:_http_post).with(OpencBot::CompanyFetcherBot::ANALYSIS_RUN_REPORT_URL, expected_params)
       TestCompaniesFetcher.run
     end
   end
