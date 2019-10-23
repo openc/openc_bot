@@ -124,9 +124,8 @@ module OpencBot
       puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
     end
 
-    def _http_post(_url, params)
-      # this will (correctly) fail in development as it will be outside internal IP range
-      _client.post(OC_RUN_REPORT_URL, params.to_query)
+    def _http_post(url, params)
+      _client.post(url, params.to_query)
     end
   end
 end
