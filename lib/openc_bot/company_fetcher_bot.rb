@@ -124,6 +124,9 @@ module OpencBot
       puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
     end
 
+    # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
+    alias report_run_to_oc report_run_to_analysis_app
+
     def _http_post(url, params)
       _client.post(url, params.to_query)
     end

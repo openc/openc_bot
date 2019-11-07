@@ -198,4 +198,10 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.run
     end
   end
+
+  describe "#report_run_to_oc" do
+    it "supports this deprecated method (called by many external bots) but actually sends a report to the analysis app" do
+      expect(TestCompaniesFetcher.method(:report_run_to_oc)).to eq(TestCompaniesFetcher.method(:report_run_to_analysis_app))
+    end
+  end
 end
