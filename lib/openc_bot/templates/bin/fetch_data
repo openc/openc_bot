@@ -17,6 +17,6 @@ if result.success?
   puts stdout.read
   exit 0
 else
-  STDERR.puts stderr.read
+  warn stderr.read
   exit 1
 end
