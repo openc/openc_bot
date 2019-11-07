@@ -753,7 +753,7 @@ describe "a module that includes RegisterMethods" do
       times_and_truthiness = {
         "2014-10-09 04:14:25 +0100" => false, # weekday out of hours
         "2014-10-11 15:14:25 +0100" => false, # in weekend
-        "2014-10-10 15:14:25 +0100" => true # weekday in business hours
+        "2014-10-10 15:14:25 +0100" => true, # weekday in business hours
       }
       times_and_truthiness.each do |datetime, truthiness|
         allow(ModuleThatIncludesRegisterMethods).to receive(:current_time_in_zone).and_return(Time.parse(datetime))
