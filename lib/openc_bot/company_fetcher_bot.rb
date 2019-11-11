@@ -10,7 +10,7 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
     # this is only available inside the VPN
-    OC_RUN_REPORT_URL = "https://opencorporates.com/runs".freeze
+    ANALYSIS_RUN_REPORT_URL = "https://analysis.opencorporates.com/runs".freeze
     RUN_ATTRIBUTES = %i[
       started_at
       ended_at
@@ -38,7 +38,7 @@ module OpencBot
 
     def report_run_results(results)
       send_run_report(results)
-      report_run_to_oc(results)
+      report_run_to_analysis_app(results)
     end
 
     # This overrides default #save_entity (defined in RegisterMethods) and adds
@@ -94,7 +94,7 @@ module OpencBot
       subject = "Error running #{name}: #{e}"
       body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
       send_report(subject: subject, body: body)
-      report_run_to_oc(output: body, status_code: "0", ended_at: Time.now.to_s, started_at: options[:started_at])
+      report_run_to_analysis_app(output: body, status_code: "0", ended_at: Time.now.to_s, started_at: options[:started_at])
     end
 
     def send_run_report(run_results = nil)
@@ -114,19 +114,21 @@ module OpencBot
       end
     end
 
-    def report_run_to_oc(params)
+    def report_run_to_analysis_app(params)
       bot_id = to_s.underscore
       run_params = params.slice!(RUN_ATTRIBUTES)
       run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit)
       run_params[:output] ||= params.to_s unless params.blank?
-      _http_post(OC_RUN_REPORT_URL, run: run_params)
+      _http_post(ANALYSIS_RUN_REPORT_URL, run: run_params)
     rescue Exception => e
       puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
     end
 
-    def _http_post(_url, params)
-      # this will (correctly) fail in development as it will be outside internal IP range
-      _client.post(OC_RUN_REPORT_URL, params.to_query)
+    # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
+    alias report_run_to_oc report_run_to_analysis_app
+
+    def _http_post(url, params)
+      _client.post(url, params.to_query)
     end
   end
 end
