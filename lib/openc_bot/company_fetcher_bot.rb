@@ -40,6 +40,10 @@ module OpencBot
       report_run_to_analysis_app(results)
     end
 
+    def report_run_progress(companies_processed:, companies_added: nil, companies_updated: nil)
+      report_progress_to_analysis_app(companies_processed: companies_processed, companies_added: companies_added, companies_updated: companies_updated)
+    end
+
     # This overrides default #save_entity (defined in RegisterMethods) and adds
     # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
@@ -125,6 +129,18 @@ module OpencBot
 
     # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
     alias report_run_to_oc report_run_to_analysis_app
+
+    def report_progress_to_analysis_app(companies_processed:, companies_added: nil, companies_updated: nil)
+      data = {
+        "bot_id" => to_s.underscore,
+        "companies_processed" => companies_processed,
+        "companies_added" => companies_added,
+        "companies_updated" => companies_updated,
+      }
+      _http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
+    rescue Exception => e
+      puts "Exception (#{e.inspect}) reporting progress to analysis app"
+    end
 
     def _analysis_app_client
       @analysis_app_client ||= _client(connect_timeout: 5, receive_timeout: 10, flush_client: true)
