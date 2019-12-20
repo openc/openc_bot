@@ -9,7 +9,7 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
     # this is only available inside the VPN
-    ANALYSIS_RUN_REPORT_URL = "https://analysis.opencorporates.com/runs".freeze
+    ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
     RUN_ATTRIBUTES = %i[
       started_at
       ended_at
@@ -118,7 +118,7 @@ module OpencBot
       run_params = params.slice!(RUN_ATTRIBUTES)
       run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit)
       run_params[:output] ||= params.to_s unless params.blank?
-      _http_post(ANALYSIS_RUN_REPORT_URL, run: run_params)
+      _http_post("#{ANALYSIS_HOST}/runs", run: run_params)
     rescue Exception => e
       puts "Exception (#{e.inspect}) reporting run to analysis app"
     end
