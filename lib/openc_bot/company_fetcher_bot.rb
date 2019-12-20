@@ -120,7 +120,7 @@ module OpencBot
       run_params[:output] ||= params.to_s unless params.blank?
       _http_post(ANALYSIS_RUN_REPORT_URL, run: run_params)
     rescue Exception => e
-      puts "Exception (#{e.inspect}) reporting run to OpenCorporates"
+      puts "Exception (#{e.inspect}) reporting run to analysis app"
     end
 
     # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
