@@ -1,7 +1,6 @@
 require "openc_bot"
 require "openc_bot/helpers/incremental_search"
 require "openc_bot/helpers/alpha_search"
-# require 'openc_bot/asana_notifier'
 require "mail"
 
 module OpencBot
