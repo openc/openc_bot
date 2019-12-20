@@ -126,8 +126,12 @@ module OpencBot
     # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
     alias report_run_to_oc report_run_to_analysis_app
 
+    def _analysis_app_client
+      @analysis_app_client ||= _client(connect_timeout: 5, receive_timeout: 10, flush_client: true)
+    end
+
     def _http_post(url, params)
-      _client.post(url, params.to_query)
+      _analysis_app_client.post(url, params.to_query)
     end
   end
 end
