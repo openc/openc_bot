@@ -333,6 +333,8 @@ module OpencBot
         @client = HTTPClient.new(options.delete(:proxy))
         @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE if options.delete(:skip_ssl_verification)
         @client.agent_name = options.delete(:user_agent)
+        @client.connect_timeout = options.delete(:connect_timeout)
+        @client.receive_timeout = options.delete(:receive_timeout)
         @client.ssl_config.ssl_version = options.delete(:ssl_version) if options[:ssl_version]
         if ssl_certificate = options.delete(:ssl_certificate)
           @client.ssl_config.add_trust_ca(ssl_certificate) # Above cert

@@ -190,12 +190,26 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.run
     end
 
-    it "posts report to the analysis app" do
+    it "posts a run report to the analysis app" do
       expected_params = {
         run: hash_including(foo: "bar", bot_id: "test_companies_fetcher", bot_type: "external", status_code: "1", git_commit: "abc12345"),
       }
-      expect(TestCompaniesFetcher).to receive(:_http_post).with(OpencBot::CompanyFetcherBot::ANALYSIS_RUN_REPORT_URL, expected_params)
+      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/runs", expected_params)
       TestCompaniesFetcher.run
+    end
+  end
+
+  describe "#report_run_progress" do
+    it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
+      expected_params = { data: { bot_id: "test_companies_fetcher", companies_processed: 3, companies_added: 2, companies_updated: 1 }.to_json }
+      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+      TestCompaniesFetcher.report_run_progress(companies_processed: 3, companies_added: 2, companies_updated: 1)
+    end
+
+    it "posts null values in the json payload for absent stats" do
+      expected_params = { data: { bot_id: "test_companies_fetcher", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
+      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+      TestCompaniesFetcher.report_run_progress(companies_processed: 3)
     end
   end
 
