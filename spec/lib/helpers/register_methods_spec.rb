@@ -538,8 +538,8 @@ describe "a module that includes RegisterMethods" do
       @valid_params = { name: "Foo Inc", company_number: "12345", jurisdiction_code: "ie", retrieved_at: "2018-01-01" }
     end
 
-    it "checks json version of datum against given schema" do
-      expect(JSON::Validator).to receive(:fully_validate).with("company-schema.json", @valid_params.to_json, anything)
+    it "checks json version of datum against schema" do
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @valid_params.to_json, anything)
       ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)
     end
 
