@@ -45,7 +45,7 @@ Metrics/AbcSize:
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine
 Metrics/BlockLength:
-  Max: 720
+  Max: 929
 
 Metrics/CyclomaticComplexity:
   Max: 11
@@ -152,7 +152,7 @@ RSpec/MessageSpies:
 
 # Configuration parameters: AggregateFailuresByDefault.
 RSpec/MultipleExpectations:
-  Max: 11
+  Max: 48
 
 RSpec/NestedGroups:
   Max: 5
