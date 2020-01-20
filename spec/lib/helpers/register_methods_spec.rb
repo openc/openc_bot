@@ -535,27 +535,270 @@ describe "a module that includes RegisterMethods" do
 
   describe "#validate_datum" do
     before do
-      @valid_params = { name: "Foo Inc", company_number: "12345", jurisdiction_code: "ie", retrieved_at: "2018-01-01" }
+      # valid
+      @valid_params = {
+        name: "Foo Inc",
+        company_number: "12345",
+        jurisdiction_code: "ie",
+        retrieved_at: "2018-01-01",
+      }
+      @extensive_valid_params = {
+        name: "test",
+        jurisdiction_code: "au",
+        company_number: "10000",
+        incorporation_date: "2020-01-01 00:00:00",
+        company_type: "A Good Company",
+        current_status: "Active",
+        previous_names: [],
+        retrieved_at: "2020-01-02 00:00:00",
+        all_attributes: { maalform: "bokmål" },
+        dissolution_date: "2020-01-04 00:00:00",
+        branch: "F",
+      }
+      @officers_valid_params = @extensive_valid_params.merge(
+        officers: [
+          name: "New Officer",
+          start_date: "2020-01-01",
+          end_date: "2020-01-02",
+          position: "Director",
+          uid: "10001",
+          other_attributes: {
+            date_of_birth: "2020-01-01",
+            nationality: "Pakeha",
+            person_uid: "101",
+            address: "Auckland",
+          },
+        ],
+      )
+      @registered_address_valid_params = @extensive_valid_params.merge(
+        registered_address: "street_address: 101 Boulevard",
+      )
+      @share_parcel_valid_params = @extensive_valid_params.merge(
+        share_parcels: [
+          number_of_shares: 100,
+          percentage_of_shares: 100,
+          percentage_of_shares_min: 20,
+          percentage_of_shares_max: 80,
+          voting_percentage: 50,
+          voting_percentage_min: 10,
+          voting_percentage_max: 40,
+          share_class: "some class",
+          start_date: "2020-01-01",
+          end_date: "2020-01-02",
+          sample_date: "2020-01-03",
+          shareholders: [
+            name: "shareholder",
+            jurisdiction: "nz",
+            company_number: "100001",
+            identifier: "unique indentifier",
+            address: "101 Boulevard",
+          ],
+        ],
+      )
+      @total_shares_valid_params = @extensive_valid_params.merge(
+        total_shares: {
+          number: 1,
+        },
+      )
+      @filings_valid_params = @extensive_valid_params.merge(
+        filings: [
+          title: "filing",
+          date: "2020-01-01",
+          description: "filing description",
+          uid: "100001",
+          url: "www.filing.com",
+          filing_type_code: "1.0",
+          filing_type_name: "filing name",
+        ],
+      )
+      @identifiers_valid_params = @extensive_valid_params.merge(
+        identifiers: [
+          uid: "100001",
+          identifier_system_code: "100001",
+        ],
+      )
+      @industry_codes_valid_params = @extensive_valid_params.merge(
+        industry_codes: [
+          name: "industry code",
+          code: "valid code",
+          code_scheme_id: "valid scheme id",
+          start_date: "2020-01-01",
+          end_date: "2020-01-02",
+        ],
+      )
+      # invalid
+      @company_number_not_exist = ModuleThatIncludesRegisterMethods.validate_datum(
+        name: "Foo Inc",
+        jurisdiction_code: "ie",
+        retrieved_at: "2018-01-01",
+      )
+      @previous_name_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        name: "Test Company",
+        jurisdiction_code: "no",
+        company_number: "100001",
+        retrieved_at: "2020-01-01",
+        previous_names: nil,
+      )
+      @incorporation_date_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @valid_params.merge(incorporation_date: nil),
+      )
+      @telephone_number_too_short = ModuleThatIncludesRegisterMethods.validate_datum(
+        @valid_params.merge(telephone_number: "+11"),
+      )
+      @officers_invalid_name = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          officers: [
+            uid: "10001",
+          ],
+        ),
+      )
+      @registered_address_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          registered_address: "r",
+        ),
+      )
+      @share_parcel_too_large = ModuleThatIncludesRegisterMethods.validate_datum(
+        @share_parcel_valid_params.merge(
+          share_parcels: [
+            percentage_of_shares: 120,
+          ],
+        ),
+      )
+      @total_shares_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          total_shares: {
+            share_class: "valid class",
+          },
+        ),
+      )
+      @filings_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          filings: [
+            description: "filing description",
+            filing_type_name: "filing name",
+          ],
+        ),
+      )
+      @identifiers_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          identifiers: [
+            uid: "100001",
+          ],
+        ),
+      )
+      @industry_codes_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          industry_codes: [
+            code: 100_001,
+            code_scheme_id: "valid scheme id",
+          ],
+        ),
+      )
+      @additional_properties_invalid = ModuleThatIncludesRegisterMethods.validate_datum(
+        @extensive_valid_params.merge(
+          unique_company_abstract_value: [
+            id: "100001",
+          ],
+        ),
+      )
     end
 
-    it "checks json version of datum against given schema" do
-      expect(JSON::Validator).to receive(:fully_validate).with("company-schema.json", @valid_params.to_json, anything)
+    it "checks json version of datum against schema" do
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @extensive_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @officers_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @registered_address_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @share_parcel_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @total_shares_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @filings_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @identifiers_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @industry_codes_valid_params.to_json, anything)
       ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@extensive_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@officers_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@registered_address_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@share_parcel_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@total_shares_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@filings_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@identifiers_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@industry_codes_valid_params)
     end
 
     context "and datum is valid" do
       it "returns empty array" do
         expect(ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@extensive_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@officers_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@registered_address_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@share_parcel_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@filings_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@identifiers_valid_params)).to eq([])
+        expect(ModuleThatIncludesRegisterMethods.validate_datum(@industry_codes_valid_params)).to eq([])
       end
     end
 
     context "and datum is not valid" do
       it "returns errors" do
-        result = ModuleThatIncludesRegisterMethods.validate_datum(name: "Foo Inc", jurisdiction_code: "ie", retrieved_at: "2018-01-01")
-        expect(result).to be_kind_of Array
-        expect(result.size).to eq(1)
-        expect(result.first[:failed_attribute]).to eq("Required")
-        expect(result.first[:message]).to match "company_number"
+        # company_number_not_exist
+        expect(@company_number_not_exist).to be_kind_of Array
+        expect(@company_number_not_exist.size).to eq(1)
+        expect(@company_number_not_exist.first[:failed_attribute]).to eq("Required")
+        expect(@company_number_not_exist.first[:message]).to match "company_number"
+        # previous_name_invalid
+        expect(@previous_name_invalid).to be_kind_of Array
+        expect(@previous_name_invalid.size).to eq(1)
+        expect(@previous_name_invalid.first[:failed_attribute]).to eq("TypeV4")
+        expect(@previous_name_invalid.first[:message]).to match "previous_names"
+        # incorporation_date_invalid
+        expect(@incorporation_date_invalid).to be_kind_of Array
+        expect(@incorporation_date_invalid.size).to eq(1)
+        expect(@incorporation_date_invalid.first[:failed_attribute]).to eq("TypeV4")
+        expect(@incorporation_date_invalid.first[:message]).to match "incorporation_date"
+        # telephone_number_too_short
+        expect(@telephone_number_too_short).to be_kind_of Array
+        expect(@telephone_number_too_short.size).to eq(1)
+        expect(@telephone_number_too_short.first[:failed_attribute]).to eq("MinLength")
+        expect(@telephone_number_too_short.first[:message]).to match "telephone_number"
+        # officer_invalid_name
+        expect(@officers_invalid_name).to be_kind_of Array
+        expect(@officers_invalid_name.size).to eq(1)
+        expect(@officers_invalid_name.first[:failed_attribute]).to eq("Required")
+        expect(@officers_invalid_name.first[:message]).to match "name"
+        # registered_address_invalid
+        expect(@registered_address_invalid).to be_kind_of Array
+        expect(@registered_address_invalid.size).to eq(1)
+        expect(@registered_address_invalid.first[:failed_attribute]).to eq("OneOf")
+        expect(@registered_address_invalid.first[:message]).to match "registered_address"
+        # share_parcel_too_large
+        expect(@share_parcel_too_large).to be_kind_of Array
+        expect(@share_parcel_too_large.size).to eq(1)
+        expect(@share_parcel_too_large.first[:failed_attribute]).to eq("Maximum")
+        expect(@share_parcel_too_large.first[:message]).to match "share_parcels"
+        # total_shares_valid
+        expect(@total_shares_invalid).to be_kind_of Array
+        expect(@total_shares_invalid.size).to eq(1)
+        expect(@total_shares_invalid.first[:failed_attribute]).to eq("Required")
+        expect(@total_shares_invalid.first[:message]).to match "number"
+        # filings_invalid
+        expect(@filings_invalid).to be_kind_of Array
+        expect(@filings_invalid.size).to eq(1)
+        expect(@filings_invalid.first[:failed_attribute]).to eq("Required")
+        expect(@filings_invalid.first[:message]).to match "filings"
+        # identifiers_invalid
+        expect(@identifiers_invalid).to be_kind_of Array
+        expect(@identifiers_invalid.size).to eq(1)
+        expect(@identifiers_invalid.first[:failed_attribute]).to eq("Required")
+        expect(@identifiers_invalid.first[:message]).to match "identifiers"
+        # industry_codes_invalid
+        expect(@industry_codes_invalid).to be_kind_of Array
+        expect(@industry_codes_invalid.size).to eq(1)
+        expect(@industry_codes_invalid.first[:failed_attribute]).to eq("TypeV4")
+        expect(@industry_codes_invalid.first[:message]).to match "industry_codes"
+        # additional_properties_invalid
+        expect(@additional_properties_invalid).to be_kind_of Array
+        expect(@additional_properties_invalid.size).to eq(1)
+        expect(@additional_properties_invalid.first[:failed_attribute]).to eq("AdditionalProperties")
+        expect(@additional_properties_invalid.first[:failed_attribute]).to match "AdditionalProperties"
       end
     end
   end

@@ -277,13 +277,11 @@ module OpencBot
       end
 
       def validate_datum(record)
-        Dir.chdir(schema_path) do
-          JSON::Validator.fully_validate(
-            "#{schema_name}.json",
-            record.to_json,
-            errors_as_objects: true,
-          )
-        end
+        JSON::Validator.fully_validate(
+          "#{schema_path}/#{schema_name}.json",
+          record.to_json,
+          errors_as_objects: true,
+        )
       end
 
       def post_process(row_hash, skip_nulls = false)
