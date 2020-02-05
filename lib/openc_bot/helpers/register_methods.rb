@@ -8,7 +8,7 @@ require "English"
 
 module OpencBot
   module Helpers
-    module RegisterMethods
+    module RegisterMethods # rubocop:disable Metrics/ModuleLength
       MAX_BUSY_RETRIES = 10
 
       def allowed_hours
@@ -94,7 +94,7 @@ module OpencBot
           if fail_count <= MAX_BUSY_RETRIES
             puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
             sleep retry_interval
-            retry_interval = retry_interval * 2
+            retry_interval *= 2
             retry
           else
             raise e
