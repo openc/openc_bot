@@ -9,7 +9,7 @@ require "English"
 module OpencBot
   module Helpers
     module RegisterMethods
-      MAX_BUSY_RETRIES = 3
+      MAX_BUSY_RETRIES = 10
 
       def allowed_hours
         if const_defined?("ALLOWED_HOURS")
@@ -90,15 +90,15 @@ module OpencBot
         begin
           insert_or_update([primary_key_name], data_to_be_saved)
         rescue SQLite3::BusyException => e
-          # fail_count += 1
-          # if fail_count <= MAX_BUSY_RETRIES
-          puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
-          #   sleep retry_interval
-          #   retry_interval = retry_interval * 2
-          #   retry
-          # else
-          raise e
-          # end
+          fail_count += 1
+          if fail_count <= MAX_BUSY_RETRIES
+            puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
+            sleep retry_interval
+            retry_interval = retry_interval * 2
+            retry
+          else
+            raise e
+          end
         end
       end
 
