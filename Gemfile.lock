@@ -20,6 +20,7 @@ PATH
       retriable (~> 2.1)
       scraperwiki (= 3.0.2)
       sqlite_magic (= 0.0.6)
+      statsd-instrument (~> 1.7)
       tzinfo (~> 1.2)
 
 GEM
@@ -33,7 +34,7 @@ GEM
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     ast (2.4.0)
-    backports (3.15.0)
+    backports (3.16.1)
     byebug (10.0.2)
     coderay (1.1.2)
     concurrent-ruby (1.1.6)
@@ -94,6 +95,7 @@ GEM
       httpclient
       sqlite_magic
     sqlite3 (1.4.2)
+    statsd-instrument (1.7.2)
     thread_safe (0.3.6)
     tzinfo (1.2.6)
       thread_safe (~> 0.1)

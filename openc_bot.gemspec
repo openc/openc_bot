@@ -43,6 +43,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "retriable", "~> 2.1"
   gem.add_dependency "scraperwiki", "3.0.2"
   gem.add_dependency "sqlite_magic", "0.0.6"
+  gem.add_dependency "statsd-instrument", "~> 1.7"
   gem.add_dependency "tzinfo", "~> 1.2"
 
   # gem.add_development_dependency "perftools.rb"
