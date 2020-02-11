@@ -279,6 +279,11 @@ describe "a module that includes RegisterMethods" do
       expect(@params).to eq(dup_params)
     end
 
+    it "increments a StatsD counter for this bot" do
+      expect(StatsD).to receive(:increment).with("fetcher_bot.test.modulethatincludesregistermethods.processed", sample_rate: 1.0)
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+    end
+
     it "returns true" do
       expect(ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)).to be_truthy
     end
