@@ -56,7 +56,7 @@ Metrics/MethodLength:
 
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
-  Max: 278
+  Max: 280
 
 # Configuration parameters: CountKeywordArgs.
 Metrics/ParameterLists:
