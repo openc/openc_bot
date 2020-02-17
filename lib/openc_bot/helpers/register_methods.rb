@@ -86,7 +86,7 @@ module OpencBot
 
       def prepare_and_save_data(all_data, _options = {})
         data_to_be_saved = prepare_for_saving(all_data)
-        # fail_count, retry_interval = 0, 5
+        fail_count, retry_interval = 0, 5
         begin
           insert_or_update([primary_key_name], data_to_be_saved)
         rescue SQLite3::BusyException => e
