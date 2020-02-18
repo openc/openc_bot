@@ -24,3 +24,6 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
+
+Metrics/BlockLength:
+  ExcludedMethods: ["describe", "context"]
