@@ -162,10 +162,9 @@ namespace :bot do
       end
     end
 
-    # Add rspec debugger to gemfile
     File.open(File.join(working_dir, "Gemfile"), "a") do |file|
-      file.puts "group :test do\n  gem 'rspec'\n  gem 'debugger'\nend"
-      puts "Added rspec and debugger to Gemfile at #{file}"
+      file.puts "group :test do\n  gem 'rspec'\n  gem 'byebug'\nend"
+      puts "Added rspec and byebug to Gemfile at #{file}"
     end
     puts "Please run 'bundle install'"
   end
