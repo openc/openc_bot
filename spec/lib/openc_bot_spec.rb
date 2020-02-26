@@ -61,6 +61,18 @@ describe "A module that extends OpencBot" do
     end
   end
 
+  describe "#statsd_namespace" do
+    let!(:namespace) { FooBot.statsd_namespace }
+
+    it "produces a suitable namespace string with environment and bot name" do
+      expect(namespace).to eq("fetcher_bot.test.foobot")
+    end
+
+    it "configures statsd mode based on the bot's environment" do
+      expect(StatsD.mode).to eq(:test)
+    end
+  end
+
   describe "#save_run_report" do
     it "save_datas in ocrunreports table" do
       expect(FooBot).to receive(:save_data).with(anything, anything, :ocrunreports)

@@ -1,5 +1,10 @@
 # require 'rspec/autorun'
 require "byebug"
+require "webmock/rspec"
+
+ENV["FETCHER_BOT_ENV"] ||= "test"
+
+WebMock.disable_net_connect!(allow_localhost: true)
 
 RSpec.configure do |config|
 end

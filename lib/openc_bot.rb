@@ -4,6 +4,7 @@ require "scraperwiki"
 require_relative "openc_bot/bot_data_validator"
 require "openc_bot/helpers/text"
 require "openc_bot/exceptions"
+require "statsd-instrument"
 
 module OpencBot
   class OpencBotError < StandardError; end
@@ -74,6 +75,22 @@ module OpencBot
     path, = caller[0].partition(":")
     path = File.expand_path(File.join(File.dirname(path), ".."))
     @@app_directory = path
+  end
+
+  def statsd_namespace
+    @statsd_namespace ||= begin
+      bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
+      StatsD.mode = bot_env
+      StatsD.server = "sys1:8125"
+      StatsD.logger = Logger.new("/dev/null") if bot_env == :test
+
+      if is_a?(Module)
+        "fetcher_bot.#{bot_env}.#{name.downcase}"
+      else
+        "fetcher_bot.#{bot_env}.#{self.class.name.downcase}"
+      end
+        .sub("companiesfetcher", "")
+    end
   end
 
   def db_name

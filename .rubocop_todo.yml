@@ -45,7 +45,7 @@ Metrics/AbcSize:
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine
 Metrics/BlockLength:
-  Max: 929
+  Max: 167
 
 Metrics/CyclomaticComplexity:
   Max: 11
@@ -56,7 +56,7 @@ Metrics/MethodLength:
 
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
-  Max: 278
+  Max: 280
 
 # Configuration parameters: CountKeywordArgs.
 Metrics/ParameterLists:
