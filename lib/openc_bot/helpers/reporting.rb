@@ -3,8 +3,9 @@ require "mail"
 
 module OpencBot
   module Helpers
+    # Methods for reporting start/end/progress/errors of bot runs
+    # as emails and as data posted to the Analysis app.
     module Reporting
-
       # this is only available inside the VPN
       ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
 
@@ -25,9 +26,9 @@ module OpencBot
         report_progress_to_analysis_app(companies_processed: companies_processed, companies_added: companies_added, companies_updated: companies_updated)
       end
 
-      def send_error_report(e, options = {})
-        subject = "Error running #{name}: #{e}"
-        body = "Error details: #{e.inspect}.\nBacktrace:\n#{e.backtrace}"
+      def send_error_report(exception, options = {})
+        subject = "Error running #{name}: #{exception}"
+        body = "Error details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
         send_report(subject: subject, body: body)
         report_run_to_analysis_app(output: body, status_code: "0", ended_at: Time.now.to_s, started_at: options[:started_at])
       end
