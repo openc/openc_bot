@@ -27,8 +27,9 @@ module OpencBot
       end
 
       def send_error_report(exception, options = {})
-        subject = "Error running #{name}: #{exception}"
-        body = "Error details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
+        subject_details = options[:subject_details] || exception
+        subject = "Error running #{name}: #{subject_details}"
+        body = "Error details: #{e.inspect}.\nBacktrace:\n#{exception.backtrace}"
         send_report(subject: subject, body: body)
         report_run_to_analysis_app(output: body, status_code: "0", ended_at: Time.now.to_s, started_at: options[:started_at])
       end
