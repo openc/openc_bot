@@ -18,7 +18,7 @@ describe "A module that extends CompanyFetcherBot" do
   before do
     @dummy_connection = double("database_connection", save_data: nil)
     allow(TestCompaniesFetcher).to receive(:sqlite_magic_connection).and_return(@dummy_connection)
-    allow(TestCompaniesFetcher).to receive(:_http_post)
+    allow(TestCompaniesFetcher).to receive(:_analysis_http_post)
   end
 
   it "includes OpencBot methods" do
@@ -194,7 +194,7 @@ describe "A module that extends CompanyFetcherBot" do
       expected_params = {
         run: hash_including(foo: "bar", bot_id: "test_companies_fetcher", bot_type: "external", status_code: "1", git_commit: "abc12345"),
       }
-      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/runs", expected_params)
+      expect(TestCompaniesFetcher).to receive(:_analysis_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/runs", expected_params)
       TestCompaniesFetcher.run
     end
   end

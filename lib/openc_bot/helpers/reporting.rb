@@ -9,7 +9,7 @@ module OpencBot
       # this is only available inside the VPN
       ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
 
-      RUN_ATTRIBUTES = %i[
+      RUN_REPORT_PARAMS = %i[
         started_at
         ended_at
         status_code
@@ -52,10 +52,10 @@ module OpencBot
 
       def report_run_to_analysis_app(params)
         bot_id = to_s.underscore
-        run_params = params.slice!(RUN_ATTRIBUTES)
+        run_params = params.slice!(RUN_REPORT_PARAMS)
         run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit)
         run_params[:output] ||= params.to_s unless params.blank?
-        _http_post("#{ANALYSIS_HOST}/runs", run: run_params)
+        _analysis_http_post("#{ANALYSIS_HOST}/runs", run: run_params)
       rescue Exception => e
         puts "Exception (#{e.inspect}) reporting run to analysis app"
       end
@@ -70,7 +70,7 @@ module OpencBot
           "companies_added" => companies_added,
           "companies_updated" => companies_updated,
         }
-        _http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
+        _analysis_http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
       rescue Exception => e
         puts "Exception (#{e.inspect}) reporting progress to analysis app"
       end
@@ -79,7 +79,7 @@ module OpencBot
         @analysis_app_client ||= _client(connect_timeout: 5, receive_timeout: 10, flush_client: true)
       end
 
-      def _http_post(url, params)
+      def _analysis_http_post(url, params)
         _analysis_app_client.post(url, params.to_query)
       end
     end
