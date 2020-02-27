@@ -124,6 +124,7 @@ RSpec/FilePath:
     - 'lib/openc_bot/templates/spec/bot_spec.rb'
     - 'spec/lib/bot_data_validator_spec.rb'
     - 'spec/lib/helpers/dates_spec.rb'
+    - 'spec/lib/helpers/reporting_spec.rb'
     - 'spec/lib/helpers/text_spec.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
 

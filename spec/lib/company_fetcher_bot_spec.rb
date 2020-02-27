@@ -198,24 +198,4 @@ describe "A module that extends CompanyFetcherBot" do
       TestCompaniesFetcher.run
     end
   end
-
-  describe "#report_run_progress" do
-    it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
-      expected_params = { data: { bot_id: "test_companies_fetcher", companies_processed: 3, companies_added: 2, companies_updated: 1 }.to_json }
-      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      TestCompaniesFetcher.report_run_progress(companies_processed: 3, companies_added: 2, companies_updated: 1)
-    end
-
-    it "posts null values in the json payload for absent stats" do
-      expected_params = { data: { bot_id: "test_companies_fetcher", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
-      expect(TestCompaniesFetcher).to receive(:_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      TestCompaniesFetcher.report_run_progress(companies_processed: 3)
-    end
-  end
-
-  describe "#report_run_to_oc" do
-    it "supports this deprecated method (called by many external bots) but actually sends a report to the analysis app" do
-      expect(TestCompaniesFetcher.method(:report_run_to_oc)).to eq(TestCompaniesFetcher.method(:report_run_to_analysis_app))
-    end
-  end
 end
