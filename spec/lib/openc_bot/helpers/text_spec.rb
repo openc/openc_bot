@@ -1,4 +1,4 @@
-require_relative "../../spec_helper"
+require "spec_helper"
 require "openc_bot/helpers/text"
 
 describe OpencBot::Helpers::Text do
