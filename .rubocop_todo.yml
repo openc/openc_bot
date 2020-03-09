@@ -23,6 +23,7 @@ Lint/RescueException:
     - 'lib/openc_bot/company_fetcher_bot.rb'
     - 'lib/openc_bot/helpers/alpha_search.rb'
     - 'lib/openc_bot/helpers/register_methods.rb'
+    - 'lib/openc_bot/helpers/reporting.rb'
     - 'lib/openc_bot/tasks.rb'
 
 Lint/ShadowedException:
@@ -75,12 +76,6 @@ Naming/FileName:
   Exclude:
     - 'spec/schemas/company-schema_spec.rb'
 
-# Configuration parameters: MinNameLength, AllowNamesEndingInNumbers, AllowedNames, ForbiddenNames.
-# AllowedNames: io, id, to, by, on, in, at, ip, db
-Naming/UncommunicativeMethodParamName:
-  Exclude:
-    - 'lib/openc_bot/company_fetcher_bot.rb'
-
 # Configuration parameters: EnforcedStyle.
 # SupportedStyles: snake_case, normalcase, non_integer
 Naming/VariableNumber:
@@ -92,44 +87,42 @@ Naming/VariableNumber:
 RSpec/ContextWording:
   Exclude:
     - 'spec/lib/company_fetcher_bot_spec.rb'
-    - 'spec/lib/helpers/alpha_search_spec.rb'
-    - 'spec/lib/helpers/incremental_search_spec.rb'
-    - 'spec/lib/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
 
 RSpec/DescribeClass:
   Exclude:
     - 'spec/lib/company_fetcher_bot_spec.rb'
     - 'spec/lib/exceptions_spec.rb'
-    - 'spec/lib/helpers/alpha_search_spec.rb'
-    - 'spec/lib/helpers/incremental_search_spec.rb'
-    - 'spec/lib/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
     - 'spec/lib/openc_bot_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
 
 # Configuration parameters: Max.
 RSpec/ExampleLength:
   Exclude:
-    - 'spec/lib/helpers/alpha_search_spec.rb'
-    - 'spec/lib/helpers/dates_spec.rb'
-    - 'spec/lib/helpers/incremental_search_spec.rb'
-    - 'spec/lib/helpers/register_methods_spec.rb'
-    - 'spec/lib/helpers/text_spec.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/dates_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/text_spec.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
     - 'spec/lib/openc_bot_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
 
 RSpec/ExpectInHook:
   Exclude:
-    - 'spec/lib/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
 
 # Configuration parameters: CustomTransform, IgnoreMethods.
 RSpec/FilePath:
   Exclude:
     - 'lib/openc_bot/templates/spec/bot_spec.rb'
     - 'spec/lib/bot_data_validator_spec.rb'
-    - 'spec/lib/helpers/dates_spec.rb'
-    - 'spec/lib/helpers/text_spec.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
 
 # Configuration parameters: AssignmentOnly.
@@ -138,9 +131,9 @@ RSpec/InstanceVariable:
     - 'spec/lib/bot_data_validator_spec.rb'
     - 'spec/lib/company_fetcher_bot_spec.rb'
     - 'spec/lib/exceptions_spec.rb'
-    - 'spec/lib/helpers/alpha_search_spec.rb'
-    - 'spec/lib/helpers/incremental_search_spec.rb'
-    - 'spec/lib/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
     - 'spec/lib/openc_bot_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
@@ -192,10 +185,8 @@ Style/Documentation:
     - 'lib/openc_bot.rb'
     - 'lib/openc_bot/bot_data_validator.rb'
     - 'lib/openc_bot/company_fetcher_bot.rb'
-    - 'lib/openc_bot/helpers/_csv.rb'
     - 'lib/openc_bot/helpers/alpha_search.rb'
     - 'lib/openc_bot/helpers/dates.rb'
-    - 'lib/openc_bot/helpers/html.rb'
     - 'lib/openc_bot/helpers/incremental_search.rb'
     - 'lib/openc_bot/helpers/register_methods.rb'
     - 'lib/openc_bot/helpers/text.rb'
@@ -229,7 +220,7 @@ Style/RegexpLiteral:
 # Configuration parameters: AllowAsExpressionSeparator.
 Style/Semicolon:
   Exclude:
-    - 'spec/lib/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
 
 # Cop supports --auto-correct.
 # Configuration parameters: AutoCorrect, AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
