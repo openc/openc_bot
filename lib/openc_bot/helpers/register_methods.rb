@@ -92,7 +92,6 @@ module OpencBot
         # fail_count, retry_interval = 0, 5
         begin
           res = insert_or_update([primary_key_name], data_to_be_saved)
-          StatsD.increment("#{statsd_namespace}.processed", sample_rate: 1.0)
           track_company_processed
           res
         rescue SQLite3::BusyException => e

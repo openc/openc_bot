@@ -91,6 +91,7 @@ describe OpencBot::Helpers::Reporting do
   describe "#track_company_processed" do
     before do
       allow(ModuleThatIncludesReporting).to receive(:report_progress_to_analysis_app)
+      allow(StatsD).to receive(:increment)
     end
 
     context "when last_reported_progress has not been initialised (first iteration)" do
@@ -99,6 +100,10 @@ describe OpencBot::Helpers::Reporting do
         ModuleThatIncludesReporting.remove_instance_variable(:@processed_count) if ModuleThatIncludesReporting.instance_variable_defined?(:@processed_count)
 
         ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
       end
 
       it "starts the process count" do
@@ -122,6 +127,10 @@ describe OpencBot::Helpers::Reporting do
         ModuleThatIncludesReporting.track_company_processed
       end
 
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
+      end
+
       it "increments the existing process count" do
         expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(124)
       end
@@ -141,6 +150,10 @@ describe OpencBot::Helpers::Reporting do
         ModuleThatIncludesReporting.instance_variable_set(:@processed_count, 123)
 
         ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
       end
 
       it "increments the existing process count" do
