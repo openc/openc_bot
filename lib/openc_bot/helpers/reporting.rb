@@ -26,10 +26,6 @@ module OpencBot
         report_run_to_analysis_app(results)
       end
 
-      def report_run_progress
-        report_progress_to_analysis_app
-      end
-
       def send_error_report(exception, options = {})
         subject_details = options[:subject_details] || exception
         subject = "Error running #{name}: #{subject_details}"
