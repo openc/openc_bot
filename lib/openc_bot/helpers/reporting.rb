@@ -9,6 +9,8 @@ module OpencBot
       # this is only available inside the VPN
       ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
 
+      PROGRESS_REPORT_FREQUENCY = 5.minutes
+
       RUN_REPORT_PARAMS = %i[
         started_at
         ended_at
@@ -67,6 +69,16 @@ module OpencBot
 
       # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
       alias report_run_to_oc report_run_to_analysis_app
+
+      def track_company_processed
+        increment_progress_counters(companies_processed_delta: 1)
+
+        @last_reported_progress ||= Time.new(0)
+        return unless Time.now > @last_reported_progress + PROGRESS_REPORT_FREQUENCY
+
+        report_progress_to_analysis_app
+        @last_reported_progress = Time.now
+      end
 
       def increment_progress_counters(companies_processed_delta: nil)
         @processed_count ||= 0

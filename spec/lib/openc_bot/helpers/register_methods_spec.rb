@@ -249,6 +249,7 @@ describe "a module that includes RegisterMethods" do
   describe "#prepare_and_save_data" do
     before do
       @params = { name: "Foo Inc", custom_uid: "12345", foo: %w[bar baz], foo2: { bar: "baz" } }
+      allow(ModuleThatIncludesRegisterMethods).to receive(:track_company_processed)
     end
 
     it "insert_or_updates data using primary_key" do
@@ -284,6 +285,11 @@ describe "a module that includes RegisterMethods" do
       ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
     end
 
+    it "calls track_company_processed to count and report progress" do
+      expect(ModuleThatIncludesRegisterMethods).to receive(:track_company_processed)
+      ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)
+    end
+
     it "returns true" do
       expect(ModuleThatIncludesRegisterMethods.prepare_and_save_data(@params)).to be_truthy
     end
@@ -303,6 +309,7 @@ describe "a module that includes RegisterMethods" do
       allow(ModuleThatIncludesRegisterMethods).to receive(:save_data!)
       allow(ModuleThatIncludesRegisterMethods).to receive(:validate_datum).and_return([])
       allow(ModuleThatIncludesRegisterMethods).to receive(:insert_or_update)
+      allow(ModuleThatIncludesRegisterMethods).to receive(:track_company_processed)
     end
 
     it "fetch_datums for company number" do
@@ -811,6 +818,7 @@ describe "a module that includes RegisterMethods" do
   describe "save_entity" do
     before do
       @params = { name: "Foo Inc", custom_uid: "12345", data: { foo: "bar" } }
+      allow(ModuleThatIncludesRegisterMethods).to receive(:track_company_processed)
     end
 
     it "validates entity data" do
@@ -852,6 +860,7 @@ describe "a module that includes RegisterMethods" do
   describe "save_entity!" do
     before do
       @params = { name: "Foo Inc", custom_uid: "12345", data: { foo: "bar" } }
+      allow(ModuleThatIncludesRegisterMethods).to receive(:track_company_processed)
     end
 
     it "validates entity data (excluding :data)" do

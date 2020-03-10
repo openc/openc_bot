@@ -88,6 +88,71 @@ describe OpencBot::Helpers::Reporting do
     end
   end
 
+  describe "#track_company_processed" do
+    before do
+      allow(ModuleThatIncludesReporting).to receive(:report_progress_to_analysis_app)
+    end
+
+    context "when last_reported_progress has not been initialised (first iteration)" do
+      before do
+        ModuleThatIncludesReporting.remove_instance_variable(:@last_reported_progress) if ModuleThatIncludesReporting.instance_variable_defined?(:@last_reported_progress)
+        ModuleThatIncludesReporting.remove_instance_variable(:@processed_count) if ModuleThatIncludesReporting.instance_variable_defined?(:@processed_count)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "starts the process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(1)
+      end
+
+      it "does a report on this first iteration" do
+        expect(ModuleThatIncludesReporting).to have_received(:report_progress_to_analysis_app)
+      end
+
+      it "initialises the last_reported_progress time" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@last_reported_progress)).to be_within(1.minute).of(Time.now)
+      end
+    end
+
+    context "when last_reported_progress was over 5 minute ago" do
+      before do
+        ModuleThatIncludesReporting.instance_variable_set(:@last_reported_progress, 10.minutes.ago)
+        ModuleThatIncludesReporting.instance_variable_set(:@processed_count, 123)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments the existing process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(124)
+      end
+
+      it "does a report" do
+        expect(ModuleThatIncludesReporting).to have_received(:report_progress_to_analysis_app)
+      end
+
+      it "resets the last_reported_progress time" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@last_reported_progress)).to be_within(1.minute).of(Time.now)
+      end
+    end
+
+    context "when last_reported_progress was quite recent" do
+      before do
+        ModuleThatIncludesReporting.instance_variable_set(:@last_reported_progress, 10.seconds.ago)
+        ModuleThatIncludesReporting.instance_variable_set(:@processed_count, 123)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments the existing process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(124)
+      end
+
+      it "does not send a report" do
+        expect(ModuleThatIncludesReporting).not_to have_received(:report_progress_to_analysis_app)
+      end
+    end
+  end
+
   describe "#increment_progress_counters" do
     it "increments the processed_count instance var by the specified delta" do
       ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 2)
