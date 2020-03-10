@@ -26,8 +26,8 @@ module OpencBot
         report_run_to_analysis_app(results)
       end
 
-      def report_run_progress(companies_processed:, companies_added: nil, companies_updated: nil)
-        report_progress_to_analysis_app(companies_processed: companies_processed, companies_added: companies_added, companies_updated: companies_updated)
+      def report_run_progress
+        report_progress_to_analysis_app
       end
 
       def send_error_report(exception, options = {})
@@ -72,14 +72,19 @@ module OpencBot
       # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
       alias report_run_to_oc report_run_to_analysis_app
 
-      def report_progress_to_analysis_app(companies_processed:, companies_added: nil, companies_updated: nil)
+      def increment_progress_counters(companies_processed_delta: nil)
+        @processed_count ||= 0
+        @processed_count += companies_processed_delta
+      end
+
+      def report_progress_to_analysis_app
         return unless reporting_enabled?
 
         data = {
           "bot_id" => to_s.underscore,
-          "companies_processed" => companies_processed,
-          "companies_added" => companies_added,
-          "companies_updated" => companies_updated,
+          "companies_processed" => @processed_count,
+          "companies_added" => nil,
+          "companies_updated" => nil,
         }
         _analysis_http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
       rescue Exception => e

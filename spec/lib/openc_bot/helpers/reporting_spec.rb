@@ -13,6 +13,7 @@ describe OpencBot::Helpers::Reporting do
   before do
     allow(ModuleThatIncludesReporting).to receive(:reporting_enabled?).and_return(true)
     allow(ModuleThatIncludesReporting).to receive(:_analysis_http_post)
+    ModuleThatIncludesReporting.remove_instance_variable(:@processed_count) if ModuleThatIncludesReporting.instance_variable_defined?(:@processed_count)
   end
 
   describe "#send_error_report" do
@@ -65,17 +66,33 @@ describe OpencBot::Helpers::Reporting do
     end
   end
 
-  describe "#report_run_progress" do
-    it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
-      expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: 2, companies_updated: 1 }.to_json }
-      expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      ModuleThatIncludesReporting.report_run_progress(companies_processed: 3, companies_added: 2, companies_updated: 1)
+  describe "#report_progress_to_analysis_app" do
+    context "with increment_progress_counters having been called (progress to report)" do
+      before do
+        ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 3)
+      end
+
+      it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
+        expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
+        expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+        ModuleThatIncludesReporting.report_progress_to_analysis_app
+      end
     end
 
-    it "posts null values in the json payload for absent stats" do
-      expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
-      expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      ModuleThatIncludesReporting.report_run_progress(companies_processed: 3)
+    context "without progress (counter not initialised)" do
+      it "posts null values in the json payload for companies_processed (as well as the other absent stats)" do
+        expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: nil, companies_added: nil, companies_updated: nil }.to_json }
+        expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+        ModuleThatIncludesReporting.report_progress_to_analysis_app
+      end
+    end
+  end
+
+  describe "#increment_progress_counters" do
+    it "increments the processed_count instance var by the specified delta" do
+      ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 2)
+      ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 2)
+      expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq 4
     end
   end
 
