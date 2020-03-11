@@ -23,7 +23,6 @@ Lint/RescueException:
     - 'lib/openc_bot/company_fetcher_bot.rb'
     - 'lib/openc_bot/helpers/alpha_search.rb'
     - 'lib/openc_bot/helpers/register_methods.rb'
-    - 'lib/openc_bot/helpers/reporting.rb'
     - 'lib/openc_bot/tasks.rb'
 
 Lint/ShadowedException:

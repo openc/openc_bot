@@ -63,7 +63,7 @@ module OpencBot
         run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit, host: `hostname`.strip)
         run_params[:output] ||= params.to_s unless params.blank?
         _analysis_http_post("#{ANALYSIS_HOST}/runs", run: run_params)
-      rescue Exception => e
+      rescue StandardError => e
         puts "Exception (#{e.inspect}) reporting run to analysis app"
       end
 
@@ -95,7 +95,7 @@ module OpencBot
           "companies_updated" => nil,
         }
         _analysis_http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
-      rescue Exception => e
+      rescue StandardError => e
         puts "Exception (#{e.inspect}) reporting progress to analysis app"
       end
 
