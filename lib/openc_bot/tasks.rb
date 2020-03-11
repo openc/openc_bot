@@ -28,6 +28,9 @@ namespace :bot do
   desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
     bot_name = get_bot_name
+    puts "Starting a #{bot_name} update_data run without reporting (dev/debug)"
+    raise "The dev/debug 'run' task should only be invoked with FETCHER_BOT_ENV=development" unless ENV["FETCHER_BOT_ENV"] == "development"
+
     begin
       only_process_running("#{bot_name}-#{t.name}") do
         options = {}
@@ -70,6 +73,8 @@ namespace :bot do
   desc "Perform a fetcher bot run with reporting (Used for real production runs)"
   task :run2 do |_t, _args|
     bot_name = get_bot_name
+    raise "The 'run2' task should only be invoked with FETCHER_BOT_ENV=production" unless ENV["FETCHER_BOT_ENV"] == "production"
+
     begin
       only_process_running("#{bot_name}-bot:run") do
         options = {}
