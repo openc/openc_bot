@@ -62,7 +62,7 @@ module OpencBot
 
         bot_id = to_s.underscore
         run_params = params.slice!(RUN_REPORT_PARAMS)
-        run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit)
+        run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit, host: `hostname`.strip)
         run_params[:output] ||= params.to_s unless params.blank?
         _analysis_http_post("#{ANALYSIS_HOST}/runs", run: run_params)
       rescue Exception => e
