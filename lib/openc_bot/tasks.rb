@@ -25,7 +25,7 @@ namespace :bot do
     create_bot("company")
   end
 
-  desc "Get data from target"
+  desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
     bot_name = get_bot_name
     begin
@@ -55,7 +55,9 @@ namespace :bot do
         end.parse!
         require_relative File.join(Dir.pwd, "lib", bot_name)
         runner = callable_from_file_name(bot_name)
+
         count = runner.update_data(options)
+
         puts "Got #{count} records"
       end
     rescue Exception => e
@@ -65,7 +67,7 @@ namespace :bot do
     end
   end
 
-  desc "Get data from target"
+  desc "Perform a fetcher bot run with reporting (Used for real production runs)"
   task :run2 do |_t, _args|
     bot_name = get_bot_name
     begin
@@ -74,7 +76,9 @@ namespace :bot do
         require_relative File.join(Dir.pwd, "lib", bot_name)
         runner = callable_from_file_name(bot_name)
         puts "Starting running #{bot_name} at #{Time.now}"
+
         runner.run
+
         puts "Finished running #{bot_name} at #{Time.now}"
       end
     rescue Exception => e
