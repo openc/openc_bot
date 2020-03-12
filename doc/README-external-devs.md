@@ -1,5 +1,9 @@
 # OpencBot
 
+This was originally the main README for the openc_bot gem, written for external
+developers to learn how to write bots for openc. These days we don't involve
+external developers in this way. See the new main [README](../README.md).
+
 ## Overview
 
 This is a gem to allow bots to be written to fetch and format data
@@ -33,7 +37,7 @@ directory, run `bundle install`, and then `bundle exec openc_bot rake
 bot:run`
 
 You can write bots for any schemas we have defined
-- see [SCHEMAS.md](./doc/SCHEMAS.md) for currently supported schemas.
+- see [SCHEMAS.md](./SCHEMAS.md) for currently supported schemas.
 
 When you are happy that your bot is finished, please update its
 `README.md`, change the `enabled` flag in `config.yml` to be `true`,
@@ -61,7 +65,7 @@ of reasons:
   your `README.md`.
 
 For more complicated scrapers, you may wish to do things more manually
--- see [README-complex.md](./doc/README-complex.md) for more info.
+-- see [README-complex.md](./README-complex.md) for more info.
 
 # A few words about dates
 
