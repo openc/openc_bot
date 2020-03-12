@@ -95,6 +95,7 @@ namespace :bot do
 
   desc "Update stale data from target"
   task :update_stale do
+    puts "WARNING No FETCHER_BOT_ENV specified" unless ENV["FETCHER_BOT_ENV"]
     only_process_running("update_stale") do
       bot_name = get_bot_name
       require_relative File.join(Dir.pwd, "lib", bot_name)
@@ -105,6 +106,7 @@ namespace :bot do
 
   desc "Run bot, but just for record with given uid"
   task :run_for_uid, :uid do |t, args|
+    puts "WARNING No FETCHER_BOT_ENV specified" unless ENV["FETCHER_BOT_ENV"]
     bot_name = get_bot_name
     only_process_running("#{bot_name}-#{t.name}-#{args[:uid]}") do
       require_relative File.join(Dir.pwd, "lib", bot_name)
