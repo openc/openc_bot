@@ -125,97 +125,97 @@ namespace :bot do
     FileUtils.mv new_db_location, db_location
     puts "Successfully recreated database via backup.\nNew db: #{db_location}\nOriginal db: #{backup_db_location}"
   end
+end
 
-  def klass_from_file_name(underscore_file_name)
-    camelcase_version = underscore_file_name.split("_").map(&:capitalize).join
-    Object.const_get(camelcase_version)
+def klass_from_file_name(underscore_file_name)
+  camelcase_version = underscore_file_name.split("_").map(&:capitalize).join
+  Object.const_get(camelcase_version)
+end
+
+# At the moment, we have simple bots and bots; the former expect to
+# be instances, the latter modules with class methods.
+def callable_from_file_name(underscore_file_name)
+  bot_klass = klass_from_file_name(underscore_file_name)
+  callable = if bot_klass.respond_to?(:new)
+               bot_klass.new
+             else
+               bot_klass
+             end
+  callable
+end
+
+def create_bot(template_name = "bot")
+  working_dir = Dir.pwd
+  bot_name = get_bot_name
+  new_module_name = bot_name.split("_").collect(&:capitalize).join
+
+  %w[bin db data lib spec spec/dummy_responses tmp pids].each do |new_dir|
+    new_dir_path = File.join(working_dir, new_dir)
+    FileUtils.mkdir_p(new_dir_path)
   end
 
-  # At the moment, we have simple bots and bots; the former expect to
-  # be instances, the latter modules with class methods.
-  def callable_from_file_name(underscore_file_name)
-    bot_klass = klass_from_file_name(underscore_file_name)
-    callable = if bot_klass.respond_to?(:new)
-                 bot_klass.new
-               else
-                 bot_klass
-               end
-    callable
-  end
-
-  def create_bot(template_name = "bot")
-    working_dir = Dir.pwd
-    bot_name = get_bot_name
-    new_module_name = bot_name.split("_").collect(&:capitalize).join
-
-    %w[bin db data lib spec spec/dummy_responses tmp pids].each do |new_dir|
-      new_dir_path = File.join(working_dir, new_dir)
-      FileUtils.mkdir_p(new_dir_path)
-    end
-
-    bot_template = "lib/#{template_name}.rb"
-    templates = ["spec/spec_helper.rb", "spec/bot_spec.rb", "README.md", "config.yml", bot_template]
-    templates.each do |template_location|
-      template = File.open(File.join(File.dirname(__FILE__), "templates", template_location)).read
-      template.gsub!("MyModule", new_module_name)
-      template.gsub!("my_module", bot_name)
-      new_file = File.join(working_dir, template_location.sub(/template/, "").sub(/bot/, bot_name).to_s)
-      unless File.exist? new_file
-        File.open(new_file, File::WRONLY | File::CREAT | File::EXCL) { |f| f.puts template }
-        puts "Created #{new_file}"
-      end
-    end
-
-    File.open(File.join(working_dir, "Gemfile"), "a") do |file|
-      file.puts "group :test do\n  gem 'rspec'\n  gem 'byebug'\nend"
-      puts "Added rspec and byebug to Gemfile at #{file}"
-    end
-    puts "Please run 'bundle install'"
-  end
-
-  def get_bot_name
-    bot_name ||= Dir.pwd.split("/").last
-  end
-
-  def only_process_running(task_name)
-    pid_path = File.join(pid_dir, task_name)
-
-    raise_if_already_running(pid_path)
-    write_pid_file(pid_path)
-
-    begin
-      yield
-    ensure
-      remove_pid_file(pid_path)
+  bot_template = "lib/#{template_name}.rb"
+  templates = ["spec/spec_helper.rb", "spec/bot_spec.rb", "README.md", "config.yml", bot_template]
+  templates.each do |template_location|
+    template = File.open(File.join(File.dirname(__FILE__), "templates", template_location)).read
+    template.gsub!("MyModule", new_module_name)
+    template.gsub!("my_module", bot_name)
+    new_file = File.join(working_dir, template_location.sub(/template/, "").sub(/bot/, bot_name).to_s)
+    unless File.exist? new_file
+      File.open(new_file, File::WRONLY | File::CREAT | File::EXCL) { |f| f.puts template }
+      puts "Created #{new_file}"
     end
   end
 
-  def raise_if_already_running(pid_path)
-    begin
-      pid = File.open(pid_path).read.to_i
-    rescue Errno::ENOENT
-      # PID file doesn't exist
-      return
-    end
+  File.open(File.join(working_dir, "Gemfile"), "a") do |file|
+    file.puts "group :test do\n  gem 'rspec'\n  gem 'byebug'\nend"
+    puts "Added rspec and byebug to Gemfile at #{file}"
+  end
+  puts "Please run 'bundle install'"
+end
 
-    begin
-      Process.getpgid(pid)
-    rescue Errno::ESRCH
-      # Process with PID doesn't exist
-      # TODO Log this
-      return
-    else
-      # Process with PID does exist
-      # TODO Log this
-      raise "Already running #{pid_path}"
-    end
+def get_bot_name
+  bot_name ||= Dir.pwd.split("/").last
+end
+
+def only_process_running(task_name)
+  pid_path = File.join(pid_dir, task_name)
+
+  raise_if_already_running(pid_path)
+  write_pid_file(pid_path)
+
+  begin
+    yield
+  ensure
+    remove_pid_file(pid_path)
+  end
+end
+
+def raise_if_already_running(pid_path)
+  begin
+    pid = File.open(pid_path).read.to_i
+  rescue Errno::ENOENT
+    # PID file doesn't exist
+    return
   end
 
-  def write_pid_file(pid_path)
-    File.open(pid_path, "w") { |file| file.write(Process.pid) }
+  begin
+    Process.getpgid(pid)
+  rescue Errno::ESRCH
+    # Process with PID doesn't exist
+    # TODO Log this
+    return
+  else
+    # Process with PID does exist
+    # TODO Log this
+    raise "Already running #{pid_path}"
   end
+end
 
-  def remove_pid_file(pid_path)
-    File.delete(pid_path) if File.exist?(pid_path)
-  end
+def write_pid_file(pid_path)
+  File.open(pid_path, "w") { |file| file.write(Process.pid) }
+end
+
+def remove_pid_file(pid_path)
+  File.delete(pid_path) if File.exist?(pid_path)
 end
