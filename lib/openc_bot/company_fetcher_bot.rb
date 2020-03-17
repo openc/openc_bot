@@ -43,7 +43,6 @@ module OpencBot
       super(default_options.merge(entity_info))
     end
 
-
     # This is the main method for running the bot. It is called by cron or
     # command line using: `bundle exec openc_bot rake bot:run`
     # It calls #update_data then reports the run result. #update_data might be
