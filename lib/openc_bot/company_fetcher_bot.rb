@@ -43,8 +43,12 @@ module OpencBot
       super(default_options.merge(entity_info))
     end
 
-    # wraps #update_data with reporting so that methods can be overridden by company_fetchers
-    # and reporting will still happen (also allows update_data to be run without reporting).
+
+    # This is the main method for running the bot. It is called by cron or
+    # command line using: `bundle exec openc_bot rake bot:run`
+    # It calls #update_data then reports the run result. #update_data might be
+    # overridden by company_fetchers and the final run report will still happen.
+    # Reporting is disabled anyway when FETCHER_BOT_ENV is development/test.
     def run(options = {})
       start_time = Time.now
       update_data_results = update_data(options.merge(started_at: start_time)) || {}
@@ -57,11 +61,9 @@ module OpencBot
       super || "company-schema"
     end
 
-    # this is what is called every time the bot is run using @my_bot.run, or more likely from
-    # cron/command line using: bundle exec openc_bot rake bot:run
-    # It should return some information to be included in the bot run report, and any
-    # that is returned from fetch_data or update_stale (which you should override in preference to
-    # overriding this method) will be included in the run report
+    # Outline bot run logic. Any information that is returned from #fetch_data
+    # or #update_stale (which you should override in preference to overriding
+    # this method) will be returned here and included in the final run report.
     def update_data(options = {})
       fetch_data_results = fetch_data
       update_stale_results = update_stale
