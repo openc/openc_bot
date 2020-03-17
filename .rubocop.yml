@@ -26,4 +26,8 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
 
 Metrics/BlockLength:
+  Max: 200
   ExcludedMethods: ["describe", "context"]
+
+Metrics/ModuleLength:
+  Max: 300
