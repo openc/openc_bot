@@ -16,11 +16,15 @@ describe OpencBot::Helpers::Reporting do
   end
 
   describe "#send_error_report" do
+    before do
+      allow(ModuleThatIncludesReporting).to receive(:send_report)
+      allow(ModuleThatIncludesReporting).to receive(:report_run_to_analysis_app)
+    end
+
+    let(:exception) { RuntimeError.new("something went wrong") }
+
     context "without parameters" do
       before do
-        allow(ModuleThatIncludesReporting).to receive(:send_report)
-        allow(ModuleThatIncludesReporting).to receive(:report_run_to_analysis_app)
-        exception = RuntimeError.new("something went wrong")
         ModuleThatIncludesReporting.send_error_report(exception)
       end
 
@@ -39,6 +43,23 @@ describe OpencBot::Helpers::Reporting do
             output: "Error details: #<RuntimeError: something went wrong>.\nBacktrace:\n",
             started_at: nil,
             ended_at: kind_of(String),
+          )
+      end
+    end
+
+    context "with subject_details option" do
+      before do
+        ModuleThatIncludesReporting.send_error_report(
+          exception,
+          subject_details: "Extra text for the email subject",
+        )
+      end
+
+      it "uses the supplied text in the email subject" do
+        expect(ModuleThatIncludesReporting).to have_received(:send_report)
+          .with(
+            body: "Error details: #<RuntimeError: something went wrong>.\nBacktrace:\n",
+            subject: "Error running ModuleThatIncludesReporting: Extra text for the email subject",
           )
       end
     end
