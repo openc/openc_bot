@@ -86,6 +86,12 @@ describe "A module that extends CompanyFetcherBot" do
     end
   end
 
+  describe "#statsd_namspace" do
+    it "uses the inferred_jurisdiction_code method defined in this module which to produce valid statsd_namespace and jurisdiction_code in snake_case format" do
+      expect(UsXxCompaniesFetcher.statsd_namespace).to eq("fetcher_bot.test.us_xx")
+    end
+  end
+
   describe "#save_entity" do
     before do
       allow(TestCompaniesFetcher).to receive(:inferred_jurisdiction_code).and_return("ab_cd")
