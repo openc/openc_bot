@@ -109,6 +109,7 @@ RSpec/ExampleLength:
     - 'spec/lib/openc_bot/helpers/dates_spec.rb'
     - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
     - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/reporting_spec.rb'
     - 'spec/lib/openc_bot/helpers/text_spec.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
     - 'spec/lib/openc_bot_spec.rb'
@@ -138,10 +139,16 @@ RSpec/InstanceVariable:
     - 'spec/lib/openc_bot_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
 
-# Configuration parameters: .
+# Configuration parameters: EnforcedStyle.
 # SupportedStyles: have_received, receive
 RSpec/MessageSpies:
-  EnforcedStyle: receive
+  Exclude:
+    - 'spec/lib/company_fetcher_bot_spec.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot/helpers/reporting_spec.rb'
+    - 'spec/lib/openc_bot_spec.rb'
 
 # Configuration parameters: AggregateFailuresByDefault.
 RSpec/MultipleExpectations:
