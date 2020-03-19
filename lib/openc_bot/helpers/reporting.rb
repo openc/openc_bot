@@ -17,6 +17,10 @@ module OpencBot
         output
       ].freeze
 
+      def reporting_enabled?
+        ENV["FETCHER_BOT_ENV"] == "production"
+      end
+
       def report_run_results(results)
         send_run_report(results)
         report_run_to_analysis_app(results)
@@ -43,6 +47,8 @@ module OpencBot
       end
 
       def send_report(params)
+        return unless reporting_enabled?
+
         Mail.deliver do
           from "admin@opencorporates.com"
           to "bots@opencorporates.com"
@@ -52,9 +58,11 @@ module OpencBot
       end
 
       def report_run_to_analysis_app(params)
+        return unless reporting_enabled?
+
         bot_id = to_s.underscore
         run_params = params.slice!(RUN_REPORT_PARAMS)
-        run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit)
+        run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit, host: `hostname`.strip)
         run_params[:output] ||= params.to_s unless params.blank?
         _analysis_http_post("#{ANALYSIS_HOST}/runs", run: run_params)
       rescue Exception => e
@@ -65,6 +73,8 @@ module OpencBot
       alias report_run_to_oc report_run_to_analysis_app
 
       def report_progress_to_analysis_app(companies_processed:, companies_added: nil, companies_updated: nil)
+        return unless reporting_enabled?
+
         data = {
           "bot_id" => to_s.underscore,
           "companies_processed" => companies_processed,
