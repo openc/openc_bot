@@ -1,14 +1,17 @@
 require "json-schema"
 require "active_support"
 require "active_support/core_ext"
-require "openc_bot/exceptions"
 require "retriable"
 require "tzinfo"
 require "English"
+require "openc_bot/exceptions"
+require "openc_bot/helpers/reporting"
 
 module OpencBot
   module Helpers
     module RegisterMethods
+      include OpencBot::Helpers::Reporting
+
       MAX_BUSY_RETRIES = 3
 
       def allowed_hours
@@ -89,7 +92,7 @@ module OpencBot
         # fail_count, retry_interval = 0, 5
         begin
           res = insert_or_update([primary_key_name], data_to_be_saved)
-          StatsD.increment("#{statsd_namespace}.processed", sample_rate: 1.0)
+          track_company_processed
           res
         rescue SQLite3::BusyException => e
           # fail_count += 1

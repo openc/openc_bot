@@ -13,6 +13,7 @@ describe OpencBot::Helpers::Reporting do
   before do
     allow(ModuleThatIncludesReporting).to receive(:reporting_enabled?).and_return(true)
     allow(ModuleThatIncludesReporting).to receive(:_analysis_http_post)
+    ModuleThatIncludesReporting.remove_instance_variable(:@processed_count) if ModuleThatIncludesReporting.instance_variable_defined?(:@processed_count)
   end
 
   describe "#send_error_report" do
@@ -65,17 +66,111 @@ describe OpencBot::Helpers::Reporting do
     end
   end
 
-  describe "#report_run_progress" do
-    it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
-      expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: 2, companies_updated: 1 }.to_json }
-      expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      ModuleThatIncludesReporting.report_run_progress(companies_processed: 3, companies_added: 2, companies_updated: 1)
+  describe "#report_progress_to_analysis_app" do
+    context "with increment_progress_counters having been called (progress to report)" do
+      before do
+        ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 3)
+      end
+
+      it "posts a progress report to the analysis app fetcher_progress_log endpoint" do
+        expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
+        expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+        ModuleThatIncludesReporting.report_progress_to_analysis_app
+      end
     end
 
-    it "posts null values in the json payload for absent stats" do
-      expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: 3, companies_added: nil, companies_updated: nil }.to_json }
-      expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
-      ModuleThatIncludesReporting.report_run_progress(companies_processed: 3)
+    context "without progress (counter not initialised)" do
+      it "posts null values in the json payload for companies_processed (as well as the other absent stats)" do
+        expected_params = { data: { bot_id: "module_that_includes_reporting", companies_processed: nil, companies_added: nil, companies_updated: nil }.to_json }
+        expect(ModuleThatIncludesReporting).to receive(:_analysis_http_post).with("#{OpencBot::Helpers::Reporting::ANALYSIS_HOST}/fetcher_progress_log", expected_params)
+        ModuleThatIncludesReporting.report_progress_to_analysis_app
+      end
+    end
+  end
+
+  describe "#track_company_processed" do
+    before do
+      allow(ModuleThatIncludesReporting).to receive(:report_progress_to_analysis_app)
+      allow(StatsD).to receive(:increment)
+    end
+
+    context "when last_reported_progress has not been initialised (first iteration)" do
+      before do
+        ModuleThatIncludesReporting.remove_instance_variable(:@last_reported_progress) if ModuleThatIncludesReporting.instance_variable_defined?(:@last_reported_progress)
+        ModuleThatIncludesReporting.remove_instance_variable(:@processed_count) if ModuleThatIncludesReporting.instance_variable_defined?(:@processed_count)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
+      end
+
+      it "starts the process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(1)
+      end
+
+      it "does a report on this first iteration" do
+        expect(ModuleThatIncludesReporting).to have_received(:report_progress_to_analysis_app)
+      end
+
+      it "initialises the last_reported_progress time" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@last_reported_progress)).to be_within(1.minute).of(Time.now)
+      end
+    end
+
+    context "when last_reported_progress was over 5 minute ago" do
+      before do
+        ModuleThatIncludesReporting.instance_variable_set(:@last_reported_progress, 10.minutes.ago)
+        ModuleThatIncludesReporting.instance_variable_set(:@processed_count, 123)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
+      end
+
+      it "increments the existing process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(124)
+      end
+
+      it "does a report" do
+        expect(ModuleThatIncludesReporting).to have_received(:report_progress_to_analysis_app)
+      end
+
+      it "resets the last_reported_progress time" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@last_reported_progress)).to be_within(1.minute).of(Time.now)
+      end
+    end
+
+    context "when last_reported_progress was quite recent" do
+      before do
+        ModuleThatIncludesReporting.instance_variable_set(:@last_reported_progress, 10.seconds.ago)
+        ModuleThatIncludesReporting.instance_variable_set(:@processed_count, 123)
+
+        ModuleThatIncludesReporting.track_company_processed
+      end
+
+      it "increments a StatsD counter for this bot" do
+        expect(StatsD).to have_received(:increment).with("fetcher_bot.test.modulethatincludesreporting.processed", sample_rate: 1.0)
+      end
+
+      it "increments the existing process count" do
+        expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq(124)
+      end
+
+      it "does not send a report" do
+        expect(ModuleThatIncludesReporting).not_to have_received(:report_progress_to_analysis_app)
+      end
+    end
+  end
+
+  describe "#increment_progress_counters" do
+    it "increments the processed_count instance var by the specified delta" do
+      ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 2)
+      ModuleThatIncludesReporting.increment_progress_counters(companies_processed_delta: 2)
+      expect(ModuleThatIncludesReporting.instance_variable_get(:@processed_count)).to eq 4
     end
   end
 

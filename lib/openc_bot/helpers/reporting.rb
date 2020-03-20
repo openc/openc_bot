@@ -9,6 +9,8 @@ module OpencBot
       # this is only available inside the VPN
       ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
 
+      PROGRESS_REPORT_FREQUENCY = 5.minutes
+
       RUN_REPORT_PARAMS = %i[
         started_at
         ended_at
@@ -24,10 +26,6 @@ module OpencBot
       def report_run_results(results)
         send_run_report(results)
         report_run_to_analysis_app(results)
-      end
-
-      def report_run_progress(companies_processed:, companies_added: nil, companies_updated: nil)
-        report_progress_to_analysis_app(companies_processed: companies_processed, companies_added: companies_added, companies_updated: companies_updated)
       end
 
       def send_error_report(exception, options = {})
@@ -65,24 +63,41 @@ module OpencBot
         run_params.merge!(bot_id: bot_id, bot_type: "external", git_commit: current_git_commit, host: `hostname`.strip)
         run_params[:output] ||= params.to_s unless params.blank?
         _analysis_http_post("#{ANALYSIS_HOST}/runs", run: run_params)
-      rescue Exception => e
+      rescue StandardError => e
         puts "Exception (#{e.inspect}) reporting run to analysis app"
       end
 
       # DEPRECATED. Please use report_run_to_analysis_app instead of report_run_to_oc
       alias report_run_to_oc report_run_to_analysis_app
 
-      def report_progress_to_analysis_app(companies_processed:, companies_added: nil, companies_updated: nil)
+      def track_company_processed
+        StatsD.increment("#{statsd_namespace}.processed", sample_rate: 1.0)
+
+        increment_progress_counters(companies_processed_delta: 1)
+
+        @last_reported_progress ||= Time.new(0)
+        return unless Time.now > @last_reported_progress + PROGRESS_REPORT_FREQUENCY
+
+        report_progress_to_analysis_app
+        @last_reported_progress = Time.now
+      end
+
+      def increment_progress_counters(companies_processed_delta: nil)
+        @processed_count ||= 0
+        @processed_count += companies_processed_delta
+      end
+
+      def report_progress_to_analysis_app
         return unless reporting_enabled?
 
         data = {
           "bot_id" => to_s.underscore,
-          "companies_processed" => companies_processed,
-          "companies_added" => companies_added,
-          "companies_updated" => companies_updated,
+          "companies_processed" => @processed_count,
+          "companies_added" => nil,
+          "companies_updated" => nil,
         }
         _analysis_http_post("#{ANALYSIS_HOST}/fetcher_progress_log", data: data.to_json)
-      rescue Exception => e
+      rescue StandardError => e
         puts "Exception (#{e.inspect}) reporting progress to analysis app"
       end
 

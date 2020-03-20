@@ -84,7 +84,7 @@ module OpencBot
       StatsD.server = "sys1:8125"
       StatsD.logger = Logger.new("/dev/null") if bot_env == :test
 
-      if respond_to?(:inferred_jurisdiction_code)
+      if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
         "fetcher_bot.#{bot_env}.#{inferred_jurisdiction_code}"
       elsif is_a?(Module)
         "fetcher_bot.#{bot_env}.#{name.downcase}"
