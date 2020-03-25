@@ -82,7 +82,7 @@ module OpencBot
       bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
       StatsD.mode = bot_env
       StatsD.server = "sys1:8125"
-      StatsD.logger = Logger.new("/dev/null") if bot_env == :test
+      StatsD.logger = Logger.new("/dev/null") if bot_env != :production
 
       if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
         "fetcher_bot.#{bot_env}.#{inferred_jurisdiction_code}"
