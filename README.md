@@ -16,8 +16,8 @@ Originally this gem was designed for use by external developers, with OpenCorpor
 
 Our **documentation written for external developers**, gives more (out of date) details of what the gem provides and more generally how to write a bot.
 
-* [doc/README-external-devs](./doc/README-external-devs)
-* [doc/README-complex](./doc/README-complex)
+* [doc/README-external-devs.md](./doc/README-external-devs.md)
+* [doc/README-complex.md](./doc/README-complex.md)
 * [doc/SCHEMAS.md](./doc/SCHEMAS.md)
 
 The gem was also originally designed for a variety of bot types, but these days is only used for company fetchers.
