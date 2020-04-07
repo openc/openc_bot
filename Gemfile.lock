@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    openc_bot (0.0.75)
+    openc_bot (0.0.76)
       activesupport (~> 4.1)
       backports (~> 3.11)
       httpclient (~> 2.8)
