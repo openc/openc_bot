@@ -8,6 +8,8 @@ module OpencBot
     BOTS_JSON_URL = ENV["ANALYSIS_BOTS_JSON_URL"]
 
     def set_variables
+      return if @db_config
+
       config?.marshal_dump.each { |k, v| instance_variable_set("@#{k}", v) } unless config?.nil?
     end
 
