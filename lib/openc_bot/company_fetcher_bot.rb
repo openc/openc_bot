@@ -2,6 +2,7 @@ require "openc_bot"
 require "openc_bot/helpers/incremental_search"
 require "openc_bot/helpers/alpha_search"
 require "openc_bot/helpers/reporting"
+require "openc_bot/config"
 
 module OpencBot
   module CompanyFetcherBot
@@ -9,6 +10,7 @@ module OpencBot
     include OpencBot::Helpers::IncrementalSearch
     include OpencBot::Helpers::AlphaSearch
     include OpencBot::Helpers::Reporting
+    include OpencBot::Config
 
     STDOUT.sync = true
     STDERR.sync = true
