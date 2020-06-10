@@ -212,9 +212,7 @@ module OpencBot
       end
 
       def update_data(_options = {})
-        fetch_data
-        update_stale
-        save_run_report(status: "success")
+        raise "DEPRECATED - This definition of update_data is presumably always overwritten by the one in company_fetcher_bot.rb, and so can be removed soon (But if this error ever occurs then we were wrong about that!)"
       end
 
       # This method updates a datum given by a uid (e.g. a company_number), by fetching new data, processing it

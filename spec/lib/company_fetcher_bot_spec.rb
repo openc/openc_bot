@@ -149,12 +149,12 @@ describe "A module that extends CompanyFetcherBot" do
     end
 
     it "fetch_datas" do
-      expect(TestCompaniesFetcher).to receive(:update_stale)
+      expect(TestCompaniesFetcher).to receive(:fetch_data)
       TestCompaniesFetcher.update_data
     end
 
     it "update_stales" do
-      expect(TestCompaniesFetcher).to receive(:fetch_data)
+      expect(TestCompaniesFetcher).to receive(:update_stale)
       TestCompaniesFetcher.update_data
     end
 

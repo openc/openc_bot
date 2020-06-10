@@ -106,40 +106,6 @@ describe "a module that includes RegisterMethods" do
     end
   end
 
-  describe "#update_data" do
-    before do
-      allow(ModuleThatIncludesRegisterMethods).to receive(:fetch_data_via_incremental_search)
-      allow(ModuleThatIncludesRegisterMethods).to receive(:update_stale)
-    end
-
-    it "gets new records via incremental search" do
-      expect(ModuleThatIncludesRegisterMethods).not_to receive(:fetch_data_via_alpha_search)
-      expect(ModuleThatIncludesRegisterMethods).to receive(:fetch_data_via_incremental_search)
-      ModuleThatIncludesRegisterMethods.update_data
-    end
-
-    it "gets new records via alpha search if use_alpha_search" do
-      expect(ModuleThatIncludesRegisterMethods).to receive(:use_alpha_search).and_return(true)
-      expect(ModuleThatIncludesRegisterMethods).not_to receive(:fetch_data_via_incremental_search)
-      expect(ModuleThatIncludesRegisterMethods).to receive(:fetch_data_via_alpha_search)
-      ModuleThatIncludesRegisterMethods.update_data
-    end
-
-    it "updates stale records" do
-      expect(ModuleThatIncludesRegisterMethods).to receive(:update_stale)
-      ModuleThatIncludesRegisterMethods.update_data
-    end
-
-    it "saves run report" do
-      expect(ModuleThatIncludesRegisterMethods).to receive(:save_run_report).with(status: "success")
-      ModuleThatIncludesRegisterMethods.update_data
-    end
-
-    it "does not raise error if passed options" do
-      expect { ModuleThatIncludesRegisterMethods.update_data }.not_to raise_error
-    end
-  end
-
   describe "#update_stale" do
     it "gets uids of stale entries" do
       expect(ModuleThatIncludesRegisterMethods).to receive(:stale_entry_uids)
