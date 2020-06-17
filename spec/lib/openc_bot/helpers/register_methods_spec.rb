@@ -1015,7 +1015,7 @@ describe "a module that includes RegisterMethods" do
     end
 
     after do
-      FileUtils.rmdir(File.join(@dummy_root_directory, "data"))
+      FileUtils.rm_r(File.join(@dummy_root_directory, "data"))
     end
 
     it "returns directory built from uid inside root data directory" do
