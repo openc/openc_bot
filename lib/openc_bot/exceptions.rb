@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OpencBot
   # Generic Error class for OpencBot exceptions
   class OpencBotError < StandardError; end

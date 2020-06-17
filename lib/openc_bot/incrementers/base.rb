@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "backports/2.0.0/enumerable/lazy"
 require "json"
 module OpencBot
@@ -98,7 +100,7 @@ module OpencBot
   class ManualIncrementer < OpencBot::BaseIncrementer
     include ScraperWiki
 
-    ITEMS_TABLE = "items".freeze
+    ITEMS_TABLE = "items"
 
     def single_transaction
       sqlite_magic_connection.execute("BEGIN TRANSACTION")

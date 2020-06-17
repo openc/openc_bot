@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 require "openc_bot"
 require "openc_bot/helpers/register_methods"
@@ -6,7 +8,7 @@ module ModuleThatIncludesRegisterMethods
   extend OpencBot
   extend OpencBot::Helpers::RegisterMethods
   PRIMARY_KEY_NAME = :custom_uid
-  SCHEMA_NAME = "company-schema".freeze
+  SCHEMA_NAME = "company-schema"
   RAISE_WHEN_SAVING_INVALID_RECORD = true
 end
 

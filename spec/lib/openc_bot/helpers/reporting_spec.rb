@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 require "openc_bot"
 require "openc_bot/company_fetcher_bot"

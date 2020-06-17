@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../spec_helper"
 require "openc_bot"
 require "json-schema"
@@ -5,7 +7,7 @@ require "json-schema"
 describe "OpencBot exceptions" do
   describe OpencBot::OpencBotError do
     it "has StandardError as superclass" do
-      expect(OpencBot::OpencBotError.superclass).to eq(StandardError)
+      expect(described_class.superclass).to eq(StandardError)
     end
   end
 
@@ -18,11 +20,11 @@ describe "OpencBot exceptions" do
 
       @validation_errors = JSON::Validator.fully_validate(@schema, @record.to_json, errors_as_objects: true)
 
-      @error = OpencBot::RecordInvalid.new(@validation_errors)
+      @error = described_class.new(@validation_errors)
     end
 
     it "has OpencBotError as superclass" do
-      expect(OpencBot::RecordInvalid.superclass).to eq(OpencBot::OpencBotError)
+      expect(described_class.superclass).to eq(OpencBot::OpencBotError)
     end
 
     it "has set validation_errors accessor on instantiation" do

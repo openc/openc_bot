@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openc_bot/helpers/register_methods"
 
 module OpencBot
@@ -92,7 +94,7 @@ module OpencBot
           length = d.length
           incremented_number = d.to_i + increment_amount
           length = d.length
-          length = incremented_number.to_s.length if (increment_amount < 0) && !(d[/^0/])
+          length = incremented_number.to_s.length if increment_amount.negative? && !(d[/^0/])
           format("%0#{length}d", incremented_number)
         end
       end

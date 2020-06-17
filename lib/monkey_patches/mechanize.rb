@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Mechanize::HTTP::Agent
   MAX_RESET_RETRIES = 10
 
