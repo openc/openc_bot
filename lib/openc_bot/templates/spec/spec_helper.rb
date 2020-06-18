@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rspec/autorun"
 
 RSpec.configure do |config|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 gem "sqlite_magic", git: "https://github.com/openc/sqlite_magic.git"
 

@@ -1,4 +1,5 @@
-# require 'rspec/autorun'
+# frozen_string_literal: true
+
 require "byebug"
 require "webmock/rspec"
 

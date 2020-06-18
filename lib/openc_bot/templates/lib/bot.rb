@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openc_bot"
 
 # you may need to require other libraries here

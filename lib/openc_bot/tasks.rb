@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "optparse"
 require "json"
 require "fileutils"
 
-PRODUCTION_PID_DIR = "/oc/pids/external_bots".freeze
+PRODUCTION_PID_DIR = "/oc/pids/external_bots"
 
 def pid_dir
   if Dir.exist?(PRODUCTION_PID_DIR)
@@ -211,7 +213,6 @@ def raise_if_already_running(pid_path)
   rescue Errno::ESRCH
     # Process with PID doesn't exist
     # TODO Log this
-    return
   else
     # Process with PID does exist
     # TODO Log this

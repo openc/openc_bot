@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openc_bot"
 require "openc_bot/helpers/incremental_search"
 require "openc_bot/helpers/alpha_search"

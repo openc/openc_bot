@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openc_bot/exceptions"
 require "mail"
 
@@ -7,7 +9,7 @@ module OpencBot
     # as emails and as data posted to the Analysis app.
     module Reporting
       # this is only available inside the VPN
-      ANALYSIS_HOST = "https://analysis.opencorporates.com".freeze
+      ANALYSIS_HOST = "https://analysis.opencorporates.com"
 
       PROGRESS_REPORT_FREQUENCY = 5.minutes
 

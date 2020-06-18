@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 require "openc_bot"
 require "openc_bot/helpers/alpha_search"
@@ -62,6 +64,7 @@ describe "a module that includes AlphaSearch" do
         expect(ModuleThatIncludesAlphaSearch.alpha_terms("1B"))
           .to eq(%w[1B 11 12 2A 2B 21 22])
       end
+
       it "starts array from beginning if no such character" do
         expect(ModuleThatIncludesAlphaSearch.alpha_terms("X")).to eq(@letters_and_numbers)
         allow(ModuleThatIncludesAlphaSearch).to receive(:numbers_of_chars_in_search).and_return(2)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OpencBot
   class NumericIncrementer < OpencBot::BaseIncrementer
     def initialize(name, opts = {})

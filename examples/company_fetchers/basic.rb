@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openc_bot"
 require "openc_bot/company_fetcher_bot"
 # We tend to use Nokogiri to parse HTML//XML but this is optional
