@@ -167,17 +167,19 @@ module OpencBot
       end
 
       def stale_entry_uids(stale_count = nil)
-        stale_count ||= default_stale_count
-        sql_query = "ocdata.#{primary_key_name} from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
-        select(sql_query).each do |res|
-          yield res[primary_key_name.to_s]
+        handle_retrieved_at_not_exists do
+          stale_count ||= default_stale_count
+          sql_query = "ocdata.#{primary_key_name} from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
+          select(sql_query).each do |res|
+            yield res[primary_key_name.to_s]
+          end
         end
-      rescue SQLite3::SQLException => e
-        if e.message[/no such column: retrieved_at/]
-          sqlite_magic_connection.add_columns("ocdata", ["retrieved_at"])
-          retry
-        else
-          raise e
+      end
+
+      def assess_stale
+        handle_retrieved_at_not_exists do
+          sql_query = "count(*) from ocdata WHERE strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}')"
+          select(sql_query).first["count(*)"]
         end
       end
 
@@ -276,9 +278,9 @@ module OpencBot
           update_datum(stale_entry_uid)
           count += 1
         end
-        { updated: count }
+        { updated: count, stale: assess_stale }
       rescue OutOfPermittedHours, SourceClosedForMaintenance => e
-        { updated: count, output: e.message }
+        { updated: count, stale: assess_stale, output: e.message }
       end
 
       def validate_datum(record)
@@ -387,6 +389,17 @@ module OpencBot
           else
             data_hash[k] = parsed_data if parsed_data
           end
+        end
+      end
+
+      def handle_retrieved_at_not_exists(&block)
+        block.call
+      rescue SQLite3::SQLException => e
+        if e.message[/no such column: retrieved_at/]
+          sqlite_magic_connection.add_columns("ocdata", ["retrieved_at"])
+          retry
+        else
+          raise e
         end
       end
     end
