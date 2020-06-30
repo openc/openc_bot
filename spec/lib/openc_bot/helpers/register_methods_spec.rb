@@ -109,6 +109,10 @@ describe "a module that includes RegisterMethods" do
   end
 
   describe "#update_stale" do
+    before do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
+    end
+
     it "gets uids of stale entries" do
       expect(ModuleThatIncludesRegisterMethods).to receive(:stale_entry_uids)
       ModuleThatIncludesRegisterMethods.update_stale
@@ -132,7 +136,7 @@ describe "a module that includes RegisterMethods" do
     it "returns number of entries updated" do
       allow(ModuleThatIncludesRegisterMethods).to receive(:stale_entry_uids).and_yield("234").and_yield("666").and_yield("876")
       allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-      expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 3)
+      expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 3)
     end
 
     context "and OutOfPermittedHours raised" do
@@ -146,7 +150,7 @@ describe "a module that includes RegisterMethods" do
           .and_yield("666")
           .and_raise(@exception)
         allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 2, output: @exception.message)
+        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 2, output: @exception.message)
       end
     end
 
@@ -161,7 +165,7 @@ describe "a module that includes RegisterMethods" do
           .and_yield("666")
           .and_raise(@exception)
         allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 2, output: @exception.message)
+        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 2, output: @exception.message)
       end
     end
   end
@@ -179,8 +183,28 @@ describe "a module that includes RegisterMethods" do
 
       expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567", "87654", "5234888")
     end
+  end
 
-    context "and no retrieved_at column" do
+  describe "#assess_stale" do
+    before do
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_C0MP4NY_0", retrieved_at: (Date.today - 40).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_C0MP4NY_1", retrieved_at: (Date.today - 400).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_C0MP4NY_2", retrieved_at: (Date.today - 4000).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "FR35H_C0MP4NY_0", retrieved_at: (Date.today - 1).to_time)
+    end
+
+    it "gets the count of the number of stale records in the sqlite" do
+      expect(ModuleThatIncludesRegisterMethods.assess_stale).to eq(3)
+    end
+  end
+
+  describe "#handle_retrieved_at_not_exists" do
+    context "when called with block and there is no retrieved_at column in the sqlite" do
+      before do
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "A094567")
+      end
+
       it "does not raise error" do
         expect { ModuleThatIncludesRegisterMethods.stale_entry_uids {} }.not_to raise_error
       end
@@ -190,7 +214,7 @@ describe "a module that includes RegisterMethods" do
         expect(ModuleThatIncludesRegisterMethods.select("* from ocdata").first.keys).to include("retrieved_at")
       end
 
-      it "retries" do
+      it "retries the called method" do
         expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567")
       end
     end
