@@ -39,14 +39,14 @@ describe "a module that includes IncrementalSearch" do
       expect(ModuleThatIncludesIncrementalSearch.increment_number(234_567)).to eq("234568")
     end
 
-    it "increases number prefixed by string" do
+    it "increases number retaining any prefix" do
       expect(ModuleThatIncludesIncrementalSearch.increment_number("B123456")).to eq("B123457")
       expect(ModuleThatIncludesIncrementalSearch.increment_number("B000456")).to eq("B000457")
       expect(ModuleThatIncludesIncrementalSearch.increment_number("B-999")).to eq("B-1000")
       expect(ModuleThatIncludesIncrementalSearch.increment_number("B-000999")).to eq("B-001000")
     end
 
-    it "increases number suffixed by string" do
+    it "increases number retaining any suffix" do
       expect(ModuleThatIncludesIncrementalSearch.increment_number("123456B")).to eq("123457B")
       expect(ModuleThatIncludesIncrementalSearch.increment_number("B000456B")).to eq("B000457B")
       expect(ModuleThatIncludesIncrementalSearch.increment_number("999-B")).to eq("1000-B")
@@ -70,7 +70,7 @@ describe "a module that includes IncrementalSearch" do
     end
 
     context "and negative number to increment given as option" do
-      it "increments by given number" do
+      it "increments by given negative number i.e. it decreases" do
         expect(ModuleThatIncludesIncrementalSearch.increment_number("234567", -3)).to eq("234564")
         expect(ModuleThatIncludesIncrementalSearch.increment_number("1002", -3)).to eq("999")
         expect(ModuleThatIncludesIncrementalSearch.increment_number("000127", -3)).to eq("000124")
@@ -113,7 +113,7 @@ describe "a module that includes IncrementalSearch" do
       ModuleThatIncludesIncrementalSearch.incremental_search("12345")
     end
 
-    it "gets company details for given company number and subsequent company numbers until nil is returned more than max count" do
+    it "gets company details for given company number and subsequent company numbers until nil is returned more than max_failed_count times" do
       allow(ModuleThatIncludesIncrementalSearch).to receive_messages(max_failed_count: 2)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_1)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234569", anything).and_return(:entry_2)
@@ -351,12 +351,12 @@ describe "a module that includes IncrementalSearch" do
     end
 
     context "and highest_entry_uids not set in cache" do
-      it "gets highest_entry_uid_result for each prefix" do
+      it "calls highest_entry_uid_result to get the highest value from the db for each prefix" do
         expect(ModuleThatIncludesIncrementalSearch).to receive(:highest_entry_uid_result).with(prefix: "H").with(prefix: "P")
         ModuleThatIncludesIncrementalSearch.highest_entry_uids
       end
 
-      it "returns highest uid for jurisdiction_code" do
+      it "returns highest uid" do
         expect(ModuleThatIncludesIncrementalSearch).to receive(:highest_entry_uid_result).with(prefix: "H").and_return("H553311")
         expect(ModuleThatIncludesIncrementalSearch).to receive(:highest_entry_uid_result).with(prefix: "P").and_return("P12345")
         expect(ModuleThatIncludesIncrementalSearch.highest_entry_uids).to eq(%w[H553311 P12345])
@@ -374,7 +374,7 @@ describe "a module that includes IncrementalSearch" do
       end
     end
 
-    context "and highest_entry_uids in cache" do
+    context "and highest_entry_uids in cache (saved var)" do
       before do
         @cached_result = "765432"
         ModuleThatIncludesIncrementalSearch.save_var("highest_entry_uids", @cached_result)
@@ -430,13 +430,13 @@ describe "a module that includes IncrementalSearch" do
       end
 
       context "and no options passed" do
-        it "returns highest uid as number for jurisdiction_code" do
+        it "returns highest uid (primary key value) from the db" do
           expect(ModuleThatIncludesIncrementalSearch.highest_entry_uid_result).to eq("9234567")
         end
       end
 
       context "and prefix passed in options" do
-        it "returns highest uid as number for jurisdiction_code" do
+        it "returns highest uid (numerically highest) which has the given prefix" do
           expect(ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(prefix: "A")).to eq("A234567")
           expect(ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(prefix: "SL")).to eq("SL34999")
         end
@@ -451,7 +451,7 @@ describe "a module that includes IncrementalSearch" do
           ModuleThatIncludesIncrementalSearch.save_data([:custom_uid], custom_uid: "99999999")
         end
 
-        it "returns highest company_number for Im with prefix letter" do
+        it "returns highest uid (numerically highest) which has the given suffix" do
           expect(ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(suffix: "V")).to eq("009802V")
           expect(ModuleThatIncludesIncrementalSearch.highest_entry_uid_result(suffix: "C")).to eq("128055C")
         end
