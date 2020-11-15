@@ -9,5 +9,10 @@ if exec_type == 'rake' then
   Rake.application.init
   Rake.application.load_rakefile
   Dir.chdir(pwd) # Revert to original pwd for any path args passed to task.
-  Rake.application.invoke_task(ARGV[1])
+
+  if ARGV[1]=="--tasks"
+    Rake.application.tasks.each {|task| puts " - #{task.name} : #{task.full_comment}" }
+  else
+    Rake.application.invoke_task(ARGV[1])
+  end
 end
