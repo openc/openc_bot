@@ -9,6 +9,7 @@ The gem provides...
 * Logic to validate formatted data against openc schemas
 * Logic to save an entity to an Sqlite file for import into OpenCorporates
 * Helper methods for scraping and iterating over registry websites.
+* Resque set-up and worker class for servicing single record update requests.
 * Methods to report run progress/completion to the "analysis app" (internal only https://analysis.opencorporates.com)
 
 ## External developer documentation
