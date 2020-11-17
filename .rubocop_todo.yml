@@ -211,6 +211,16 @@ Style/IfInsideElse:
     - 'lib/openc_bot/helpers/register_methods.rb'
 
 # Cop supports --auto-correct.
+Style/RedundantRegexpCharacterClass:
+  Exclude:
+    - 'lib/openc_bot/helpers/dates.rb'
+
+# Cop supports --auto-correct.
+Style/RedundantRegexpEscape:
+  Exclude:
+    - 'lib/openc_bot/helpers/register_methods.rb'
+
+# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, AllowInnerSlashes.
 # SupportedStyles: slashes, percent_r, mixed
 Style/RegexpLiteral:
@@ -223,6 +233,12 @@ Style/RegexpLiteral:
 Style/Semicolon:
   Exclude:
     - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
+
+# Cop supports --auto-correct.
+Style/SlicingWithRange:
+  Exclude:
+    - 'lib/openc_bot/helpers/alpha_search.rb'
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
 
 # Cop supports --auto-correct.
 # Configuration parameters: AutoCorrect, AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
