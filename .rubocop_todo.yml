@@ -103,6 +103,7 @@ RSpec/ContextWording:
     - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
 
+# Configuration parameters: IgnoredMetadata.
 RSpec/DescribeClass:
   Exclude:
     - 'spec/lib/company_fetcher_bot_spec.rb'
@@ -166,6 +167,13 @@ RSpec/MultipleExpectations:
 
 RSpec/NestedGroups:
   Max: 5
+
+RSpec/StubbedMock:
+  Exclude:
+    - 'spec/lib/openc_bot/helpers/alpha_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/incremental_search_spec.rb'
+    - 'spec/lib/openc_bot/helpers/register_methods_spec.rb'
+    - 'spec/lib/openc_bot_spec.rb'
 
 # Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
 RSpec/VerifiedDoubles:
