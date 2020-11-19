@@ -5,6 +5,8 @@ require "json"
 require "scraperwiki"
 require_relative "openc_bot/bot_data_validator"
 require "openc_bot/helpers/text"
+require "openc_bot/jobs/single_record_update_job"
+require "openc_bot/jobs/sru_request_job"
 require "openc_bot/exceptions"
 require "statsd-instrument"
 

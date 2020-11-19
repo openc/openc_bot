@@ -3,6 +3,8 @@
 require "optparse"
 require "json"
 require "fileutils"
+require "resque"
+require "resque/tasks"
 
 PRODUCTION_PID_DIR = "/oc/pids/external_bots"
 
@@ -14,6 +16,23 @@ def pid_dir
     FileUtils.mkdir(pd) unless Dir.exist?(pd)
     pd
   end
+end
+
+task "resque:setup" do
+  bot_name = get_bot_name
+  require_relative File.join(Dir.pwd, "lib", bot_name)
+
+  Resque.logger = Logger.new(ENV.fetch("EXTERNAL_BOTS_LOG", $stdout))
+  Resque.logger.level = ENV.fetch("EXTERNAL_BOTS_LOG_LEVEL", Logger::DEBUG)
+  Resque.logger.info "Resque setup"
+
+  resque_config_file = ENV.fetch("EXTERNAL_BOTS_RESQUE_CONFIG", File.join(Dir.pwd, "..", "config", "resque.yml"))
+  resque_redis_config = YAML.load_file(resque_config_file)[ENV.fetch("FETCHER_BOT_ENV")]
+  Resque.redis = Redis.new(resque_redis_config)
+  Resque.redis.namespace = "resque:Openc"
+  Resque.logger.info "Loading #{ENV.fetch('FETCHER_BOT_ENV')} resque redis config: #{resque_redis_config}"
+
+  Resque.logger.debug "We can see these resque queues: #{Resque.queues}"
 end
 
 namespace :bot do
