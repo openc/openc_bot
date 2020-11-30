@@ -110,7 +110,7 @@ describe "a module that includes RegisterMethods" do
 
   describe "#update_stale" do
     before do
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999", retrieved_at: Time.now.utc)
     end
 
     it "gets uids of stale entries" do
@@ -171,17 +171,34 @@ describe "a module that includes RegisterMethods" do
   end
 
   describe "#stale_entry_uids" do
-    before do
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "A094567")
+    context "with companies having a variety of retreive_at values" do
+      before do
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "A094567")
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "5234888", retrieved_at: (Date.today - 40).to_time)
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "87654", retrieved_at: (Date.today - 50)) # date, not time.
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "9234567", retrieved_at: (Date.today - 2).to_time) # not stale
+      end
+
+      it "gets entries which have not been retrieved or are more than 1 month old, oldest first" do
+        expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567", "87654", "5234888")
+      end
     end
 
-    it "gets entries which have not been retrieved or are more than 1 month old, oldest first" do
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "5234888", retrieved_at: (Date.today - 40).to_time)
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "87654", retrieved_at: (Date.today - 50)) # date, not time.
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "9234567", retrieved_at: (Date.today - 2).to_time) # not stale
+    context "with a mixture of active and inactive companies" do
+      before do
+        allow(ModuleThatIncludesRegisterMethods).to receive(:configured_active_ratio).and_return(0.5)
+        (0..5).each do |i|
+          ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ACT-#{i}", retrieved_at: (Date.today - 40).to_time, dissolution_date: nil) # active
+        end
+        (0..9).each do |i|
+          ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "INACT-#{i}", retrieved_at: (Date.today - 40).to_time, dissolution_date: Date.today) # inactive
+        end
+      end
 
-      expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567", "87654", "5234888")
+      it "interleaves two active and one inactive to maintain a configured ratio" do
+        expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(8, &b) }.to yield_successive_args("INACT-0", "ACT-0", "INACT-1", "INACT-2", "ACT-1", "INACT-3", "INACT-4", "ACT-2")
+      end
     end
   end
 
