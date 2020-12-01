@@ -123,7 +123,7 @@ describe "A module that extends OpencBot" do
       FooBot.sqlite_magic_connection
     end
 
-    it "users SQLITE_BUSY_TIMEOUT if set" do
+    it "uses SQLITE_BUSY_TIMEOUT if set" do
       allow(FooBot).to receive(:sqlite_magic_connection).and_call_original
       stub_const("FooBot::SQLITE_BUSY_TIMEOUT", 123)
       expect(SqliteMagic::Connection).to receive(:new).with(anything, busy_timeout: 123).and_return(@dummy_sqlite_magic_connection)
@@ -140,6 +140,39 @@ describe "A module that extends OpencBot" do
   describe "#data_dir" do
     it "returns data directory as a child of the root directory" do
       expect(FooBot.data_dir).to eq(File.expand_path(File.join(File.dirname(__FILE__), "..", "data")))
+    end
+  end
+
+  describe "#table_summary" do
+    let(:expected_summary) do
+      {
+        "Total" => 10,
+        "my_field_not_null" => 8,
+        "my_other_field_not_null" => 5,
+      }
+    end
+
+    before do
+      allow(@dummy_connection).to receive(:execute)
+        .with("PRAGMA table_info(ocdata)").and_return(
+          [
+            { "name" => "my_field" },
+            { "name" => "my_other_field" },
+          ],
+        )
+
+      allow(@dummy_connection).to receive(:execute)
+        .with(
+          "SELECT COUNT(1) Total, " \
+          "COUNT(my_field) my_field_not_null, " \
+          "COUNT(my_other_field) my_other_field_not_null " \
+          "FROM ocdata",
+          nil,
+        ).and_return([expected_summary])
+    end
+
+    it "produces a list of fields and for each one, a count records with non null values" do
+      expect(FooBot.table_summary).to eq(expected_summary)
     end
   end
 end
