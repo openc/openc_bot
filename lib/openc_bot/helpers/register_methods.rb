@@ -242,10 +242,10 @@ module OpencBot
         end
       end
 
-      def assess_stale
+      def assess_stale(active_filter: false)
         handle_retrieved_at_not_exists do
-          sql_query = "count(*) from ocdata WHERE #{stale_where_clause}"
-          select(sql_query).first["count(*)"]
+          sql_query = "COUNT(*) FROM ocdata WHERE #{stale_where_clause(active_filter: active_filter)}"
+          select(sql_query).first["COUNT(*)"]
         end
       end
 
@@ -344,9 +344,9 @@ module OpencBot
           update_datum(stale_entry_uid)
           count += 1
         end
-        { updated: count, stale: assess_stale }
+        { updated: count, stale: assess_stale, active_stale: assess_stale(active_filter: true) }
       rescue OutOfPermittedHours, SourceClosedForMaintenance => e
-        { updated: count, stale: assess_stale, output: e.message }
+        { updated: count, stale: assess_stale, active_stale: assess_stale(active_filter: true), output: e.message }
       end
 
       def validate_datum(record)

@@ -136,7 +136,7 @@ describe "a module that includes RegisterMethods" do
     it "returns number of entries updated" do
       allow(ModuleThatIncludesRegisterMethods).to receive(:stale_entry_uids).and_yield("234").and_yield("666").and_yield("876")
       allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-      expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 3)
+      expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 3, stale: 0, active_stale: 0)
     end
 
     context "and OutOfPermittedHours raised" do
@@ -150,7 +150,7 @@ describe "a module that includes RegisterMethods" do
           .and_yield("666")
           .and_raise(@exception)
         allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 2, output: @exception.message)
+        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 2, stale: 0, active_stale: 0, output: @exception.message)
       end
     end
 
@@ -165,7 +165,7 @@ describe "a module that includes RegisterMethods" do
           .and_yield("666")
           .and_raise(@exception)
         allow(ModuleThatIncludesRegisterMethods).to receive(:update_datum)
-        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(stale: 0, updated: 2, output: @exception.message)
+        expect(ModuleThatIncludesRegisterMethods.update_stale).to eq(updated: 2, stale: 0, active_stale: 0, output: @exception.message)
       end
     end
   end
@@ -208,10 +208,15 @@ describe "a module that includes RegisterMethods" do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_C0MP4NY_1", retrieved_at: (Date.today - 400).to_time)
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_C0MP4NY_2", retrieved_at: (Date.today - 4000).to_time)
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "FR35H_C0MP4NY_0", retrieved_at: (Date.today - 1).to_time)
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ST4L3_INACTIVE", retrieved_at: (Date.today - 40).to_time, dissolution_date: Date.today)
     end
 
     it "gets the count of the number of stale records in the sqlite" do
-      expect(ModuleThatIncludesRegisterMethods.assess_stale).to eq(3)
+      expect(ModuleThatIncludesRegisterMethods.assess_stale).to eq(4)
+    end
+
+    it "allows counting of only active stale records" do
+      expect(ModuleThatIncludesRegisterMethods.assess_stale(active_filter: true)).to eq(3)
     end
   end
 
