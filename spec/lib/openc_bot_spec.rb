@@ -143,6 +143,22 @@ describe "A module that extends OpencBot" do
     end
   end
 
+  describe "#ocdata_field_names" do
+    before do
+      allow(@dummy_connection).to receive(:execute)
+        .with("PRAGMA table_info(ocdata)").and_return(
+          [
+            { "name" => "my_field" },
+            { "name" => "my_other_field" },
+          ],
+        )
+    end
+
+    it "gets a list of field namse of the ocdata table" do
+      expect(FooBot.ocdata_field_names).to eq(%w[my_field my_other_field])
+    end
+  end
+
   describe "#table_summary" do
     let(:expected_summary) do
       {
@@ -153,13 +169,8 @@ describe "A module that extends OpencBot" do
     end
 
     before do
-      allow(@dummy_connection).to receive(:execute)
-        .with("PRAGMA table_info(ocdata)").and_return(
-          [
-            { "name" => "my_field" },
-            { "name" => "my_other_field" },
-          ],
-        )
+      allow(FooBot).to receive(:ocdata_field_names)
+        .and_return(%w[my_field my_other_field])
 
       allow(@dummy_connection).to receive(:execute)
         .with(
