@@ -167,6 +167,8 @@ module OpencBot
       end
 
       def stale_entry_uids(stale_count = nil)
+        return to_enum(:stale_entry_uids, stale_count) unless block_given?
+
         handle_retrieved_at_not_exists do
           stale_count ||= default_stale_count
           sql_query = "ocdata.#{primary_key_name} from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
