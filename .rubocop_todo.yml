@@ -53,7 +53,6 @@ Lint/UselessAssignment:
     - 'lib/openc_bot/bot_data_validator.rb'
     - 'lib/openc_bot/helpers/alpha_search.rb'
     - 'lib/openc_bot/helpers/incremental_search.rb'
-    - 'lib/openc_bot/helpers/register_methods.rb'
     - 'lib/openc_bot/tasks.rb'
     - 'spec/lib/openc_bot/incrementers/common_spec.rb'
     - 'spec/schemas/company-schema_spec.rb'
