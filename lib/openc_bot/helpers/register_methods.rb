@@ -171,6 +171,8 @@ module OpencBot
       end
 
       def stale_entry_uids(stale_count = nil)
+        return to_enum(:stale_entry_uids, stale_count) unless block_given?
+
         handle_retrieved_at_not_exists do
           stale_count ||= default_stale_count
           active_ratio = configured_active_ratio
