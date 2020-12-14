@@ -118,7 +118,7 @@ module OpencBot
       end
 
       def record_count
-        select("COUNT(#{primary_key_name}) as count from ocdata").first["count"]
+        select("COUNT(#{primary_key_name}) AS count FROM ocdata").first["count"]
       rescue StandardError
         0
       end
@@ -171,7 +171,10 @@ module OpencBot
 
         handle_retrieved_at_not_exists do
           stale_count ||= default_stale_count
-          sql_query = "ocdata.#{primary_key_name} from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
+          sql_query = "ocdata.#{primary_key_name} FROM ocdata " \
+            "WHERE retrieved_at IS NULL " \
+            "OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') " \
+            "ORDER BY datetime(retrieved_at) LIMIT #{stale_count.to_i}"
           select(sql_query).each do |res|
             yield res[primary_key_name.to_s]
           end
@@ -180,8 +183,9 @@ module OpencBot
 
       def assess_stale
         handle_retrieved_at_not_exists do
-          sql_query = "count(*) from ocdata WHERE strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}')"
-          select(sql_query).first["count(*)"]
+          sql_query = "COUNT(*) FROM ocdata " \
+            "WHERE strftime('%s', retrieved_at) < strftime('%s', '#{Date.today - days_till_stale}')"
+          select(sql_query).first["COUNT(*)"]
         end
       end
 
@@ -195,7 +199,7 @@ module OpencBot
       end
 
       def stale_entry?(uid)
-        rec = select("retrieved_at from ocdata where #{primary_key_name}=?", uid).first
+        rec = select("retrieved_at FROM ocdata WHERE #{primary_key_name}=?", uid).first
         return true if rec.nil? || rec["retrieved_at"].blank?
 
         !!(Date.parse(rec["retrieved_at"]) < (Date.today - days_till_stale))
