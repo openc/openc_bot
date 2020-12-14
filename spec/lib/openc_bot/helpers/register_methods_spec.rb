@@ -174,14 +174,54 @@ describe "a module that includes RegisterMethods" do
     before do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "99999")
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "A094567")
-    end
-
-    it "gets entries which have not been retrieved or are more than 1 month old, oldest first" do
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "5234888", retrieved_at: (Date.today - 40).to_time)
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "87654", retrieved_at: (Date.today - 50)) # date, not time.
       ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "9234567", retrieved_at: (Date.today - 2).to_time) # not stale
+    end
 
+    it "gets entries which have not been retrieved or are more than 1 month old, oldest first" do
       expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567", "87654", "5234888")
+    end
+
+    context "when inactive status matching is enabled by providing a configured_inactive_statuses array" do
+      before do
+        stub_const("ModuleThatIncludesRegisterMethods::INACTIVE_STATUSES", ["inactive"])
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "INACT1", current_status: "inactive")
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "INACT2", current_status: "inactive")
+        ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "ACT1", current_status: "active")
+
+        allow(ModuleThatIncludesRegisterMethods).to receive(:skip_inactive?)
+
+        ModuleThatIncludesRegisterMethods.stale_entry_uids {}
+      end
+
+      it "calls skip_inactive? on each record where current_status field value is in the array" do
+        expect(ModuleThatIncludesRegisterMethods).to have_received(:skip_inactive?).twice
+      end
+    end
+  end
+
+  describe "#skip_inactive?" do
+    context "when a random number is less than the active ratio" do
+      before do
+        stub_const("ModuleThatIncludesRegisterMethods::ACTIVE_RATIO", 0.6)
+        allow(ModuleThatIncludesRegisterMethods).to receive(:rand).and_return(0.3)
+      end
+
+      it "returns true (meaning skip this inactive record)" do
+        expect(ModuleThatIncludesRegisterMethods.skip_inactive?).to eq(true)
+      end
+    end
+
+    context "when a random number is greater than the active ratio" do
+      before do
+        stub_const("ModuleThatIncludesRegisterMethods::ACTIVE_RATIO", 0.3)
+        allow(ModuleThatIncludesRegisterMethods).to receive(:rand).and_return(0.6)
+      end
+
+      it "returns false (meaning don't skip this inactive record)" do
+        expect(ModuleThatIncludesRegisterMethods.skip_inactive?).to eq(false)
+      end
     end
   end
 
