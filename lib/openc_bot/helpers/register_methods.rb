@@ -53,6 +53,18 @@ module OpencBot
         const_defined?("STALE_COUNT") ? const_get("STALE_COUNT") : 1000
       end
 
+      def configured_active_ratio
+        const_defined?("ACTIVE_RATIO") ? const_get("ACTIVE_RATIO") : 0.9
+      end
+
+      def configured_inactive_statuses
+        const_defined?("INACTIVE_STATUSES") ? const_get("INACTIVE_STATUSES") : []
+      end
+
+      def indicative_field_for_inactive
+        configured_inactive_statuses.empty? ? "''" : "current_status"
+      end
+
       # fetches and saves data. By default assumes an incremental search, or an alpha search
       # if USE_ALPHA_SEARCH is set. This method should be overridden if you are going to do a
       # different type of data import, e.g from a CSV file.
@@ -118,7 +130,7 @@ module OpencBot
       end
 
       def record_count
-        select("COUNT(#{primary_key_name}) as count from ocdata").first["count"]
+        select("COUNT(#{primary_key_name}) AS count FROM ocdata").first["count"]
       rescue StandardError
         0
       end
@@ -169,17 +181,35 @@ module OpencBot
       def stale_entry_uids(stale_count = nil)
         handle_retrieved_at_not_exists do
           stale_count ||= default_stale_count
-          sql_query = "ocdata.#{primary_key_name} from ocdata WHERE retrieved_at IS NULL OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') order by datetime( retrieved_at ) LIMIT #{stale_count.to_i}"
-          select(sql_query).each do |res|
-            yield res[primary_key_name.to_s]
+          sql_query = "ocdata.#{primary_key_name}, #{indicative_field_for_inactive} FROM ocdata " \
+            "WHERE retrieved_at IS NULL " \
+            "OR strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}') " \
+            "ORDER BY datetime(retrieved_at)"
+
+          count = 0
+          select(sql_query).each do |result_row|
+            unless configured_inactive_statuses.empty?
+              indicative_value_for_inactive = result_row[indicative_field_for_inactive]
+              inactive = configured_inactive_statuses.include?(indicative_value_for_inactive)
+              next if inactive && skip_inactive?
+            end
+
+            yield result_row[primary_key_name.to_s]
+            count += 1
+            break if count == stale_count
           end
         end
       end
 
+      def skip_inactive?
+        rand < configured_active_ratio
+      end
+
       def assess_stale
         handle_retrieved_at_not_exists do
-          sql_query = "count(*) from ocdata WHERE strftime('%s', retrieved_at) < strftime('%s',  '#{Date.today - days_till_stale}')"
-          select(sql_query).first["count(*)"]
+          sql_query = "COUNT(*) FROM ocdata " \
+            "WHERE strftime('%s', retrieved_at) < strftime('%s', '#{Date.today - days_till_stale}')"
+          select(sql_query).first["COUNT(*)"]
         end
       end
 
@@ -193,7 +223,7 @@ module OpencBot
       end
 
       def stale_entry?(uid)
-        rec = select("retrieved_at from ocdata where #{primary_key_name}=?", uid).first
+        rec = select("retrieved_at FROM ocdata WHERE #{primary_key_name}=?", uid).first
         return true if rec.nil? || rec["retrieved_at"].blank?
 
         !!(Date.parse(rec["retrieved_at"]) < (Date.today - days_till_stale))
@@ -274,7 +304,7 @@ module OpencBot
 
       def update_stale(stale_count = nil)
         count = 0
-        records_updated_count = stale_entry_uids(stale_count) do |stale_entry_uid|
+        stale_entry_uids(stale_count) do |stale_entry_uid|
           update_datum(stale_entry_uid)
           count += 1
         end

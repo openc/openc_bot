@@ -31,4 +31,4 @@ Metrics/BlockLength:
   ExcludedMethods: ["describe", "context"]
 
 Metrics/ModuleLength:
-  Max: 300
+  Max: 350
