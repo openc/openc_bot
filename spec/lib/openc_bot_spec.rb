@@ -71,7 +71,7 @@ describe "A module that extends OpencBot" do
     end
 
     it "configures statds environment based on the bot's environment" do
-      expect(ENV["STATSD_ENV"]).to eq('test')
+      expect(ENV["STATSD_ENV"]).to eq("test")
     end
   end
 

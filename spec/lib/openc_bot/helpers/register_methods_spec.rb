@@ -65,7 +65,7 @@ describe "a module that includes RegisterMethods" do
       datum = { "food" => "tofu" }
       allow(ModuleThatIncludesRegisterMethods).to receive(:select).and_return([datum])
       expect(ModuleThatIncludesRegisterMethods).to receive(:post_process).with(datum, true).and_return(datum)
-      ModuleThatIncludesRegisterMethods.export_data { |x| }
+      ModuleThatIncludesRegisterMethods.export_data(&:inspect)
     end
   end
 
@@ -192,7 +192,9 @@ describe "a module that includes RegisterMethods" do
 
         allow(ModuleThatIncludesRegisterMethods).to receive(:skip_inactive?)
 
+        # rubocop:disable Lint/EmptyBlock
         ModuleThatIncludesRegisterMethods.stale_entry_uids {}
+        # rubocop:enable Lint/EmptyBlock
       end
 
       it "calls skip_inactive? on each record where current_status field value is in the array" do
@@ -245,6 +247,7 @@ describe "a module that includes RegisterMethods" do
         ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "A094567")
       end
 
+      # rubocop:disable Lint/EmptyBlock
       it "does not raise error" do
         expect { ModuleThatIncludesRegisterMethods.stale_entry_uids {} }.not_to raise_error
       end
@@ -253,6 +256,7 @@ describe "a module that includes RegisterMethods" do
         ModuleThatIncludesRegisterMethods.stale_entry_uids {}
         expect(ModuleThatIncludesRegisterMethods.select("* from ocdata").first.keys).to include("retrieved_at")
       end
+      # rubocop:enable Lint/EmptyBlock
 
       it "retries the called method" do
         expect { |b| ModuleThatIncludesRegisterMethods.stale_entry_uids(&b) }.to yield_successive_args("99999", "A094567")
@@ -273,7 +277,7 @@ describe "a module that includes RegisterMethods" do
     end
 
     it "returns true if record doesnt exist" do
-      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "5234888", retrieved_at: (Date.today - 2).to_time) # note: this creates the ocdata table, otherwise we get true returned because that's behaviour for such situations
+      ModuleThatIncludesRegisterMethods.save_data([:custom_uid], custom_uid: "5234888", retrieved_at: (Date.today - 2).to_time) # NOTE: this creates the ocdata table, otherwise we get true returned because that's behaviour for such situations
       expect(ModuleThatIncludesRegisterMethods.stale_entry?("foo")).to eq(true)
     end
   end
@@ -930,12 +934,12 @@ describe "a module that includes RegisterMethods" do
     before do
       @unprocessed_data = { name: "Foo Corp",
                             company_number: "12345",
-                            serialised_field_1: "[\"foo\",\"bar\"]",
-                            serialised_field_2: "[{\"position\":\"gestor\",\"name\":\"JOSE MANUEL REYES R.\",\"other_attributes\":{\"foo\":\"bar\"}}]",
-                            serialised_field_3: "{\"foo\":\"bar\"}",
-                            serialised_field_4: "[]",
-                            serialised_field_5: "{}",
-                            serialised_field_6: nil }
+                            serialised_field_one: "[\"foo\",\"bar\"]",
+                            serialised_field_two: "[{\"position\":\"gestor\",\"name\":\"JOSE MANUEL REYES R.\",\"other_attributes\":{\"foo\":\"bar\"}}]",
+                            serialised_field_three: "{\"foo\":\"bar\"}",
+                            serialised_field_four: "[]",
+                            serialised_field_five: "{}",
+                            serialised_field_six: nil }
     end
 
     context "in general" do
@@ -949,20 +953,20 @@ describe "a module that includes RegisterMethods" do
       end
 
       it "deserializes fields" do
-        expect(@processed_data[:serialised_field_1]).to eq(%w[foo bar])
-        expect(@processed_data[:serialised_field_3]).to eq("foo" => "bar")
-        expect(@processed_data[:serialised_field_4]).to eq([])
-        expect(@processed_data[:serialised_field_5]).to eq({})
+        expect(@processed_data[:serialised_field_one]).to eq(%w[foo bar])
+        expect(@processed_data[:serialised_field_three]).to eq("foo" => "bar")
+        expect(@processed_data[:serialised_field_four]).to eq([])
+        expect(@processed_data[:serialised_field_five]).to eq({})
       end
 
       it "deserializes nested fields correctly" do
-        expect(@processed_data[:serialised_field_2].first[:position]).to eq("gestor")
-        expect(@processed_data[:serialised_field_2].first[:other_attributes][:foo]).to eq("bar")
+        expect(@processed_data[:serialised_field_two].first[:position]).to eq("gestor")
+        expect(@processed_data[:serialised_field_two].first[:other_attributes][:foo]).to eq("bar")
       end
 
       it "does not do anything with null value" do
-        expect(@processed_data[:serialised_field_6]).to be_nil
-        expect(@processed_data.key?(:serialised_field_6)).to be true
+        expect(@processed_data[:serialised_field_six]).to be_nil
+        expect(@processed_data.key?(:serialised_field_six)).to be true
       end
     end
 
@@ -972,7 +976,7 @@ describe "a module that includes RegisterMethods" do
       end
 
       it "removes value from result" do
-        expect(@processed_data.key?(:serialised_field_6)).to be false
+        expect(@processed_data.key?(:serialised_field_six)).to be false
       end
     end
 

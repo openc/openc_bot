@@ -97,15 +97,15 @@ describe "a module that includes IncrementalSearch" do
     end
 
     it "iterates with prefixes, incrementing digits" do
-      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12345", anything).and_return(:entry_1)
-      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12346", anything).and_return(:entry_2)
+      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12345", anything).and_return(:entry_one)
+      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12346", anything).and_return(:entry_two)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12347", anything).and_return(nil)
       expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("12348", anything)
       ModuleThatIncludesIncrementalSearch.incremental_search("12345")
     end
 
     it "uses increment_number to, er, increment number" do
-      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).and_return(:entry_1)
+      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).and_return(:entry_one)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("25632", anything).and_return(nil)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:increment_number).with("12345").and_return("34567")
       expect(ModuleThatIncludesIncrementalSearch).to receive(:increment_number).with("34567").and_return("76543")
@@ -115,11 +115,11 @@ describe "a module that includes IncrementalSearch" do
 
     it "gets company details for given company number and subsequent company numbers until nil is returned more than max_failed_count times" do
       allow(ModuleThatIncludesIncrementalSearch).to receive_messages(max_failed_count: 2)
-      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_1)
-      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234569", anything).and_return(:entry_2)
+      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_one)
+      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234569", anything).and_return(:entry_two)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234570", anything).and_return(nil)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234571", anything).and_return(nil)
-      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_3)
+      expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_three)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234573", anything).and_return(nil)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234574", anything).and_return(nil)
       expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234575", anything).and_return(nil)
@@ -129,11 +129,11 @@ describe "a module that includes IncrementalSearch" do
 
     it "returns last good number" do
       allow(ModuleThatIncludesIncrementalSearch).to receive_messages(max_failed_count: 2)
-      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_1)
-      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234569", anything).and_return(:entry_2)
+      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_one)
+      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234569", anything).and_return(:entry_two)
       allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234570", anything).and_return(nil)
       allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234571", anything).and_return(nil)
-      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_3)
+      allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_three)
       allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234573", anything).and_return(nil)
       allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234574", anything).and_return(nil)
       allow(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234575", anything).and_return(nil)
@@ -155,11 +155,11 @@ describe "a module that includes IncrementalSearch" do
 
       it "does not update_datum for existing entries" do
         allow(ModuleThatIncludesIncrementalSearch).to receive_messages(max_failed_count: 2)
-        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_1)
+        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234568", anything).and_return(:entry_one)
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("1234569", anything)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234570", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("1234571", anything)
-        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_3)
+        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_three)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234573", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234574", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234575", anything).and_return(nil)
@@ -173,7 +173,7 @@ describe "a module that includes IncrementalSearch" do
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("1234569", anything)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234570", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("1234571", anything)
-        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_3)
+        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234572", anything).and_return(:entry_three)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234573", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("1234574", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("1234575", anything)
@@ -183,8 +183,8 @@ describe "a module that includes IncrementalSearch" do
 
     context "and offset passed in as option" do
       it "gets entries beginning from given number adjusted by offset" do
-        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12342", anything).and_return(:entry_1)
-        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12343", anything).and_return(:entry_2)
+        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12342", anything).and_return(:entry_one)
+        expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12343", anything).and_return(:entry_two)
         expect(ModuleThatIncludesIncrementalSearch).to receive(:update_datum).with("12344", anything).and_return(nil)
         expect(ModuleThatIncludesIncrementalSearch).not_to receive(:update_datum).with("12345", anything)
         ModuleThatIncludesIncrementalSearch.incremental_search("12345", offset: -3)

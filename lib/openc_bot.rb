@@ -12,8 +12,11 @@ require "statsd-instrument"
 
 module OpencBot
   class OpencBotError < StandardError; end
+
   class DatabaseError < OpencBotError; end
+
   class InvalidDataError < OpencBotError; end
+
   class NotFoundError < OpencBotError; end
 
   include ScraperWiki
@@ -84,7 +87,7 @@ module OpencBot
       bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_s
       ENV["STATSD_ENV"] = bot_env
       ENV["STATSD_ADDR"] = "sys1:8125"
-      StatsD.logger = Logger.new("/dev/null") if bot_env != 'production'
+      StatsD.logger = Logger.new("/dev/null") if bot_env != "production"
 
       if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
         "fetcher_bot.#{bot_env}.#{inferred_jurisdiction_code}"

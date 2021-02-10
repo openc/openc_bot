@@ -17,6 +17,7 @@ class Mechanize::HTTP::Agent
   # be retried once, but I am going to let it retry a few times
   # (MAX_RESET_RETRIES), just in case.
   #
+  # rubocop:disable Metrics/ParameterLists
   def fetch_with_retry(
     uri,
     method    = :get,
@@ -47,7 +48,7 @@ class Mechanize::HTTP::Agent
       retry
     end
   end
-
+  # rubocop:enable Metrics/ParameterLists
   # Alias so #fetch actually uses our new #fetch_with_retry to wrap the
   # old one aliased as #fetch_without_retry.
   alias fetch_without_retry fetch

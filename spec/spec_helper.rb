@@ -7,8 +7,10 @@ ENV["FETCHER_BOT_ENV"] ||= "test"
 
 WebMock.disable_net_connect!(allow_localhost: true)
 
+# rubocop:disable Lint/EmptyBlock
 RSpec.configure do |config|
 end
+# rubocop:enable Lint/EmptyBlock
 
 def remove_test_database
   File.delete(test_database_location) if File.exist?(test_database_location)

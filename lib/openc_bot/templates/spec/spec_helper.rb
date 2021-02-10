@@ -2,8 +2,10 @@
 
 require "rspec/autorun"
 
+# rubocop:disable Lint/EmptyBlock
 RSpec.configure do |config|
 end
+# rubocop:enable Lint/EmptyBlock
 
 # Utility method to allow sample html pages, csv files, json or whatever.
 # Expects the files to be stored in a 'dummy_responses' folder in the spec directory
