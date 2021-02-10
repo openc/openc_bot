@@ -70,8 +70,8 @@ describe "A module that extends OpencBot" do
       expect(namespace).to eq("fetcher_bot.test.foobot")
     end
 
-    it "configures statsd mode based on the bot's environment" do
-      expect(StatsD.mode).to eq(:test)
+    it "configures statds environment based on the bot's environment" do
+      expect(ENV["STATSD_ENV"]).to eq("test")
     end
   end
 

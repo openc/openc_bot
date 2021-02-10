@@ -110,10 +110,10 @@ describe "a module that includes AlphaSearch" do
 
     it "processes entity data yielded by search_for_entities_for_term" do
       @alpha_terms.each do |term|
-        allow(ModuleThatIncludesAlphaSearch).to receive(:search_for_entities_for_term).with(term, anything).and_yield(:datum_1).and_yield(:datum_2)
+        allow(ModuleThatIncludesAlphaSearch).to receive(:search_for_entities_for_term).with(term, anything).and_yield(:datum_one).and_yield(:datum_two)
       end
-      expect(ModuleThatIncludesAlphaSearch).to receive(:save_entity).with(:datum_1)
-      expect(ModuleThatIncludesAlphaSearch).to receive(:save_entity).with(:datum_2)
+      expect(ModuleThatIncludesAlphaSearch).to receive(:save_entity).with(:datum_one)
+      expect(ModuleThatIncludesAlphaSearch).to receive(:save_entity).with(:datum_two)
 
       ModuleThatIncludesAlphaSearch.fetch_data_via_alpha_search
     end
