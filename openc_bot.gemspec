@@ -39,7 +39,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json"
   gem.add_dependency "json-schema"
   gem.add_dependency "mail"
-  gem.add_dependency "nokogiri"
+  gem.add_dependency "nokogiri", "~> 1.11.1"
   gem.add_dependency "rake"
   gem.add_dependency "resque"
   gem.add_dependency "retriable"
