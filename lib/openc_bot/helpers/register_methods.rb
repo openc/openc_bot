@@ -16,6 +16,10 @@ module OpencBot
 
       MAX_BUSY_RETRIES = 3
 
+      def exception_to_object(exp)
+        { klass: exp.class.to_s, message: exp.message, backtrace: exp.backtrace }
+      end
+
       def allowed_hours
         if const_defined?("ALLOWED_HOURS")
           const_get("ALLOWED_HOURS").to_a
@@ -122,7 +126,7 @@ module OpencBot
       end
 
       def primary_key_name
-        const_defined?("PRIMARY_KEY_NAME") ? const_get("PRIMARY_KEY_NAME") : :uid
+        const_defined?("PRIMARY_KEY_NAME") ? const_get("PRIMARY_KEY_NAME") : :company_number
       end
 
       def raise_when_saving_invalid_record

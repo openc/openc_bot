@@ -41,7 +41,7 @@ module OpencBot
       def send_run_report(run_results = nil)
         subject = "#{name} successfully ran"
         db_filesize = File.size?(db_location)
-        body = "No problems to report. db is #{db_location}, #{db_filesize} bytes. Last modified: #{File.stat(db_location).mtime}"
+        body = "No problems to report. db is #{db_location}, #{db_filesize} bytes. Last modified: #{File.stat(db_location).mtime rescue nil}"
         body += "\nRun results = #{run_results.inspect}" unless run_results.blank?
         send_report(subject: subject, body: body)
       end

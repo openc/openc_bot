@@ -2,35 +2,33 @@
 
 module OpencBot
   module Helpers
-
+    # Persistence handler for bot activities
     module PersistenceHandler
-
       def input_stream
         # override in segment bots
       end
 
       def output_stream
-        self.name.to_s[/[A-Z][a-z]+$/].downcase
+        name.to_s[/[A-Z][a-z]+$/].downcase
       end
 
       def acquisition_base_directory
-        ENV['ACQUISITION_BASE_DIRECTORY'] || "data"
+        ENV["ACQUISITION_BASE_DIRECTORY"] || "data"
       end
 
       def acquisition_id
-        @@acquisition_id ||= (
-          ENV["ACQUISITION_ID"] ||
-          (in_progress_acquisition_id && !ENV["FORCE_NEW_ACQUISITION"]) ||
-          Time.now.to_i
-        )
+        @acquisition_id ||= (ENV["ACQUISITION_ID"] || in_progress_acquisition_id || Time.now.to_i)
       end
 
       # gets the most recent in progress acquisition id, based on in processing
       # directories
       def in_progress_acquisition_id
+        return @acquisition_id unless @acquisition_id.blank?
+
         in_progress_acquisitions = Dir.glob("#{acquisition_base_directory}/*_processing").sort
         return if in_progress_acquisitions.empty?
-        in_progress_acquisitions.last.filename.sub("_processing","")
+
+        in_progress_acquisitions.last.split("/").last.sub("_processing", "")
       end
 
       def input_file_location
@@ -42,8 +40,8 @@ module OpencBot
       end
 
       def acquisition_directory_processing
-        processing_directory = ENV['ACQUISITION_DIRECTORY'] || File.join(acquisition_base_directory, "#{acquisition_id}_processing")
-        File.mkdir(processing_directory) unless Dir.exist?(processing_directory)
+        processing_directory = ENV["ACQUISITION_DIRECTORY"] || File.join(acquisition_base_directory, "#{acquisition_id}_processing")
+        FileUtils.mkdir(processing_directory) unless Dir.exist?(processing_directory)
         processing_directory
       end
 
@@ -52,10 +50,10 @@ module OpencBot
       end
 
       def records_processed
-        `wc -l "#{output_file_location}"`.strip.split(' ')[0].to_i
+        `wc -l "#{output_file_location}"`.strip.split[0].to_i
       end
 
-      def get_input_data
+      def input_data
         File.foreach(input_file_location) do |line|
           yield JSON.parse(line)
         end
@@ -68,6 +66,7 @@ module OpencBot
       end
 
       private
+
       def mark_acquisition_directory_as_finished_processing
         File.rename(acquisition_directory_processing, acquisition_directory_final)
       end

@@ -1,7 +1,10 @@
-require "openc_bot/helpers/persistence_handler"
+# frozen_string_literal: true
+
+require "openc_bot/helpers/register_methods"
 
 module OpencBot
   module Helpers
+    # Fetching activities
     module PseudoMachineFetcher
       include OpencBot::Helpers::PersistenceHandler
       include OpencBot::Helpers::RegisterMethods
@@ -10,14 +13,14 @@ module OpencBot
         const_defined?("DATASET_BASED") && const_get("DATASET_BASED")
       end
 
-      def run
+      def run(options = {})
         fetch_data_results = fetch_data
         # ignore stale for the moment
         # update_stale_results = update_stale
         res = {}
         res.merge!(fetch_data_results) if fetch_data_results.is_a?(Hash)
         res
-      rescue Exception => e
+      rescue StandardError => e
         send_error_report(e, options)
         raise e
       end
