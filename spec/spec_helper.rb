@@ -8,6 +8,7 @@ ENV["FETCHER_BOT_ENV"] ||= "test"
 WebMock.disable_net_connect!(allow_localhost: true)
 
 RSpec.configure do |config|
+  # noop
 end
 
 def remove_test_database

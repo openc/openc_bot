@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 require "openc_bot/helpers/persistence_handler"
+require "openc_bot/helpers/pseudo_machine_register_methods"
 
 module OpencBot
   module Helpers
+    # Fetching activities
     module PseudoMachineFetcher
+      include OpencBot::Helpers::PsuedoMachineRegisterMethods
       include OpencBot::Helpers::PersistenceHandler
-      include OpencBot::Helpers::RegisterMethods
 
       def dataset_based
         const_defined?("DATASET_BASED") && const_get("DATASET_BASED")
@@ -17,9 +21,6 @@ module OpencBot
         res = {}
         res.merge!(fetch_data_results) if fetch_data_results.is_a?(Hash)
         res
-      rescue Exception => e
-        send_error_report(e, options)
-        raise e
       end
 
       def fetch_data_via_dataset

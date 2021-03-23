@@ -46,6 +46,33 @@ namespace :bot do
     create_bot("company")
   end
 
+  desc "Run the fetch task which does all the data fetching from the fetcher"
+  task :fetch do |_t, _args|
+    bot_name = get_bot_name
+    only_process_running("#{bot_name}-bot:fetch") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      callable_from_file_name(bot_name)::Fetcher.run
+    end
+  end
+
+  desc "Parses the entries from fetch output of specific acqusition"
+  task :parse do |t, args|
+    bot_name = get_bot_name
+    only_process_running("#{bot_name}-#{t.name}-#{args[:acquisition_id]}") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      callable_from_file_name(bot_name)::Parser.run
+    end
+  end
+
+  desc "Transforms the entries from parse output of specific acqusition"
+  task :transform do |t, args|
+    bot_name = get_bot_name
+    only_process_running("#{bot_name}-#{t.name}-#{args[:acquisition_id]}") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      callable_from_file_name(bot_name)::Transformer.run
+    end
+  end
+
   desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
     bot_name = get_bot_name
@@ -80,9 +107,9 @@ namespace :bot do
         require_relative File.join(Dir.pwd, "lib", bot_name)
         runner = callable_from_file_name(bot_name)
 
-        count = runner.run(options)
+        res = runner.run(options)
 
-        puts "Got #{count} records"
+        puts res.to_json
       end
     rescue Exception => e
       raise e unless e.message[/already running/i]
