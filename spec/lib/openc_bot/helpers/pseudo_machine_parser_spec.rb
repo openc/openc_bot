@@ -10,15 +10,8 @@ module ModuleThatIncludesPseudoMachineParser
   extend OpencBot::Helpers::PseudoMachineParser
 end
 
-describe "a module that includes PseudoMachineParser" do
-  before do
-    # allow(ModuleThatIncludesIncrementalSearch).to receive(:sqlite_magic_connection).and_return(test_database_connection)
-  end
-
-  after do
-    # remove_test_database
-  end
-
+describe OpencBot::Helpers::PseudoMachineParser
+context "when a module that includes PseudoMachineParser" do
   it "has #run method" do
     expect(ModuleThatIncludesPseudoMachineParser).to respond_to(:run)
   end
@@ -27,10 +20,7 @@ describe "a module that includes PseudoMachineParser" do
     expect(ModuleThatIncludesPseudoMachineParser).to respond_to(:persist)
   end
 
-  describe "input_stream" do
-    it "should return 'fetcher'" do
-      expect(ModuleThatIncludesPseudoMachineParser.input_stream).to eq("fetcher")
-    end
+  it "return's fetcher" do
+    expect(ModuleThatIncludesPseudoMachineParser.input_stream).to eq("fetcher")
   end
-
 end

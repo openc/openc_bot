@@ -1,10 +1,15 @@
+# frozen_string_literal: true
+
 require "openc_bot/helpers/persistence_handler"
+require "openc_bot/helpers/pseudo_machine_register_methods"
 
 module OpencBot
   module Helpers
+    # Transformer activities
     module PseudoMachineTransformer
+      include OpencBot
       include OpencBot::Helpers::PersistenceHandler
-      include OpencBot::Helpers::RegisterMethods
+      include OpencBot::Helpers::PsuedoMachineRegisterMethods
 
       def input_stream
         "parser"
@@ -19,18 +24,18 @@ module OpencBot
       def run
         counter = 0
         start_time = Time.now.utc
-        get_input_data do |json_data|
+        input_data do |json_data|
           entity_datum = encapsulate_as_per_schema(json_data)
-          validation_errors = validate_datum(entity_datum)
-          persist(entity_datum)
-          save_entity!(entity_datum) if development? || ENV["SAVE_DATA_IN_SQLITE"]
-          return unless validation_errors.blank?
-          counter += 1
+          unless entity_datum.blank?
+            validation_errors = validate_datum(entity_datum)
+            raise "\n#{JSON.pretty_generate([entity_datum, validation_errors])}" unless validation_errors.blank?
+
+            persist(entity_datum)
+            save_entity(entity_datum) unless ENV["NO_SAVE_DATA_IN_SQLITE"]
+            counter += 1
+          end
         end
-        { transformed: counter,
-          transformer_start: start_time,
-          transformer_end: Time.now.utc
-        }
+        { transformed: counter, transformer_start: start_time, transformer_end: Time.now.utc }
       end
 
       def schema_name

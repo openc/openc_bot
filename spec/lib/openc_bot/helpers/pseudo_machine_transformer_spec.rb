@@ -10,14 +10,8 @@ module ModuleThatIncludesPseudoMachineTransformer
   extend OpencBot::Helpers::PseudoMachineTransformer
 end
 
-describe "a module that includes PseudoMachineTransformer" do
-  before do
-  end
-
-  after do
-    # remove_test_database
-  end
-
+describe OpencBot::Helpers::PseudoMachineTransformer
+context "when a module that includes PseudoMachineTransformer" do
   it "has #run method" do
     expect(ModuleThatIncludesPseudoMachineTransformer).to respond_to(:run)
   end
@@ -30,10 +24,7 @@ describe "a module that includes PseudoMachineTransformer" do
     expect(ModuleThatIncludesPseudoMachineTransformer).to respond_to(:validate_datum)
   end
 
-  describe "input_stream" do
-    it "should return 'parser'" do
-      expect(ModuleThatIncludesPseudoMachineTransformer.input_stream).to eq("parser")
-    end
+  it "return's parser" do
+    expect(ModuleThatIncludesPseudoMachineTransformer.input_stream).to eq("parser")
   end
-
 end

@@ -12,12 +12,10 @@ module TestPseudoMachineCompaniesFetcher
   extend OpencBot::PseudoMachineCompanyFetcherBot
 end
 
-describe "A module that extends PseudoMachineCompanyFetcherBot" do
-  before do
+describe OpencBot::PseudoMachineCompanyFetcherBot do
+  context "when a module extends PseudoMachineCompanyFetcherBot" do
+    it "includes CompanyFetcherBot methods" do
+      expect(TestPseudoMachineCompaniesFetcher).to respond_to(:inferred_jurisdiction_code)
+    end
   end
-
-  it "includes CompanyFetcherBot methods" do
-    expect(TestPseudoMachineCompaniesFetcher).to respond_to(:inferred_jurisdiction_code)
-  end
-
 end
