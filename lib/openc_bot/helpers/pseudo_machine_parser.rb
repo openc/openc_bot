@@ -18,7 +18,7 @@ module OpencBot
         # single fetched_datum, e.g. if fetched_datum is a CSV file
       end
 
-      def run
+      def run(lib)
         start_time = Time.now.utc
         counter = 0
         input_data do |fetched_datum|
