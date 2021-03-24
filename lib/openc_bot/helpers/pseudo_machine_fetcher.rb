@@ -14,8 +14,8 @@ module OpencBot
         const_defined?("DATASET_BASED") && const_get("DATASET_BASED")
       end
 
-      def run
-        fetch_data_results = fetch_data
+      def run(lib)
+        fetch_data_results = fetch_data(lib)
         # ignore stale for the moment
         # update_stale_results = update_stale
         res = {}
@@ -23,19 +23,18 @@ module OpencBot
         res
       end
 
-      def fetch_data_via_dataset
+      def fetch_data_via_dataset(lib)
         # to be implemented by fetcher code that includes this
         # should persist data using persist(datum)
       end
 
-      def fetch_data
-        start_time = Time.now.utc
+      def fetch_data(lib)
         res = {}
         if use_alpha_search
           fetch_data_via_alpha_search
           res[:run_type] = "alpha"
         elsif dataset_based
-          fetch_data_via_dataset
+          fetch_data_via_dataset(lib)
           res[:run_type] = "dataset"
         else
           new_highest_numbers = fetch_data_via_incremental_search
