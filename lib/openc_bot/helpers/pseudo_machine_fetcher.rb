@@ -14,8 +14,8 @@ module OpencBot
         const_defined?("DATASET_BASED") && const_get("DATASET_BASED")
       end
 
-      def run(start_time = nil)
-        fetch_data_results = fetch_data(start_time)
+      def run(lib)
+        fetch_data_results = fetch_data(lib)
         # ignore stale for the moment
         # update_stale_results = update_stale
         res = {}
@@ -23,23 +23,20 @@ module OpencBot
         res
       end
 
-      def fetch_data_via_dataset(acq_start_time, fetch_start_time)
+      def fetch_data_via_dataset(lib, fetch_start_time)
         # to be implemented by fetcher code that includes this
         # should persist data using persist(datum)
       end
 
-      def fetch_data(acq_start_time = nil)
+      def fetch_data(lib)
         fetch_start_time = Time.now.utc
         res = {}
         if use_alpha_search
           fetch_data_via_alpha_search
           res[:run_type] = "alpha"
         elsif dataset_based
-          # handles the initial creation of the jsonl file for the "activity" (fetcher run)
-          # "6056bb08-c8e6-451f-9bea-2bcac9067e49" is the machine's acquisition_id which
-          # in reality we would supply a way to fetch or generate as required
-          MachineBot::Activity::Fetching.create_run_jsonl_file("6056bb08-c8e6-451f-9bea-2bcac9067e49", acq_start_time, "fetching", fetch_start_time)
-          fetch_data_via_dataset(acq_start_time, fetch_start_time)
+          lib.create_run_jsonl_file(fetch_start_time)
+          fetch_data_via_dataset(lib, fetch_start_time)
           res[:run_type] = "dataset"
         else
           new_highest_numbers = fetch_data_via_incremental_search
