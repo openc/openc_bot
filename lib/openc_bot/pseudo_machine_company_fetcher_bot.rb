@@ -3,6 +3,8 @@
 require "openc_bot"
 require "openc_bot/company_fetcher_bot"
 require "openc_bot/helpers/persistence_handler"
+require "machine_bot"
+require "machine_bot/fetching"
 
 module OpencBot
   # Psuedo machine fetcher bot top level class to orchestrate activities
@@ -44,19 +46,19 @@ module OpencBot
     end
 
     # Outline bot run logic.
-    def update_data(lib = nil, options = {})
+    def update_data(options = {})
       res = {}
       bot_namespace = callable_from_file_name(bot_name)
       unless processing_states.include?("fetcher")
-        res.merge!(bot_namespace::Fetcher.run(lib, options[:started_at]))
+        res.merge!(bot_namespace::Fetcher.run(options[:started_at]))
         processing_states << "fetcher"
       end
       unless processing_states.include?("parser")
-        res.merge!(bot_namespace::Parser.run(lib, options[:started_at]))
+        res.merge!(bot_namespace::Parser.run(options[:started_at]))
         processing_states << "parser"
       end
       unless @processing_states.include?("transformer")
-        res.merge!(bot_namespace::Transformer.run(lib, options[:started_at]))
+        res.merge!(bot_namespace::Transformer.run(options[:started_at]))
         processing_states << "transformer"
       end
       res[:data_directory] = acquisition_directory_final
