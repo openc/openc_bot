@@ -4,7 +4,7 @@ require "openc_bot"
 require "openc_bot/company_fetcher_bot"
 require "openc_bot/helpers/persistence_handler"
 require "machine_bot"
-require "machine_bot/fetching"
+require "machine_bot/activity/fetching"
 
 module OpencBot
   # Psuedo machine fetcher bot top level class to orchestrate activities
