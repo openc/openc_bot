@@ -35,6 +35,9 @@ module OpencBot
           fetch_data_via_alpha_search
           res[:run_type] = "alpha"
         elsif dataset_based
+          # handles the initial creation of the jsonl file for the "activity" (fetcher run)
+          # "6056bb08-c8e6-451f-9bea-2bcac9067e49" is the machine's acquisition_id which
+          # in reality we would supply a way to fetch or generate as required
           lib.create_run_jsonl_file("6056bb08-c8e6-451f-9bea-2bcac9067e49", acq_start_time, "fetching", fetch_start_time)
           fetch_data_via_dataset(lib, acq_start_time, fetch_start_time)
           res[:run_type] = "dataset"
