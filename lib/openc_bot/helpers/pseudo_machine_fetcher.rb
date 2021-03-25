@@ -23,7 +23,7 @@ module OpencBot
         res
       end
 
-      def fetch_data_via_dataset(lib, start_time)
+      def fetch_data_via_dataset(lib, acq_start_time, fetch_start_time)
         # to be implemented by fetcher code that includes this
         # should persist data using persist(datum)
       end
@@ -35,7 +35,8 @@ module OpencBot
           fetch_data_via_alpha_search
           res[:run_type] = "alpha"
         elsif dataset_based
-          fetch_data_via_dataset(lib, acq_start_time)
+          lib.create_run_jsonl_file("6056bb08-c8e6-451f-9bea-2bcac9067e49", acq_start_time, "fetching", fetch_start_time)
+          fetch_data_via_dataset(lib, acq_start_time, fetch_start_time)
           res[:run_type] = "dataset"
         else
           new_highest_numbers = fetch_data_via_incremental_search
