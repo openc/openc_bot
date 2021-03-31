@@ -1,3 +1,4 @@
 [submodule "schemas"]
 	path = schemas
 	url = git://github.com/openc/openc-schema.git
+	branch = tighten-additional-properties
