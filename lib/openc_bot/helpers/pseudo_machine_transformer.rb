@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "openc_bot/helpers/persistence_handler"
+require "openc_bot/pseudo_machine_company_fetcher_bot"
 require "openc_bot/helpers/pseudo_machine_register_methods"
 
 module OpencBot
@@ -8,6 +9,7 @@ module OpencBot
     # Transformer activities
     module PseudoMachineTransformer
       include OpencBot
+      include OpencBot::PseudoMachineCompanyFetcherBot
       include OpencBot::Helpers::PersistenceHandler
       include OpencBot::Helpers::PsuedoMachineRegisterMethods
 

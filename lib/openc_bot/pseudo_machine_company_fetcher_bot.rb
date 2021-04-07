@@ -29,7 +29,7 @@ module OpencBot
     end
 
     def db_name
-      "#{bot_name.downcase}.db"
+      "#{bot_name.gsub('_', '').downcase}.db"
     end
 
     def processing_states
