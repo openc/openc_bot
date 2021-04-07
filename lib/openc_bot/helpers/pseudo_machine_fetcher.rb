@@ -44,8 +44,12 @@ module OpencBot
         end
         res.merge(fetched: records_processed, fetch_start: start_time, fetch_end: Time.now.utc)
       rescue OpencBot::OutOfPermittedHours, OpencBot::SourceClosedForMaintenance, Interrupt, SystemExit => e
+        raise e unless caller.to_s[/update_data/]
+
         res.merge!({ fetch_data_output: { error: exception_to_object(e) } })
       rescue StandardError => e
+        raise e unless caller.to_s[/update_data/]
+
         res.merge!({ fetch_data_error: { error: exception_to_object(e) } })
       end
     end
