@@ -8,6 +8,10 @@ module OpencBot
     module PsuedoMachineRegisterMethods
       include OpencBot::Helpers::RegisterMethods
 
+      def save_entity(entity_datum)
+        prepare_and_save_data(entity_datum)
+      end
+
       def primary_key_name
         const_defined?("PRIMARY_KEY_NAME") ? const_get("PRIMARY_KEY_NAME") : :company_number
       end
