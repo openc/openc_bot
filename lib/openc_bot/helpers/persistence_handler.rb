@@ -13,7 +13,9 @@ module OpencBot
       end
 
       def acquisition_base_directory
-        ENV["ACQUISITION_BASE_DIRECTORY"] || "data"
+        dir = ENV.fetch("ACQUISITION_BASE_DIRECTORY", "data/acquisition")
+        Dir.mkdir(dir) unless Dir.exist?(dir)
+        dir
       end
 
       def acquisition_id
