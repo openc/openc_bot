@@ -59,9 +59,14 @@ module OpencBot
         res.merge!(bot_namespace::Transformer.run)
         processing_states << "transformer"
       end
-      res[:data_directory] = acquisition_directory_final
-      # rename directory so it will be seen by importer
-      mark_acquisition_directory_as_finished_processing
+      if res[:no_transformed_data]
+        # we don't need to keep empty acquisitions
+        remove_current_processing_acquisition_directory
+      else
+        res[:data_directory] = acquisition_directory_final
+        # rename directory so it will be seen by importer
+        mark_acquisition_directory_as_finished_processing
+      end
       raise "\n#{JSON.pretty_generate(res)}" if res.key?(:fetch_data_error) || res.key?(:update_stale_error)
 
       res

@@ -35,7 +35,9 @@ module OpencBot
             counter += 1
           end
         end
-        { transformed: counter, transformer_start: start_time, transformer_end: Time.now.utc }
+        res = { transformed: counter, transformer_start: start_time, transformer_end: Time.now.utc }
+        res.merge!({ no_transformed_data: true }) if counter == 0
+        res
       end
 
       def schema_name
