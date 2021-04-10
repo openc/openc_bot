@@ -88,6 +88,10 @@ module OpencBot
       def mark_finished_acquisition_directory_as_processing(processing_directory)
         File.rename(acquisition_directory_final, processing_directory)
       end
+
+      def remove_current_processing_acquisition_directory
+        FileUtils.rm_rf(acquisition_directory_processing)
+      end
     end
   end
 end
