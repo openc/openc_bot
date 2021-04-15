@@ -74,7 +74,7 @@ module OpencBot
       send_error_report(e, options)
       raise e
     ensure
-      IO.write("#{acquisition_directory}/processing_states.json", processing_states.to_json)
+      IO.write("#{acquisition_directory}/processing_states.json", processing_states.to_json) if Dir.exist?(acquisition_directory)
     end
   end
 end
