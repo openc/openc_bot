@@ -45,14 +45,14 @@ module OpencBot
         if respond_to?(:output_stream)
           puts "Responds to output_stream"
           if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
-            "pseudo_machine_bot.#{bot_env}.#{inferred_jurisdiction_code}.#{output_stream}"
             puts "Responds to inferred_jur_code"
+            "pseudo_machine_bot.#{bot_env}.#{inferred_jurisdiction_code}.#{output_stream}"
           elsif is_a?(Module)
-            "pseudo_machine_bot.#{bot_env}.#{name.downcase}.#{output_stream}"
             puts "is a Module"
+            "pseudo_machine_bot.#{bot_env}.#{name.downcase}.#{output_stream}"
           else
-            "pseudo_machine_bot.#{bot_env}.#{self.class.name.downcase}.#{output_stream}"
             puts "in the else clause of statsd namespace"
+            "pseudo_machine_bot.#{bot_env}.#{self.class.name.downcase}.#{output_stream}"
           end
           .sub("companiesfetcher", "")
         end
