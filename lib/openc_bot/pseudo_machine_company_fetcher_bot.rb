@@ -33,19 +33,26 @@ module OpencBot
     end
 
     def statsd_namespace
+      puts "Getting statsD namespace"
       @statsd_namespace ||= begin
         bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
         StatsD.mode = bot_env
         StatsD.server = "sys1:8125"
         StatsD.logger = Logger.new("/dev/null") if bot_env != :production
 
+        puts "bot_env is #{bot_env}"
+
         if respond_to?(:output_stream)
+          puts "Responds to output_stream"
           if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
             "pseudo_machine_bot.#{bot_env}.#{inferred_jurisdiction_code}.#{output_stream}"
+            puts "Responds to inferred_jur_code"
           elsif is_a?(Module)
             "pseudo_machine_bot.#{bot_env}.#{name.downcase}.#{output_stream}"
+            puts "is a Module"
           else
             "pseudo_machine_bot.#{bot_env}.#{self.class.name.downcase}.#{output_stream}"
+            puts "in the else clause of statsd namespace"
           end
           .sub("companiesfetcher", "")
         end
