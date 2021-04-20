@@ -71,6 +71,7 @@ module OpencBot
         File.open(output_file_location, "a") do |f|
           f.puts res.to_json
         end
+        track_company_processed
       end
 
       def acquisition_directory

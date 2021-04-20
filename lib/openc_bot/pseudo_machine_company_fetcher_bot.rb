@@ -32,6 +32,26 @@ module OpencBot
       "#{bot_name.downcase}.db"
     end
 
+    def statsd_namespace
+      @statsd_namespace ||= begin
+        bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
+        StatsD.mode = bot_env
+        StatsD.server = "sys1:8125"
+        StatsD.logger = Logger.new("/dev/null") if bot_env != :production
+
+        if respond_to?(:output_stream)
+          if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
+            "pseudo_machine_bot.#{bot_env}.#{inferred_jurisdiction_code}.#{output_stream}"
+          elsif is_a?(Module)
+            "pseudo_machine_bot.#{bot_env}.#{name.downcase}.#{output_stream}"
+          else
+            "pseudo_machine_bot.#{bot_env}.#{self.class.name.downcase}.#{output_stream}"
+          end
+          .sub("companiesfetcher", "")
+        end
+      end
+    end
+
     def processing_states
       return @processing_states unless @processing_states.nil?
 
