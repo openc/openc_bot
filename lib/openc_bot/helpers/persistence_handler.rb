@@ -1,13 +1,9 @@
 # frozen_string_literal: true
 
-require "openc_bot/helpers/reporting"
-
 module OpencBot
   module Helpers
     # Persistence handler for bot activities
     module PersistenceHandler
-      include OpencBot::Helpers::Reporting
-
       def input_stream
         # override in segment bots
       end
