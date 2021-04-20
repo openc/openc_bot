@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "openc_bot/helpers/persistence_handler"
+require "openc_bot/pseudo_machine_company_fetcher_bot"
 
 module OpencBot
   module Helpers
     # Parsing activities
     module PseudoMachineParser
-      include OpencBot::Helpers::PersistenceHandler
+      include OpencBot::PseudoMachineCompanyFetcherBot
 
       def input_stream
         "fetcher"
