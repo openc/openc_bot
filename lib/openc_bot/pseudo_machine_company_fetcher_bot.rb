@@ -49,7 +49,7 @@ module OpencBot
             "pseudo_machine_bot.#{bot_env}.#{output_stream}.#{inferred_jurisdiction_code}"
           elsif is_a?(Module)
             puts "is a Module"
-            jur_name = name.downcase.sub("companiesfetcher").sub(/::.*/, "")
+            jur_name = name.downcase.sub("companiesfetcher", "").sub(/::.*/, "")
             "pseudo_machine_bot.#{bot_env}.#{output_stream}.#{jur_name.chars.each_slice(2).map(&:join).join('_')}"
           else
             puts "in the else clause of statsd namespace"
