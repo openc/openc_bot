@@ -40,19 +40,13 @@ module OpencBot
         StatsD.server = "sys1:8125"
         StatsD.logger = Logger.new("/dev/null") if bot_env != :production
 
-        puts "bot_env is #{bot_env}"
-
         if respond_to?(:output_stream)
-          puts "Responds to output_stream"
           if respond_to?(:inferred_jurisdiction_code) && inferred_jurisdiction_code
-            puts "Responds to inferred_jur_code"
             "pseudo_machine_bot.#{bot_env}.#{output_stream}.#{inferred_jurisdiction_code}"
           elsif is_a?(Module)
-            puts "is a Module"
             jur_name = name.downcase.sub("companiesfetcher", "").sub(/::.*/, "")
             "pseudo_machine_bot.#{bot_env}.#{output_stream}.#{jur_name.chars.each_slice(2).map(&:join).join('_')}"
           else
-            puts "in the else clause of statsd namespace"
             "pseudo_machine_bot.#{bot_env}.#{output_stream}.#{self.class.name.downcase}"
           end
           .sub("companiesfetcher", "").sub(/::.*/, "")

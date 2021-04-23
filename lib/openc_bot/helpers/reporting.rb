@@ -73,10 +73,7 @@ module OpencBot
       alias report_run_to_oc report_run_to_analysis_app
 
       def track_company_processed
-        puts "Company about to be reported to statsD"
         StatsD.increment("#{statsd_namespace}.processed", sample_rate: 1.0)
-        puts "StatsD, #{StatsD.enabled}, #{StatsD.host}, #{StatsD.port}"
-        puts "incremented, #{statsd_namespace}"
 
         increment_progress_counters(companies_processed_delta: 1)
 
