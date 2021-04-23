@@ -26,6 +26,16 @@ module OpencBot
         end
       end
 
+      def allowed_weekend_hours
+        if const_defined?("ALLOWED_WEEKEND_HOURS")
+          const_get("ALLOWED_WEEKEND_HOURS").to_a
+        elsif const_defined?("TIMEZONE")
+          # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for definitions/examples
+          # eg TIMEZONE = "America/Panama"
+          (0..11).to_a + (12..23).to_a
+        end
+      end
+
       def use_alpha_search
         const_defined?("USE_ALPHA_SEARCH") && const_get("USE_ALPHA_SEARCH")
       end
@@ -97,8 +107,11 @@ module OpencBot
 
       def in_prohibited_time?
         current_time = current_time_in_zone
-
-        allowed_hours && !allowed_hours.include?(current_time.hour) && !current_time.saturday? && !current_time.sunday?
+        if current_time.saturday? || current_time.sunday?
+          allowed_weekend_hours && !allowed_weekend_hours.include?(current_time.hour)
+        else
+          allowed_hours && !allowed_hours.include?(current_time.hour)
+        end
       end
 
       def prepare_and_save_data(all_data, _options = {})
@@ -378,7 +391,7 @@ module OpencBot
       end
 
       def _http_get(url, options = {})
-        raise OutOfPermittedHours, "Request at #{Time.now} is not out business hours (#{allowed_hours})" if options[:restrict_to_out_of_hours] && in_prohibited_time?
+        raise OutOfPermittedHours, "Request at #{Time.now} is not out business hours (Weekdays: #{allowed_hours}, Weekends: #{allowed_weekend_hours})" if options[:restrict_to_out_of_hours] && in_prohibited_time?
 
         _client(options).get_content(url)
       end
