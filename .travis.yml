@@ -6,7 +6,6 @@ rvm:
 before_install:
   - gem i rubygems-update -v '<3' && update_rubygems
   - gem install bundler -v 1.17.3
-  - rm Gemfile.lock
 before_script:
   - bin/rubocop
   - bin/rubocop --auto-gen-config --exclude-limit 999 --no-offense-counts --no-auto-gen-timestamp >/dev/null || true; git --no-pager diff --exit-code
