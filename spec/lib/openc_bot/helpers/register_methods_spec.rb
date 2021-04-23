@@ -1030,13 +1030,15 @@ describe "a module that includes RegisterMethods" do
 
   describe "in_prohibited_time?" do
     before do
-      allow(ModuleThatIncludesRegisterMethods).to receive(:allowed_hours).and_return((0..12))
+      allow(ModuleThatIncludesRegisterMethods).to receive(:allowed_hours).and_return((0..12).to_a)
+      allow(ModuleThatIncludesRegisterMethods).to receive(:allowed_weekend_hours).and_return((0..10).to_a + (12..22).to_a)
     end
 
     it "returns true only if current_time_in_zone out of office hours" do
       times_and_truthiness = {
         "2014-10-09 04:14:25 +0100" => false, # weekday out of hours
-        "2014-10-11 15:14:25 +0100" => false, # in weekend
+        "2014-10-11 11:14:25 +0100" => true, # in weekend, out of ALLOWED weekend hours
+        "2014-10-11 15:14:25 +0100" => false, # in weekend, within ALLOWED weekend hours
         "2014-10-10 15:14:25 +0100" => true, # weekday in business hours
       }
       times_and_truthiness.each do |datetime, truthiness|
@@ -1045,7 +1047,7 @@ describe "a module that includes RegisterMethods" do
       end
     end
 
-    it "returns false if allowed_hours not defined" do
+    it "returns nil if allowed_hours not defined" do
       expect(ModuleWithNoCustomPrimaryKey.in_prohibited_time?).to be_nil
     end
   end
