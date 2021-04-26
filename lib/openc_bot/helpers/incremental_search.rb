@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "openc_bot/helpers/register_methods"
+require "openc_bot/helpers/register_methods_v1"
 
 module OpencBot
   module Helpers
     module IncrementalSearch
-      include OpencBot::Helpers::RegisterMethods
+      include OpencBot::Helpers::RegisterMethodsV1
 
       # Gets new records using an incremental search
       def fetch_data_via_incremental_search(options = {})

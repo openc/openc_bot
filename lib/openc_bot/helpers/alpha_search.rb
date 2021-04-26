@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "openc_bot/helpers/register_methods"
+require "openc_bot/helpers/register_methods_v1"
 
 module OpencBot
   module Helpers
     module AlphaSearch
-      include OpencBot::Helpers::RegisterMethods
+      include OpencBot::Helpers::RegisterMethodsV1
 
       def alpha_terms(starting_term = nil)
         all_perms = letters_and_numbers.repeated_permutation(numbers_of_chars_in_search)

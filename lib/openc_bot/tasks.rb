@@ -138,6 +138,51 @@ namespace :bot do
     end
   end
 
+  desc "Run the fetch task which does all the data fetching from the fetcher"
+  task :fetch do |_t, _args|
+    bot_name = get_bot_name
+    only_process_running("#{bot_name}-bot:fetch") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      OpencBot::Helpers::Fetcher.new.run
+    end
+  end
+
+  desc "Parses the entries from fetch output of specific acqusition"
+  task :parse, :acquisition_id do |t, args|
+    bot_name = get_bot_name
+    ENV["ACQUISITION_ID"] = args[:acquisition_id]
+    only_process_running("#{bot_name}-#{t.name}-#{args[:acquisition_id]}") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      filename = "#{ENV['ACQUISITION_DIRECTORY'] || 'data'}/#{args[:acquisition_id]}/fetcher.json"
+      raise "Expecting a acquired file here: #{filename} but could not find" unless File.exist?(filename)
+
+      raise "A parsed file is already available in the acquisition directory, please remove it before initiating parsing activities" if File.exist?("#{ENV['ACQUISITION_DIRECTORY'] || 'data'}/#{args[:acquisition_id]}/parser.json")
+
+      runner = OpencBot::Helpers::Parser.new
+      IO.foreach(filename) do |line|
+        runner.run(JSON.parse(line, symbolize_names: true))
+      end
+    end
+  end
+
+  desc "Transforms the entries from parser output of specific acqusition"
+  task :transform, :acquisition_id do |t, args|
+    bot_name = get_bot_name
+    ENV["ACQUISITION_ID"] = args[:acquisition_id]
+    only_process_running("#{bot_name}-#{t.name}-#{args[:acquisition_id]}") do
+      require_relative File.join(Dir.pwd, "lib", bot_name)
+      filename = "#{ENV['ACQUISITION_DIRECTORY'] || 'data'}/#{args[:acquisition_id]}/parser.json"
+      raise "Expecting a acquired file here: #{filename} but could not find" unless File.exist?(filename)
+
+      raise "A transformed file is already available in the acquisition directory, please remove it before initiating transforming activities" if File.exist?("#{ENV['ACQUISITION_DIRECTORY'] || 'data'}/#{args[:acquisition_id]}/transformer.json")
+
+      runner = OpencBot::Helpers::Transformer.new
+      IO.foreach(filename) do |line|
+        runner.run(JSON.parse(line))
+      end
+    end
+  end
+
   desc "Unlock Sqlite db via backup"
   task :unlock_sqlite_db_via_backup do
     # see http://stackoverflow.com/questions/9449399/scheduling-a-rails-task-to-safely-backup-the-database-file?answertab=votes#tab-top
