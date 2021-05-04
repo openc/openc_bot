@@ -33,7 +33,6 @@ module OpencBot
     end
 
     def statsd_namespace
-      puts "Getting statsD namespace"
       @statsd_namespace ||= begin
         bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
         StatsD.mode = bot_env
