@@ -16,6 +16,10 @@ module OpencBot
 
       MAX_BUSY_RETRIES = 3
 
+      def exception_to_object(exp)
+        { klass: exp.class.to_s, message: exp.message, backtrace: exp.backtrace }
+      end
+
       def allowed_hours
         if const_defined?("ALLOWED_HOURS")
           const_get("ALLOWED_HOURS").to_a
