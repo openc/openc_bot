@@ -64,8 +64,9 @@ module OpencBot
         File.foreach(input_file_location) do |line|
           yield JSON.parse(line)
         end
-      rescue Errno::ENOENT
-        warn "No such file: #{input_file_location} present"
+      rescue Errno::ENOENT => e
+        warn "Error raised while processing the file: #{input_file_location}"
+        warn "Requested file not found: #{e.message}"
         []
       end
 
