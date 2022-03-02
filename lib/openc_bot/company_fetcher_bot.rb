@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "openc_bot"
+require "openc_bot/bot_config"
 require "openc_bot/helpers/incremental_search"
 require "openc_bot/helpers/alpha_search"
 require "openc_bot/helpers/reporting"
@@ -52,6 +53,7 @@ module OpencBot
     # Reporting is disabled anyway when FETCHER_BOT_ENV is development/test.
     def run(options = {})
       start_time = Time.now
+      BotConfig.instance.run_id = start_time.to_i
       update_data_results = update_data(options.merge(started_at: start_time)) || {}
       # we may get a string back, or something else
       update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)

@@ -8,6 +8,7 @@ require "tzinfo"
 require "English"
 require "openc_bot/exceptions"
 require "openc_bot/helpers/reporting"
+require "openc_bot/helpers/raw_data_depositor"
 
 module OpencBot
   module Helpers
@@ -287,7 +288,10 @@ module OpencBot
       # ignore_out_of_hours_settings as true
       def update_datum(uid, called_externally = false, _replace_existing_data = false)
         return unless raw_data = called_externally ? fetch_datum(uid, ignore_out_of_hours_settings: true) : fetch_datum(uid)
-
+        raw_data_deposit = raw_data.delete(:raw_data_deposit)
+        if raw_data_deposit
+          RawDataDepositor.deposit_raw_datum(raw_data_deposit)
+        end
         default_options = { primary_key_name => uid, :retrieved_at => Time.now }
         # prepare the data for saving (converting Arrays, Hashes to json) and
         return unless base_processed_data = process_datum(raw_data)
