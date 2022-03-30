@@ -40,6 +40,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json-schema", "~> 2.8"
   gem.add_dependency "mail", "~> 2.0"
   gem.add_dependency "nokogiri", "~> 1.8"
+  gem.add_dependency "postbox_client", "0.0.1.pre"
   gem.add_dependency "rake", "~> 12.3"
   gem.add_dependency "resque", "~> 2.0"
   gem.add_dependency "retriable", "~> 2.1"
