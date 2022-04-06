@@ -56,6 +56,7 @@ module OpencBot
       # we may get a string back, or something else
       update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
       report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
+      update_data_results
     end
 
     def schema_name
