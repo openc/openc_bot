@@ -47,7 +47,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sqlite_magic", "0.0.6"
   gem.add_dependency "statsd-instrument", "~> 1.7"
   gem.add_dependency "tzinfo", "~> 1.2"
-  gem.add_dependency "sqlite3", "1.5.3"
+  gem.add_dependency "sqlite3", "< 1.6"
 
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug", "~> 10.0"
