@@ -20,6 +20,33 @@ module OpencBot
         new_highest_numbers
       end
 
+      def fetch_gaps
+        $stderr.puts "#{Time.now.utc.iso8601} - Starting fetch_gaps"
+        current_number = nil 
+        gap_count = 0
+        gap_uid = get_var("highest_gap_uid") || sqlite_magic_connection.execute("select min(company_number) from ocdata")[0]["min(company_number)"]
+        highest_uid = get_var("highest_entry_uids")
+        current_number = gap_uid
+    
+        loop do
+          save_var(:highest_gap_uid, min_company_number, nil) && break if current_number >= highest_uid.first
+          break if gap_count > max_gap_count
+          if datum_exists?(current_number)
+            $stderr.puts "#{current_number} exists in the database"
+          elsif update_datum(current_number, false)
+            @added +=1
+          else 
+            puts "Failed to find company with uid #{current_number}."
+          end
+          save_var(:highest_gap_uid, current_number)
+          current_number = increment_number(current_number)
+          gap_count +=1
+        end
+        {
+          gap_output: "New gap highest numbers = #{current_number}"
+        }
+      end
+
       def highest_entry_uids(force_get = false)
         bad_results = []
         results = get_var("highest_entry_uids")
@@ -101,6 +128,10 @@ module OpencBot
 
       def max_failed_count
         const_defined?("MAX_FAILED_COUNT") ? const_get("MAX_FAILED_COUNT") : 10
+      end
+
+      def max_gap_count
+        const_defined?("MAX_GAP_COUNT") ? const_get("MAX_GAP_COUNT") : 100000
       end
     end
   end
