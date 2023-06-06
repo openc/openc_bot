@@ -29,7 +29,7 @@ module OpencBot
         current_number = gap_uid
     
         loop do
-          save_var(:highest_gap_uid, min_company_number, nil) && break if current_number >= highest_uid.first
+          save_var(:highest_gap_uid, sqlite_magic_connection.execute("select min(company_number) from ocdata")[0]["min(company_number)"], nil) && break if current_number >= highest_uid.first
           break if gap_count > max_gap_count
           if datum_exists?(current_number)
             $stderr.puts "#{current_number} exists in the database"
