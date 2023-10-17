@@ -24,12 +24,13 @@ module OpencBot
         $stderr.puts "#{Time.now.utc.iso8601} - Starting fetch_gaps"
         current_number = nil 
         gap_count = 0
-        gap_uid = get_var("highest_gap_uid") || sqlite_magic_connection.execute("select min(company_number) from ocdata")[0]["min(company_number)"]
+        save_var("lowest_company_number", lowest_company_number) if get_var("lowest_company_number").nil?
+        gap_uid = get_var("highest_gap_uid") || get_var("lowest_company_number")
         highest_uid = get_var("highest_entry_uids")
         current_number = gap_uid
     
         loop do
-          save_var(:highest_gap_uid, sqlite_magic_connection.execute("select min(company_number) from ocdata")[0]["min(company_number)"], nil) && break if current_number >= highest_uid.first
+          save_var(:highest_gap_uid, get_var("lowest_company_number"), nil) && break if current_number.to_i >= highest_uid.first.to_i
           break if gap_count > max_gap_count
           if datum_exists?(current_number)
             $stderr.puts "#{current_number} exists in the database"
@@ -132,6 +133,10 @@ module OpencBot
 
       def max_gap_count
         const_defined?("MAX_GAP_COUNT") ? const_get("MAX_GAP_COUNT") : 100000
+      end
+
+      def lowest_company_number
+        const_defined?("LOWEST_COMPANY_NUMBER") ? const_get("LOWEST_COMPANY_NUMBER") : 0
       end
     end
   end
