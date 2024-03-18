@@ -9,6 +9,7 @@ require "openc_bot/jobs/single_record_update_job"
 require "openc_bot/jobs/sru_request_job"
 require "openc_bot/exceptions"
 require "statsd-instrument"
+require "aws-sdk-secretsmanager"
 
 module OpencBot
   class OpencBotError < StandardError; end
@@ -22,6 +23,24 @@ module OpencBot
 
   def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
+  end
+
+  def get_bot_secret(jurisdiction_code=nil, common_secret=nil)
+    Aws.config[:credentials] = Aws::SharedCredentials.new(profile_name: 'bot')
+    client = Aws::SecretsManager::Client.new(region: default_aws_region)
+    if jurisdiction_code
+      get_secret_value_response = client.get_secret_value(secret_id: "/external_bots/#{jurisdiction_code}_companies")
+    else
+      get_secret_value_response = client.get_secret_value(secret_id: "/external_bots/#{common_secret}_credentials")
+    end
+    # For a list of exceptions thrown, see
+    # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+    secret = get_secret_value_response.secret_string
+    JSON.parse(secret)
+  end
+
+  def default_aws_region
+    const_defined?("AWS_REGION") ? const_get("AWS_REGION") : "eu-west-2"
   end
 
   def save_data(uniq_keys, values_array, tbl_name = "ocdata")
