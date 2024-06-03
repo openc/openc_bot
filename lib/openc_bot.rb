@@ -37,6 +37,9 @@ module OpencBot
     # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
     secret = get_secret_value_response.secret_string
     JSON.parse(secret)
+  rescue Exception => e
+    send_error_report(e)
+    raise e
   end
 
   def default_aws_region
