@@ -4,6 +4,7 @@ require "openc_bot"
 require "openc_bot/helpers/incremental_search"
 require "openc_bot/helpers/alpha_search"
 require "openc_bot/helpers/reporting"
+require "tempfile"
 
 module OpencBot
   module CompanyFetcherBot
@@ -52,8 +53,30 @@ module OpencBot
     # Reporting is disabled anyway when FETCHER_BOT_ENV is development/test.
     def run(options = {})
       start_time = Time.now
+      puts "Started update_data for #{inferred_jurisdiction_code} at #{start_time}"
       update_data_results = update_data(options.merge(started_at: start_time)) || {}
-      # we may get a string back, or something else
+      end_date = Time.now
+      puts "Finished update_data for #{inferred_jurisdiction_code} at #{end_date} with overall duration of #{end_date - start_time}s"
+
+      # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
+      if ENV["SAVE_DATA_TO_S3"]
+        puts "Uploading data to S3"
+        s3_date_folder_prefix = DateTime.parse(end_date.to_s).strftime("%Y/%m/%d")
+        unix_time_stamp = end_date.to_i
+        # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
+        if update_data_results.is_a?(Hash) && update_data_results.has_key?( :data_directory)
+          bot_output_location = "#{acquisition_directory_final}/transformer.jsonl"
+          s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
+        else
+          bot_output_location = "#{db_location}"
+          s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
+        end
+        # Create temp file to compress the `.jsonl` or `.db` files
+        Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
+          compress_file(bot_output_location, tmp_file)
+          upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
+        end
+      end
       update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
       report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
       update_data_results

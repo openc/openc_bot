@@ -10,6 +10,8 @@ require "openc_bot/jobs/sru_request_job"
 require "openc_bot/exceptions"
 require "statsd-instrument"
 require "aws-sdk-secretsmanager"
+require "aws-sdk-s3"
+require "zlib"
 
 module OpencBot
   class OpencBotError < StandardError; end
@@ -25,9 +27,26 @@ module OpencBot
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
 
+  def aws_config_initialiser
+    if ENV["AWS_PROFILE"]
+      puts "aws_config_initialiser with profile name #{ENV["AWS_PROFILE"]}"
+      Aws.config[:credentials] = Aws::SharedCredentials.new(profile_name: ENV["AWS_PROFILE"])
+    elsif ENV["AWS_ACCESS_KEY_ID"] && ENV["AWS_SECRET_ACCESS_KEY"]
+      puts "aws_config_initialiser with access key"
+      Aws.config[:credentials] = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
+    else
+      puts "aws_config_initialiser credentials not provided. Set AWS_PROFILE or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+    end
+    Aws.config[:region] = ENV["AWS_REGION"] || "eu-west-2"
+  end
+
+  def setup_s3_resource
+    Aws::S3::Resource.new
+  end
+
   def get_bot_secret(jurisdiction_code=nil, common_secret=nil)
-    Aws.config[:credentials] = Aws::SharedCredentials.new(profile_name: 'bot')
-    client = Aws::SecretsManager::Client.new(region: default_aws_region)
+    aws_config_initialiser
+    client = Aws::SecretsManager::Client.new
     if jurisdiction_code
       get_secret_value_response = client.get_secret_value(secret_id: "/external_bots/#{jurisdiction_code}_companies")
     else
@@ -42,8 +61,19 @@ module OpencBot
     raise e
   end
 
-  def default_aws_region
-    const_defined?("AWS_REGION") ? const_get("AWS_REGION") : "eu-west-2"
+  def upload_file_to_s3(bucket_name, output_file_location, input_file_location)
+    aws_config_initialiser
+    s3_client = setup_s3_resource
+    puts "upload_file_to_s3 with bucket = #{bucket_name}, output_file = #{output_file_location}, input_file = #{input_file_location}"
+    begin
+      obj = s3_client.bucket(bucket_name).object(output_file_location)
+      obj.upload_file(input_file_location)
+      puts "File uploaded successfully to #{bucket_name}/#{output_file_location}"
+    rescue Aws::S3::Errors::ServiceError => e
+      # Currently handling the S3 upload error with a log message.
+      # Need to handle the non-uploaded files.
+      puts "Failed to upload file: #{e.message}"
+    end
   end
 
   def save_data(uniq_keys, values_array, tbl_name = "ocdata")
@@ -146,5 +176,17 @@ module OpencBot
     field_names = sqlite_magic_connection.execute("PRAGMA table_info(ocdata)").collect { |c| c["name"] }
     select_sql = "COUNT(1) Total, " + field_names.collect { |fn| "COUNT(#{fn}) #{fn}_not_null" }.join(", ") + " FROM ocdata"
     select(select_sql).first
+  end
+
+  # Compress the `input_file` to `output_file`
+  # Currently this method is used to compress the output files
+  # i.e. jsonl / db files before uploading to S3 bucket
+  def compress_file(input_file, output_file)
+    Zlib::GzipWriter.open(output_file) do |gz|
+      File.open(input_file, 'rb') do |file|
+        gz.write(file.read)
+      end
+    end
+    puts "File compressed successfully to #{output_file.path}"
   end
 end
