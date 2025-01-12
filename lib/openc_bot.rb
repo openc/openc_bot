@@ -4,6 +4,7 @@ require "openc_bot/version"
 require "json"
 require "scraperwiki"
 require_relative "openc_bot/bot_data_validator"
+require_relative "openc_bot/bot_logger"
 require "openc_bot/helpers/text"
 require "openc_bot/jobs/single_record_update_job"
 require "openc_bot/jobs/sru_request_job"
@@ -23,19 +24,21 @@ module OpencBot
   # include by default, as some were previously in made openc_bot file
   include Helpers::Text
 
+  LOGGER = BotLogger.instance
+
   def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
 
   def aws_config_initialiser
     if ENV["AWS_PROFILE"]
-      puts "aws_config_initialiser with profile name #{ENV["AWS_PROFILE"]}"
+      LOGGER.info({service: "openc_bot", event:"aws_config_initialiser", bot_name: bot_name, cred_type: "profile", aws_profile: ENV["AWS_PROFILE"]}.to_json)
       Aws.config[:credentials] = Aws::SharedCredentials.new(profile_name: ENV["AWS_PROFILE"])
     elsif ENV["AWS_ACCESS_KEY_ID"] && ENV["AWS_SECRET_ACCESS_KEY"]
-      puts "aws_config_initialiser with access key"
+      LOGGER.info({service: "openc_bot", event:"aws_config_initialiser", bot_name: bot_name, cred_type: "access_key"}.to_json)
       Aws.config[:credentials] = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
     else
-      puts "aws_config_initialiser credentials not provided. Set AWS_PROFILE or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+      LOGGER.warn({service: "openc_bot", event:"aws_config_initialiser", bot_name: bot_name, cred_type: nil, message:"credentials / profile not provided"}.to_json)
     end
     Aws.config[:region] = ENV["AWS_REGION"] || "eu-west-2"
   end
@@ -64,15 +67,16 @@ module OpencBot
   def upload_file_to_s3(bucket_name, output_file_location, input_file_location)
     aws_config_initialiser
     s3_client = setup_s3_resource
-    puts "upload_file_to_s3 with bucket = #{bucket_name}, output_file = #{output_file_location}, input_file = #{input_file_location}"
+    LOGGER.info({service: "openc_bot", event:"upload_file_to_s3_begin", bot_name: bot_name, s3_bucket: bucket_name, s3_object: output_file_location, input_file: input_file_location}.to_json)
     begin
+      start_time = Time.now
       obj = s3_client.bucket(bucket_name).object(output_file_location)
       obj.upload_file(input_file_location)
-      puts "File uploaded successfully to #{bucket_name}/#{output_file_location}"
+      LOGGER.info({service: "openc_bot", event:"upload_file_to_s3_end", ok:true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, s3_bucket: bucket_name, s3_object: output_file_location, input_file: input_file_location}.to_json)
     rescue Aws::S3::Errors::ServiceError => e
       # Currently handling the S3 upload error with a log message.
       # Need to handle the non-uploaded files.
-      puts "Failed to upload file: #{e.message}"
+      LOGGER.error({service: "openc_bot", event:"upload_file_to_s3_error", ok:false, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, s3_bucket: bucket_name, s3_object: output_file_location, input_file: input_file_location, message: e.message}.to_json)
     end
   end
 
@@ -182,11 +186,13 @@ module OpencBot
   # Currently this method is used to compress the output files
   # i.e. jsonl / db files before uploading to S3 bucket
   def compress_file(input_file, output_file)
+    start_time = Time.now
+    LOGGER.info({service: "openc_bot", event:"compress_file_begin", bot_name: bot_name, output_file: output_file.path, input_file: input_file}.to_json)
     Zlib::GzipWriter.open(output_file) do |gz|
       File.open(input_file, 'rb') do |file|
         gz.write(file.read)
       end
     end
-    puts "File compressed successfully to #{output_file.path}"
+    LOGGER.info({service: "openc_bot", event:"compress_file_end", ok: true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, output_file: output_file.path, input_file: input_file}.to_json)
   end
 end

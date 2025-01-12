@@ -5,8 +5,10 @@ require "json"
 require "fileutils"
 require "resque"
 require "resque/tasks"
+require_relative "bot_logger"
 
 PRODUCTION_PID_DIR = "/oc/pids/external_bots"
+logger = BotLogger.instance
 
 def pid_dir
   if Dir.exist?(PRODUCTION_PID_DIR)
@@ -76,8 +78,12 @@ namespace :bot do
   desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
     bot_name = get_bot_name
-    puts "Starting a #{bot_name} update_data run without reporting (dev/debug)"
-    raise "The dev/debug 'run' task should only be invoked with FETCHER_BOT_ENV=development" unless ENV["FETCHER_BOT_ENV"] == "development"
+    start_at = Time.now
+    logger.info({service: "run_task", event: "run_begin", bot_name: bot_name}.to_json)
+    if ENV["FETCHER_BOT_ENV"] != "development"
+      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, ok: false, duration_s: (Time.now - start_at).round(2), message: "The 'run' task should only be invoked with FETCHER_BOT_ENV=development"}.to_json)
+      raise "The dev/debug 'run' task should only be invoked with FETCHER_BOT_ENV=development" unless ENV["FETCHER_BOT_ENV"] == "development"
+    end
 
     begin
       only_process_running("#{bot_name}-#{t.name}") do
@@ -109,12 +115,11 @@ namespace :bot do
 
         res = runner.run(options)
 
-        puts res.to_json
+        logger.info({service: "run_task", event: "run_end", bot_name: bot_name, ok:true, duration_s: (Time.now - start_at), run_result: res}.to_json)
       end
     rescue Exception => e
       raise e unless e.message[/already running/i]
-
-      puts "Skipping running #{bot_name}: #{e.message}"
+      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, ok:false, duration_s: (Time.now - start_at), message: e.message}.to_json)
     end
   end
 
