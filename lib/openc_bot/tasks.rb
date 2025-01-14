@@ -77,7 +77,9 @@ namespace :bot do
 
   desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
-    bot_name = get_bot_name
+    # Brings in the method bot_name
+    include OpencBot
+
     start_at = Time.now
     logger.info({service: "run_task", event: "run_begin", bot_name: bot_name}.to_json)
     if ENV["FETCHER_BOT_ENV"] != "development"

@@ -26,6 +26,18 @@ module OpencBot
 
   LOGGER = BotLogger.instance
 
+  # Dir = ./path/to/us_fl_companies_fetcher/
+  # Returns "us_fl_companies_fetcher"
+  class << self
+    def bot_name
+      @bot_name ||= Dir.pwd.split("/").last
+    end
+  end
+
+  # Allows you to call OpencBot.bot_name from outside OR
+  # bot_name from inside the module
+  delegate :bot_name, to: :class
+
   def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
