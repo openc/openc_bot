@@ -26,6 +26,11 @@ module OpencBot
 
   LOGGER = BotLogger.instance
 
+  def bot_name
+    @bot_name ||= Dir.pwd.split("/").last
+  end
+  module_function :bot_name
+
   def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
     sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
   end
@@ -71,12 +76,15 @@ module OpencBot
     begin
       start_time = Time.now
       obj = s3_client.bucket(bucket_name).object(output_file_location)
-      obj.upload_file(input_file_location)
+      # obj.upload_file(input_file_location)
+      # s3_client.put_object({bucket: bucket_name, key: output_file_location, body: File.read(input_file_location), tagging: "test1=value1"})
+      obj.put({body: File.read(input_file_location), tagging: "bot_name=#{bot_name}"})
       LOGGER.info({service: "openc_bot", event:"upload_file_to_s3_end", ok:true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, s3_bucket: bucket_name, s3_object: output_file_location, input_file: input_file_location}.to_json)
     rescue Aws::S3::Errors::ServiceError => e
       # Currently handling the S3 upload error with a log message.
       # Need to handle the non-uploaded files.
       LOGGER.error({service: "openc_bot", event:"upload_file_to_s3_error", ok:false, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, s3_bucket: bucket_name, s3_object: output_file_location, input_file: input_file_location, message: e.message}.to_json)
+      raise "#{e.message}"
     end
   end
 
