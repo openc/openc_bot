@@ -78,11 +78,12 @@ namespace :bot do
 
   desc "Perform a fetcher bot update_data run without reporting and with dev/debug options"
   task :run do |t, args|
-    bot_name = OpencBot.bot_name
+    bot_name = get_bot_name
     start_at = Time.now
-    logger.info({service: "run_task", event: "run_begin", bot_name: bot_name}.to_json)
+    bot_run_id = "#{start_at.to_i}_#{bot_name}"
+    logger.info({service: "run_task", event: "run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
     if ENV["FETCHER_BOT_ENV"] != "development"
-      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, ok: false, duration_s: (Time.now - start_at).round(2), message: "The 'run' task should only be invoked with FETCHER_BOT_ENV=development"}.to_json)
+      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, bot_run_id: bot_run_id, ok: false, duration_s: (Time.now - start_at).round(2), message: "The 'run' task should only be invoked with FETCHER_BOT_ENV=development"}.to_json)
       raise "The dev/debug 'run' task should only be invoked with FETCHER_BOT_ENV=development"
     end
 
@@ -91,7 +92,6 @@ namespace :bot do
         options = {}
         options[:specific_ids] = []
         options[:reset_iterator] = false
-        options[:bot_name] = bot_name
         OptionParser.new(args) do |opts|
           opts.banner = "Usage: rake #{t.name} -- [options]"
           opts.on("-i", "--identifier UNIQUE_FIELD_VAL",
@@ -114,24 +114,26 @@ namespace :bot do
         end.parse!
         require_relative File.join(Dir.pwd, "lib", bot_name)
         runner = callable_from_file_name(bot_name)
-
+        runner.bot_run_id = bot_run_id
+        runner.bot_name = bot_name
         res = runner.run(options)
 
-        logger.info({service: "run_task", event: "run_end", bot_name: bot_name, ok: true, duration_s: (Time.now - start_at), run_result: res}.to_json)
+        logger.info({service: "run_task", event: "run_end", bot_name: bot_name, bot_run_id: bot_run_id, ok: true, duration_s: (Time.now - start_at), run_result: res}.to_json)
       end
     rescue Exception => e
-      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, ok: false, duration_s: (Time.now - start_at), message: e.message}.to_json)
+      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, bot_run_id: bot_run_id, ok: false, duration_s: (Time.now - start_at), message: e.message}.to_json)
       raise e unless e.message[/already running/i]
     end
   end
 
   desc "Perform a fetcher bot run with reporting (Used for real production runs)"
   task :run2 do |_t, _args|
-    bot_name = OpencBot.bot_name
+    bot_name = get_bot_name
     start_at = Time.now
-    logger.info({service: "run2_task", event: "run_begin", bot_name: bot_name}.to_json)
+    bot_run_id = "#{start_at.to_i}_#{bot_name}"
+    logger.info({service: "run2_task", event: "run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
     if ENV["FETCHER_BOT_ENV"] != "production"
-      logger.error({service: "run2_task", event: "run_error", bot_name: bot_name, ok: false, duration_s: (Time.now - start_at).round(2), message: "The 'run2' task should only be invoked with FETCHER_BOT_ENV=production"}.to_json)
+      logger.error({service: "run2_task", event: "run_error", bot_name: bot_name, bot_run_id: bot_run_id, ok: false, duration_s: (Time.now - start_at).round(2), message: "The 'run2' task should only be invoked with FETCHER_BOT_ENV=production"}.to_json)
       raise "The 'run2' task should only be invoked with FETCHER_BOT_ENV=production"
     end
 
@@ -141,12 +143,14 @@ namespace :bot do
         require_relative File.join(Dir.pwd, "lib", bot_name)
         runner = callable_from_file_name(bot_name)
 
+        runner.bot_run_id = bot_run_id
+        runner.bot_name = bot_name
         runner.run
 
-        logger.info({service: "run2_task", event: "run_end", bot_name: bot_name, ok: true, duration_s: (Time.now - start_at), run_result: res}.to_json)
+        logger.info({service: "run2_task", event: "run_end", bot_name: bot_name, bot_run_id: bot_run_id, ok: true, duration_s: (Time.now - start_at), run_result: res}.to_json)
       end
     rescue Exception => e
-      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, ok: false, duration_s: (Time.now - start_at), message: e.message}.to_json)
+      logger.error({service: "run_task", event: "run_error", bot_name: bot_name, bot_run_id: bot_run_id, ok: false, duration_s: (Time.now - start_at), message: e.message}.to_json)
       raise e unless e.message[/already running/i]
     end
   end

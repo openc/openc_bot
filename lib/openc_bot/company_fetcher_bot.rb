@@ -53,11 +53,11 @@ module OpencBot
     # Reporting is disabled anyway when FETCHER_BOT_ENV is development/test.
     def run(options = {})
       start_time = Time.now
-      LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: OpencBot.bot_name}.to_json)
+      LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
       update_data_results = update_data(options.merge(started_at: start_time)) || {}
       # update_data_results = nil
       end_time = Time.now
-      LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: OpencBot.bot_name, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
+      LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
 
       # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
       if ENV["SAVE_DATA_TO_S3"]
@@ -80,7 +80,7 @@ module OpencBot
 
       update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
       report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
-      LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: true, bot_name: OpencBot.bot_name, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
+      LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
       update_data_results
     end
 
@@ -93,13 +93,13 @@ module OpencBot
     # this method) will be returned here and included in the final run report.
     def update_data(options = {})
       start_time = Time.now
-      LOGGER.info({service: "company_fetcher_bot", event:"update_data_begin", bot_name: OpencBot.bot_name}.to_json)
+      LOGGER.info({service: "company_fetcher_bot", event:"update_data_begin", bot_name: bot_name, bot_run_id: bot_run_id, }.to_json)
       fetch_data_results = fetch_data
       update_stale_results = update_stale
       res = {}
       res.merge!(fetch_data_results) if fetch_data_results.is_a?(Hash)
       res.merge!(update_stale_results) if update_stale_results.is_a?(Hash)
-      LOGGER.info({service: "company_fetcher_bot", event:"update_data_end", bot_name: OpencBot.bot_name, ok: true, duration_s: (Time.now - start_time).round(2)}.to_json)
+      LOGGER.info({service: "company_fetcher_bot", event:"update_data_end", bot_name: bot_name, bot_run_id: bot_run_id, ok: true, duration_s: (Time.now - start_time).round(2)}.to_json)
       res
     rescue Exception => e
       send_error_report(e, options)
