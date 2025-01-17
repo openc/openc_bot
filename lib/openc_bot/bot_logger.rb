@@ -1,7 +1,9 @@
+require 'forwardable'
 require 'logger'
 require 'singleton'
 
 class BotLogger
+  extend Forwardable
   include Singleton
 
   def initialize
@@ -14,7 +16,5 @@ class BotLogger
     @logger
   end
 
-  def method_missing(method, *args, &block)
-    @logger.send(method, *args, &block)
-  end
+  def_delegators :@logger, :info, :warn, :debug, :error, :fatal
 end
