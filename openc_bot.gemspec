@@ -49,6 +49,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "tzinfo", "~> 1.2"
   gem.add_dependency "sqlite3", "< 1.6"
   gem.add_dependency "aws-sdk-secretsmanager", "1.9"
+  gem.add_dependency "aws-sdk-s3", "~> 1.67"
 
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug", "~> 10.0"
