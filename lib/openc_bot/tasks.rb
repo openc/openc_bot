@@ -145,7 +145,7 @@ namespace :bot do
 
         runner.bot_run_id = bot_run_id
         runner.bot_name = bot_name
-        runner.run
+        res = runner.run(options)
 
         logger.info({service: "run2_task", event: "run_end", bot_name: bot_name, bot_run_id: bot_run_id, ok: true, duration_s: (Time.now - start_at), run_result: res}.to_json)
       end
