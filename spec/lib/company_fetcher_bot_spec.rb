@@ -16,6 +16,10 @@ module UsXxCompaniesFetcher
   extend OpencBot::CompanyFetcherBot
 end
 
+module UsXx2CompaniesFetcher
+  extend OpencBot::CompanyFetcherBot
+end
+
 describe "A module that extends CompanyFetcherBot" do
   before do
     @dummy_connection = double("database_connection", save_data: nil)
@@ -81,6 +85,10 @@ describe "A module that extends CompanyFetcherBot" do
   describe "#inferred_jurisdiction_code" do
     it "returns jurisdiction_code inferred from class_name" do
       expect(UsXxCompaniesFetcher.inferred_jurisdiction_code).to eq("us_xx")
+    end
+
+    it "returns jurisdiction_code inferred from class_name with number" do
+      expect(UsXx2CompaniesFetcher.inferred_jurisdiction_code).to eq("us_xx2")
     end
 
     it "returns nil if jurisdiction_code not correct format" do
