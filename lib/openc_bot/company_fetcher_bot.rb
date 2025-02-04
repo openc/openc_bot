@@ -23,7 +23,7 @@ module OpencBot
 
     def inferred_jurisdiction_code
       poss_j_code = name.sub(/CompaniesFetcher/, "").underscore
-      poss_j_code[/^[a-z]{2}$|^[a-z]{2}_[a-z]{2}$/]
+      poss_j_code[/^[a-z]{2}\d?$|^[a-z]{2}_[a-z]{2}\d?$/]
     end
 
     def primary_key_name
