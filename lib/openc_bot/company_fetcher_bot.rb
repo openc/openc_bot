@@ -30,6 +30,10 @@ module OpencBot
       :company_number
     end
 
+    def is_parakeet_bot?(update_data_results)
+      update_data_results[:bot_type] == "parakeet"
+    end
+
     # This overrides default #save_entity (defined in RegisterMethods) and adds
     # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
@@ -52,36 +56,45 @@ module OpencBot
     # overridden by company_fetchers and the final run report will still happen.
     # Reporting is disabled anyway when FETCHER_BOT_ENV is development/test.
     def run(options = {})
-      start_time = Time.now
-      LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
-      update_data_results = update_data(options.merge(started_at: start_time)) || {}
-      # update_data_results = nil
-      end_time = Time.now
-      LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
+      begin
+        ingest_file = false
+        start_time = Time.now
+        LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
+        update_data_results = update_data(options.merge(started_at: start_time)) || {}
+        # update_data_results = nil
+        end_time = Time.now
+        LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
+        # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
+        if ENV["SAVE_DATA_TO_S3"]
+          s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
+          unix_time_stamp = end_time.to_i
+          # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
+          if is_parakeet_bot?(update_data_results) && update_data_results.has_key?( :data_directory)
+            ingest_file = true
+            bot_output_location = "#{acquisition_directory_final}/transformer.jsonl"
+            s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
+          elsif !is_parakeet_bot?(update_data_results)
+            ingest_file = true
+            bot_output_location = "#{db_location}"
+            s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
+          end
+          # Create temp file to compress the `.jsonl` or `.db` files
+          if ingest_file
+            Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
+              compress_file(bot_output_location, tmp_file)
+              upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
+            end
+          end
+        end
 
-      # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
-      if ENV["SAVE_DATA_TO_S3"]
-        s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
-        unix_time_stamp = end_time.to_i
-        # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
-        if update_data_results.is_a?(Hash) && update_data_results.has_key?( :data_directory)
-          bot_output_location = "#{acquisition_directory_final}/transformer.jsonl"
-          s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
-        else
-          bot_output_location = "#{db_location}"
-          s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
-        end
-        # Create temp file to compress the `.jsonl` or `.db` files
-        Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
-          compress_file(bot_output_location, tmp_file)
-          upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
-        end
+        update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
+        report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
+        LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
+        update_data_results
+      rescue Exception => e
+        LOGGER.error({service: "company_fetcher_bot", event:"run_error", duration_s: (Time.now - start_time).round(2), bot_name: bot_name, bot_run_id: bot_run_id, message: e.message}.to_json)
+        raise e
       end
-
-      update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
-      report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
-      LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
-      update_data_results
     end
 
     def schema_name

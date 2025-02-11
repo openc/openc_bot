@@ -66,7 +66,7 @@ module OpencBot
 
     # Outline bot run logic.
     def update_data(options = {})
-      res = {}
+      res = {bot_type: "parakeet"}
       bot_namespace = callable_from_file_name(bot_name)
       unless processing_states.include?("fetcher")
         res.merge!(bot_namespace::Fetcher.run)
