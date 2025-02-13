@@ -199,8 +199,12 @@ module OpencBot
     LOGGER.info({service: "openc_bot", event:"compress_file_begin", bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file.path, input_file: input_file}.to_json)
     Zlib::GzipWriter.open(output_file) do |gz|
       File.open(input_file, 'rb') do |file|
-        gz.write(file.read)
+        IO.copy_stream(file, gz)
       end
+
+      # This should be implicit, but added here just in case as there were issues with bad gz files being compressed.
+      # Using IO.copy_stream should fix the root cause, but added this just in case.
+      gz.close
     end
     LOGGER.info({service: "openc_bot", event:"compress_file_end", ok: true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file.path, input_file: input_file}.to_json)
   end
