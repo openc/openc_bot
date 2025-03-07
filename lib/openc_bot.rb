@@ -3,6 +3,7 @@
 require "openc_bot/version"
 require "json"
 require "scraperwiki"
+require "fileutils"
 require_relative "openc_bot/bot_data_validator"
 require_relative "openc_bot/bot_logger"
 require "openc_bot/helpers/text"
@@ -70,6 +71,10 @@ module OpencBot
 
   def default_aws_region
     const_defined?("AWS_REGION") ? const_get("AWS_REGION") : "eu-west-2"
+  end
+
+  def rename_to_archive(acquisition_directory_final)
+    FileUtils.mv acquisition_directory_final, "#{acquisition_directory_final}.archive"
   end
 
   def upload_file_to_s3(bucket_name, output_file_location, input_file_location)
