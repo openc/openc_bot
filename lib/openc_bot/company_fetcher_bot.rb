@@ -66,22 +66,38 @@ module OpencBot
         LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
         # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
         if ENV["SAVE_DATA_TO_S3"]
-          s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
           # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
           if is_parakeet_bot?(update_data_results) && update_data_results.has_key?( :data_directory)
-            bot_output_location = "#{acquisition_directory_final}/transformer.jsonl"
-            unix_time_stamp = in_progress_acquisition_id
-            s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
-            gz_file_location = "#{acquisition_directory_final}/transformer.jsonl.gz"
-            compress_file(bot_output_location, gz_file)
-            upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, gz_file_location)
-            rename_to_archive(acquisition_directory_final)
+            cut_off_epoch = (ENV["INGESTION_CUT_OFF_EPOCH"] || in_progress_acquisition_id).to_i # Default to only upload current run.
+
+            loop do
+              matching_dirs = get_pending_ingestion_dirs(acquisition_base_directory, cut_off_epoch)
+              break if matching_dirs.empty? # Stop if no matching directories are left
+
+              matching_dir = matching_dirs.first # Take the oldest matching directory
+              bot_output_location = "#{matching_dir}/transformer.jsonl"
+              unix_time_stamp = File.basename(matching_dir).to_i # Extract subdirectory name as unix_time_stamp
+
+              if unix_time_stamp == 0
+                raise "Invalid matching_dir name, expected epoch time (#{File.basename(matching_dir)})"
+              end
+
+              s3_date_folder_prefix = Time.at(unix_time_stamp).utc.strftime("%Y/%m/%d")
+              s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
+              gz_file_location = "#{matching_dir}/transformer.jsonl.gz"
+
+              compress_file(bot_output_location, gz_file_location)
+              upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, gz_file_location)
+              rename_to_archive(matching_dir) # Archive the processed directory
+            end
+
           elsif !is_parakeet_bot?(update_data_results)
             bot_output_location = "#{db_location}"
             unix_time_stamp = end_time.to_i
+            s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
             s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
             Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
-              compress_file(bot_output_location, tmp_file)
+              compress_file(bot_output_location, tmp_file.path)
               upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
             end
           end
