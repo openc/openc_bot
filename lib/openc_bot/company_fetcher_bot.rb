@@ -67,19 +67,19 @@ module OpencBot
         # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
         if ENV["SAVE_DATA_TO_S3"]
           s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
-          unix_time_stamp = end_time.to_i
           # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
           if is_parakeet_bot?(update_data_results) && update_data_results.has_key?( :data_directory)
-            ingest_file = true
             bot_output_location = "#{acquisition_directory_final}/transformer.jsonl"
+            unix_time_stamp = in_progress_acquisition_id
             s3_prefix = "external_bots/#{inferred_jurisdiction_code}/transformer/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_transformer_#{unix_time_stamp}.jsonl.gz"
+            gz_file_location = "#{acquisition_directory_final}/transformer.jsonl.gz"
+            compress_file(bot_output_location, gz_file)
+            upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, gz_file_location)
+            rename_to_archive(acquisition_directory_final)
           elsif !is_parakeet_bot?(update_data_results)
-            ingest_file = true
             bot_output_location = "#{db_location}"
+            unix_time_stamp = end_time.to_i
             s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
-          end
-          # Create temp file to compress the `.jsonl` or `.db` files
-          if ingest_file
             Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
               compress_file(bot_output_location, tmp_file)
               upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
