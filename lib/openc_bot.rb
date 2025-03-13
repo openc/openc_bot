@@ -3,6 +3,7 @@
 require "openc_bot/version"
 require "json"
 require "scraperwiki"
+require "fileutils"
 require_relative "openc_bot/bot_data_validator"
 require_relative "openc_bot/bot_logger"
 require "openc_bot/helpers/text"
@@ -70,6 +71,23 @@ module OpencBot
 
   def default_aws_region
     const_defined?("AWS_REGION") ? const_get("AWS_REGION") : "eu-west-2"
+  end
+
+  def rename_to_archive(acquisition_directory_final)
+    FileUtils.mv acquisition_directory_final, "#{acquisition_directory_final}.archive"
+  end
+
+  def get_pending_ingestion_dirs(base_dir, cut_off_epoch)
+    Dir.entries(base_dir)
+       .select { |entry| entry.match?(/^\d{10}$/) } # Match directories with exactly 10 digits
+       .map { |entry| File.join(base_dir, entry) } # Convert to full path
+       .select do |path|
+      dir_epoch = File.basename(path).to_i # Convert directory name to integer (epoch)
+      File.directory?(path) &&
+        File.exist?(File.join(path, "transformer.jsonl")) &&
+        dir_epoch >= cut_off_epoch # Filter by cutoff epoch
+    end
+       .sort_by { |path| File.basename(path).to_i } # Sort oldest to newest
   end
 
   def upload_file_to_s3(bucket_name, output_file_location, input_file_location)
@@ -196,7 +214,7 @@ module OpencBot
   # i.e. jsonl / db files before uploading to S3 bucket
   def compress_file(input_file, output_file)
     start_time = Time.now
-    LOGGER.info({service: "openc_bot", event:"compress_file_begin", bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file.path, input_file: input_file}.to_json)
+    LOGGER.info({service: "openc_bot", event:"compress_file_begin", bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file, input_file: input_file}.to_json)
     Zlib::GzipWriter.open(output_file) do |gz|
       File.open(input_file, 'rb') do |file|
         IO.copy_stream(file, gz)
@@ -206,6 +224,6 @@ module OpencBot
       # Using IO.copy_stream should fix the root cause, but added this just in case.
       gz.close
     end
-    LOGGER.info({service: "openc_bot", event:"compress_file_end", ok: true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file.path, input_file: input_file}.to_json)
+    LOGGER.info({service: "openc_bot", event:"compress_file_end", ok: true, duration_s: (Time.now - start_time).round(2), bot_name: bot_name, bot_run_id: bot_run_id, output_file: output_file, input_file: input_file}.to_json)
   end
 end
