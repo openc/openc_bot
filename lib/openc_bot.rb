@@ -31,8 +31,47 @@ module OpencBot
 
   attr_accessor :bot_name
 
-  def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata")
-    sqlite_magic_connection.insert_or_update(uniq_keys, values_hash, tbl_name)
+  attr_accessor :data_changes
+
+  def insert_or_update(uniq_keys, values_hash, tbl_name = "ocdata", opts={})
+    all_field_names = values_hash.keys
+    begin
+      field_names_as_symbol_string = all_field_names.map{ |k| ":#{k}" }.join(',') # need to appear as symbols
+      sql_statement = "INSERT INTO #{tbl_name} (#{all_field_names.join(',')}) VALUES (#{field_names_as_symbol_string})"
+      sqlite_magic_connection.database.execute(sql_statement, values_hash)
+      self.data_changes = true
+    rescue SQLite3::ConstraintException => e
+      unique_key_constraint = uniq_keys.map { |k| "#{k}=:#{k}" }.join(' AND ')
+      sql_statement = "SELECT #{(all_field_names - ["retrieved_at"]).join(',')} FROM #{tbl_name} WHERE #{unique_key_constraint}"
+      results = sqlite_magic_connection.database.execute sql_statement, values_hash.slice(*uniq_keys)
+      unless results.nil? || results.length == 0
+        row = results[0]
+        (all_field_names - ["retrieved_at"]).each_with_index do |field_name, idx|
+          if values_hash[field_name] != row[idx]
+            self.data_changes = true
+            break
+          end
+        end
+      end
+
+      update_keys = values_hash.keys
+      update_keys -= uniq_keys if !opts[:update_unique_keys]
+      update_sql = update_keys.map { |k| "#{k}=:#{k}" }.join(', ')
+      sql_statement = "UPDATE #{tbl_name} SET #{update_sql} WHERE #{unique_key_constraint}"
+      sqlite_magic_connection.database.execute sql_statement, values_hash
+    rescue SQLite3::SQLException => e
+      puts "Exception (#{e.inspect}) raised" if ENV['VERBOSE']
+      case e.message
+      when /no such table/
+        create_table(tbl_name, all_field_names, uniq_keys)
+        retry
+      when /has no column/
+        add_columns(tbl_name, all_field_names)
+        retry
+      else
+        raise e
+      end
+    end
   end
 
   def aws_config_initialiser
