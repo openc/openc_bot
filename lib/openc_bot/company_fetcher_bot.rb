@@ -92,13 +92,17 @@ module OpencBot
             end
 
           elsif !is_parakeet_bot?(update_data_results)
-            bot_output_location = "#{db_location}"
-            unix_time_stamp = end_time.to_i
-            s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
-            s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
-            Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
-              compress_file(bot_output_location, tmp_file.path)
-              upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
+            if data_changes
+              LOGGER.warn("Skipped S3 upload as no changes detected to DB.")
+            else
+              bot_output_location = "#{db_location}"
+              unix_time_stamp = end_time.to_i
+              s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
+              s3_prefix = "external_bots/#{inferred_jurisdiction_code}/db/#{s3_date_folder_prefix}/#{inferred_jurisdiction_code}_db_#{unix_time_stamp}.db.gz"
+              Tempfile.create(["#{inferred_jurisdiction_code}.", ".gz"]) do |tmp_file|
+                compress_file(bot_output_location, tmp_file.path)
+                upload_file_to_s3(ENV["S3_BUCKET_NAME"], s3_prefix, tmp_file.path)
+              end
             end
           end
         end
