@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      - BUNDLE_PATH=/app/vendor/bundle
+      - BUNDLE_APP_CONFIG=/app/.bundle
+    working_dir: /app
+    command: bash -c "bundle install && bundle exec irb -r ./lib/openc_bot.rb"
+    stdin_open: true
+    tty: true
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ~/.ssh:/root/.ssh:ro
+      - $SSH_AUTH_SOCK:/ssh-agent
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
+    command: make test 

@@ -8,6 +8,8 @@ require "tzinfo"
 require "English"
 require "openc_bot/exceptions"
 require "openc_bot/helpers/reporting"
+require "openc_industry_codes"
+
 
 module OpencBot
   module Helpers
@@ -128,7 +130,7 @@ module OpencBot
         rescue SQLite3::BusyException => e
           # fail_count += 1
           # if fail_count <= MAX_BUSY_RETRIES
-          puts "#{e.inspect} raised saving:\n#{all_data}\n\n" if verbose?
+          OpencBot::LOGGER.error({service: "openc_bot", event: "database_busy_error", message: e.message, path: root_directory, data: all_data.to_s}.to_json) if verbose?
           #   sleep retry_interval
           #   retry_interval = retry_interval * 2
           #   retry
@@ -314,7 +316,7 @@ module OpencBot
           output_json_error_message(e)
         else
           rich_message = "#{e.message} updating entry with uid: #{uid}"
-          puts rich_message if verbose?
+          OpencBot::LOGGER.error({service: "openc_bot", event: "update_datum_error", uid: uid, message: rich_message, path: root_directory}.to_json) if verbose?
           raise $ERROR_INFO, rich_message, $ERROR_INFO.backtrace
         end
       end
@@ -331,11 +333,74 @@ module OpencBot
       end
 
       def validate_datum(record)
-        JSON::Validator.fully_validate(
+        # First, validate using the normal JSON schema
+        schema_errors = JSON::Validator.fully_validate(
           "#{schema_path}/#{schema_name}.json",
           record.to_json,
           errors_as_objects: true,
-        )
+        ) || []
+
+        # If schema validation passed and record has industry codes, validate them
+        if record_has_industry_codes?(record)
+          OpencBot::LOGGER.info({service: "openc_bot", event: "industry_code_validation_start", path: root_directory}.to_json) if verbose?
+          begin
+            validate_industry_codes(record, schema_errors)
+          rescue => e
+            OpencBot::LOGGER.error({service: "openc_bot", event: "industry_code_validation_error", error: "#{e.class} #{e.message}", backtrace: e.backtrace.join("\n"), path: root_directory}.to_json) if verbose?
+            schema_errors << {
+              message: "Industry code validation error: #{e.message}",
+              path: "/industry_codes"
+            }
+          end
+        end
+
+        schema_errors
+      end
+
+      # Simple check for industry_codes existence and non-emptiness
+      def record_has_industry_codes?(record)
+        return false unless record.is_a?(Hash)
+
+        industry_codes = record["industry_codes"] || record[:industry_codes]
+        industry_codes.is_a?(Array) && !industry_codes.empty?
+      end
+
+      # Validate industry codes against OpencIndustryCodes gem
+      def validate_industry_codes(record, schema_errors)
+        # Get industry codes from record (handling both string and symbol keys)
+        industry_codes = record["industry_codes"] || record[:industry_codes]
+        return unless industry_codes.is_a?(Array) && !industry_codes.empty?
+
+        industry_codes.each_with_index do |industry_code, index|
+          # Get code and code_scheme_id (handling both string and symbol keys)
+          code = industry_code["code"] || industry_code[:code]
+          code_scheme_id = industry_code["code_scheme_id"] || industry_code[:code_scheme_id]
+
+          next unless code && code_scheme_id
+
+          OpencBot::LOGGER.info({service: "openc_bot", event: "validate_industry_code", code: code, code_scheme_id: code_scheme_id, path: root_directory}.to_json) if verbose?
+
+          # Find the code scheme
+          code_scheme = OpencIndustryCodes::CodeScheme.find(code_scheme_id.to_s)
+          unless code_scheme
+            error_msg = "Industry code scheme '#{code_scheme_id}' not found"
+            OpencBot::LOGGER.error({service: "openc_bot", event: "validate_industry_code_error", error_type: "scheme_not_found", code_scheme_id: code_scheme_id, message: error_msg, path: root_directory}.to_json) if verbose?
+            schema_errors << {
+              message: error_msg,
+              path: "/industry_codes/#{index}/code_scheme_id"
+            }
+            next
+          end
+
+          # Check if the code exists in this scheme
+          found_code = code_scheme.find_code(code.to_s)
+          unless found_code
+            error_msg = "Industry code '#{code}' not found in scheme '#{code_scheme_id}'"
+            OpencBot::LOGGER.error({service: "openc_bot", event: "validate_industry_code_error", error_type: "code_not_found", code: code, code_scheme_id: code_scheme_id, message: error_msg, path: root_directory}.to_json)    # Only log the error but don't add to schema_errors
+          else
+            OpencBot::LOGGER.info({service: "openc_bot", event: "validate_industry_code_success", code: code, code_scheme_id: code_scheme_id, description: found_code.description, path: root_directory}.to_json) if verbose?
+          end
+        end
       end
 
       def post_process(row_hash, skip_nulls = false)
@@ -353,6 +418,7 @@ module OpencBot
       # (which can then be handled by the importer)
       def output_json_error_message(err_obj)
         err_msg = { "error" => { "klass" => err_obj.class.to_s, "message" => err_obj.message, "backtrace" => err_obj.backtrace } }
+        OpencBot::LOGGER.error({service: "openc_bot", event: "output_json_error", error: err_msg, path: root_directory}.to_json)
         puts err_msg.to_json
       end
 
@@ -373,9 +439,9 @@ module OpencBot
       def sleep_before_http_req
         if const_defined?("SLEEP_BEFORE_HTTP_REQ")
           sleep_time = const_get("SLEEP_BEFORE_HTTP_REQ")
-          puts "#{name} about to sleep for #{sleep_time} before fetching data. Time now: #{Time.now}" if verbose?
+          OpencBot::LOGGER.info({service: "openc_bot", event: "sleep_before_http_req", sleep_time: sleep_time, current_time: Time.now, path: root_directory}.to_json) if verbose?
           sleep(sleep_time)
-          puts "#{name} slept for #{sleep_time}: Time now #{Time.now}" if verbose?
+          OpencBot::LOGGER.info({service: "openc_bot", event: "sleep_completed", sleep_time: sleep_time, current_time: Time.now, path: root_directory}.to_json) if verbose?
         end
       end
 
@@ -402,7 +468,7 @@ module OpencBot
 
       def _http_get_with_retry(url, options = {})
         log_info = proc do |exception, tries|
-          warn("Retrying #{url} because of #{exception.class}: '#{exception.message}' - #{tries} attempts.")
+          OpencBot::LOGGER.warn({service: "openc_bot", event: "http_retry", url: url, exception: exception.class.to_s, message: exception.message, attempts: tries, path: root_directory}.to_json)
         end
         tries = options.delete(:tries) || 5
         base_interval = options.delete(:tries) || 5
