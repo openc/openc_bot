@@ -60,10 +60,18 @@ module OpencBot
         ingest_file = false
         start_time = Time.now
         LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
-        update_data_results = update_data(options.merge(started_at: start_time)) || {}
+        begin
+          update_data_results = update_data(options.merge(started_at: start_time)) || {}
+          ok = true
+          error = nil
+        rescue Exception => e
+          # Catch all to log outcome and upload any files that can be digested.
+          ok = false
+          error = e
+        end
         # update_data_results = nil
         end_time = Time.now
-        LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
+        LOGGER.info({service: "company_fetcher_bot", event:"update_data_end",  ok: ok, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(end_time - start_time).round(2)}s"}.to_json)
         # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
         if ENV["SAVE_DATA_TO_S3"]
           # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
@@ -105,7 +113,10 @@ module OpencBot
 
         update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
         report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
-        LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: true, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
+
+        raise error unless error.nil?
+        LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: ok, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
+
         update_data_results
       rescue Exception => e
         LOGGER.error({service: "company_fetcher_bot", event:"run_error", duration_s: (Time.now - start_time).round(2), bot_name: bot_name, bot_run_id: bot_run_id, message: e.message}.to_json)
