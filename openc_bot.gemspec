@@ -47,9 +47,11 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sqlite_magic", "0.0.6"
   gem.add_dependency "statsd-instrument", "~> 1.7"
   gem.add_dependency "tzinfo", "~> 1.2"
-  gem.add_dependency "sqlite3", "< 1.6"
+  gem.add_dependency "sqlite3", "~> 1.3.0"
   gem.add_dependency "aws-sdk-secretsmanager", "1.9"
   gem.add_dependency "aws-sdk-s3", "~> 1.67"
+  gem.add_dependency "bigdecimal", "~> 1.4.0"
+  gem.add_dependency "openc_industry_codes"
 
   # gem.add_development_dependency "perftools.rb"
   gem.add_development_dependency "byebug", "~> 10.0"
@@ -57,4 +59,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rubocop", "~> 0.93.1"
   gem.add_development_dependency "rubocop-rspec", "~> 1.30"
   gem.add_development_dependency "webmock", "~> 1.20"
+  gem.add_development_dependency "minitest", "< 5.16.0"
+  gem.add_dependency "public_suffix", "< 5.0"
 end

@@ -7,7 +7,7 @@ require "openc_bot/company_fetcher_bot"
 require "rake"
 require "openc_bot/tasks"
 
-describe SruRequestJob do
+xdescribe SruRequestJob do # don't support SRU anymore
   describe "#perform" do
     let(:params) do
       {

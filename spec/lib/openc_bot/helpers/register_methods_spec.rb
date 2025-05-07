@@ -659,8 +659,18 @@ describe "a module that includes RegisterMethods" do
       @industry_codes_valid_params = @extensive_valid_params.merge(
         industry_codes: [
           name: "industry code",
+          code: "111110",
+          code_scheme_id: "us_naics_2017",
+          start_date: "2020-01-01",
+          end_date: "2020-01-02",
+        ],
+      )
+
+      @industry_codes_invalid_params = @extensive_valid_params.merge(
+        industry_codes: [
+          name: "industry code",
           code: "valid code",
-          code_scheme_id: "valid scheme id",
+          code_scheme_id: "invalid code",
           start_date: "2020-01-01",
           end_date: "2020-01-02",
         ],
@@ -729,7 +739,7 @@ describe "a module that includes RegisterMethods" do
         @extensive_valid_params.merge(
           industry_codes: [
             code: 100_001,
-            code_scheme_id: "valid scheme id",
+            code_scheme_id: "isic_4",
           ],
         ),
       )
@@ -752,6 +762,9 @@ describe "a module that includes RegisterMethods" do
       expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @filings_valid_params.to_json, anything)
       expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @identifiers_valid_params.to_json, anything)
       expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @industry_codes_valid_params.to_json, anything)
+      expect(JSON::Validator).to receive(:fully_validate).with("#{Dir.pwd}/schemas/schemas/company-schema.json", @industry_codes_invalid_params.to_json, anything)
+
+
       ModuleThatIncludesRegisterMethods.validate_datum(@valid_params)
       ModuleThatIncludesRegisterMethods.validate_datum(@extensive_valid_params)
       ModuleThatIncludesRegisterMethods.validate_datum(@officers_valid_params)
@@ -761,6 +774,7 @@ describe "a module that includes RegisterMethods" do
       ModuleThatIncludesRegisterMethods.validate_datum(@filings_valid_params)
       ModuleThatIncludesRegisterMethods.validate_datum(@identifiers_valid_params)
       ModuleThatIncludesRegisterMethods.validate_datum(@industry_codes_valid_params)
+      ModuleThatIncludesRegisterMethods.validate_datum(@industry_codes_invalid_params)
     end
 
     context "and datum is valid" do
@@ -831,6 +845,7 @@ describe "a module that includes RegisterMethods" do
         # industry_codes_invalid
         expect(@industry_codes_invalid).to be_kind_of Array
         expect(@industry_codes_invalid.size).to eq(1)
+
         expect(@industry_codes_invalid.first[:failed_attribute]).to eq("TypeV4")
         expect(@industry_codes_invalid.first[:message]).to match "industry_codes"
         # additional_properties_invalid
