@@ -47,7 +47,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sqlite_magic", "0.0.6"
   gem.add_dependency "statsd-instrument", "~> 1.7"
   gem.add_dependency "tzinfo", "~> 1.2"
-  gem.add_dependency "sqlite3", "~> 1.3.0"
+  gem.add_dependency "sqlite3", "< 1.6.0"
   gem.add_dependency "aws-sdk-secretsmanager", "1.9"
   gem.add_dependency "aws-sdk-s3", "~> 1.67"
   gem.add_dependency "bigdecimal", "~> 1.4.0"

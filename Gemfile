@@ -3,6 +3,7 @@
 source "https://rubygems.org"
 gem "sqlite_magic", git: "https://github.com/openc/sqlite_magic.git"
 gem "openc_industry_codes", git: "git@github.com:openc/openc_industry_codes.git"
+gem 'sqlite3', '~> 1.4.4'
 
 gem "pry", group: %i[development test]
 # Specify your gem's dependencies in openc_bot.gemspec
