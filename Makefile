@@ -47,7 +47,7 @@ shell: build
 	docker run --rm -it \
 		-v $(PROJECT_DIR):/app \
 		$(SSH_MOUNT_ARGS) \
-		$(IMAGE_NAME) bash
+		$(IMAGE_NAME) bash -c "bundle install && bash"
 
 # Start a Ruby console in the Docker container
 console: build
