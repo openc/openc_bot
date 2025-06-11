@@ -332,6 +332,10 @@ module OpencBot
         { updated: count, stale: assess_stale, output: e.message }
       end
 
+      def valid_filing?(filing)
+        filing[:date].present? && (filing[:title].present? || filing[:description].present? || filing[:filing_type_name].present?)
+      end
+
       def validate_datum(record)
         # First, validate using the normal JSON schema
         schema_errors = JSON::Validator.fully_validate(
