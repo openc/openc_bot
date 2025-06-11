@@ -1,8 +1,8 @@
 GIT
   remote: git@github.com:openc/openc_industry_codes.git
-  revision: d828c2a745817818bc37a008cd6be29c8a32369b
+  revision: 105402ac7d14394e43239fb46f33c7de1e355171
   specs:
-    openc_industry_codes (0.0.34)
+    openc_industry_codes (0.0.35)
 
 GIT
   remote: https://github.com/openc/sqlite_magic.git
@@ -14,7 +14,7 @@ GIT
 PATH
   remote: .
   specs:
-    openc_bot (0.0.86)
+    openc_bot (0.0.88)
       activesupport (~> 4.1)
       aws-sdk-s3 (~> 1.67)
       aws-sdk-secretsmanager (= 1.9)
