@@ -1166,4 +1166,73 @@ describe "a module that includes RegisterMethods" do
       expect(ModuleThatIncludesRegisterMethods.get_raw_data("12a-b/3456")).to eq("foo bar")
     end
   end
+
+  describe "#valid_filing?" do
+    context "when filing has required fields" do
+      context "whether string or symbol keys" do
+        it "returns true when filing has date and title" do
+          filing = {
+            "date" => "2023-01-01",
+            "title" => "Annual Report"
+          }
+          expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be true
+        end
+
+        it "returns true when filing has date and description" do
+          filing = {
+            date: "2023-01-01",
+            description: "Annual financial statements filed"
+          }
+          expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be true
+        end
+
+        it "returns true when filing has date and filing_type_name" do
+          filing = {
+            date: "2023-01-01",
+            filing_type_name: "Annual Return"
+          }
+          expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be true
+        end
+
+        it "returns true when filing has all possible fields" do
+          filing = {
+            "date" => "2023-01-01",
+            "title" => "Annual Report",
+            "description" => "Annual financial statements filed",
+            "filing_type_name" => "Annual Return"
+          }
+          expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be true
+        end
+      end
+    end
+
+    context "when filing is missing required fields" do
+      it "returns false when filing has no date" do
+        filing = {
+          title: "Annual Report"
+        }
+        expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be false
+      end
+
+      it "returns false when filing has date but no title/description/filing_type_name" do
+        filing = {
+          date: "2023-01-01"
+        }
+        expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be false
+      end
+
+      it "returns false when filing is empty" do
+        filing = {}
+        expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be false
+      end
+
+      it "returns false when filing has nil values" do
+        filing = {
+          date: nil,
+          title: nil
+        }
+        expect(ModuleThatIncludesRegisterMethods.valid_filing?(filing)).to be false
+      end
+    end
+  end
 end

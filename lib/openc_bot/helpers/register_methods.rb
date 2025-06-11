@@ -333,7 +333,8 @@ module OpencBot
       end
 
       def valid_filing?(filing)
-        filing[:date].present? && (filing[:title].present? || filing[:description].present? || filing[:filing_type_name].present?)
+        filing_data = filing.with_indifferent_access
+        filing_data[:date].present? && (filing_data[:title].present? || filing_data[:description].present? || filing_data[:filing_type_name].present?)
       end
 
       def validate_datum(record)
