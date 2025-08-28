@@ -59,6 +59,7 @@ module OpencBot
       begin
         ingest_file = false
         start_time = Time.now
+        update_data_results = {}
         LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
         begin
           update_data_results = update_data(options.merge(started_at: start_time)) || {}
