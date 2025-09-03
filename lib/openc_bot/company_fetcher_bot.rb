@@ -30,10 +30,6 @@ module OpencBot
       :company_number
     end
 
-    def is_parakeet_bot?(update_data_results)
-      update_data_results[:bot_type] == "parakeet"
-    end
-
     # This overrides default #save_entity (defined in RegisterMethods) and adds
     # the inferred jurisdiction_code, unless it is overridden in entity_info
     def save_entity(entity_info)
@@ -60,6 +56,9 @@ module OpencBot
         ingest_file = false
         start_time = Time.now
         update_data_results = {}
+        is_parakeet_bot = self.singleton_class.ancestors
+          .map { |m| m.name }
+          .include?("OpencBot::PseudoMachineCompanyFetcherBot")
         LOGGER.info({service: "company_fetcher_bot", event:"run_begin", bot_name: bot_name, bot_run_id: bot_run_id}.to_json)
         begin
           update_data_results = update_data(options.merge(started_at: start_time)) || {}
@@ -76,9 +75,8 @@ module OpencBot
         # pass `SAVE_DATA_TO_S3` to enable uploading the file to S3
         if ENV["SAVE_DATA_TO_S3"]
           # PseudoMachineCompanyFetcherBot will add "data_directory" to the result in end.
-          if is_parakeet_bot?(update_data_results) && update_data_results.has_key?( :data_directory)
+          if is_parakeet_bot && update_data_results.has_key?( :data_directory)
             cut_off_epoch = (ENV["INGESTION_CUT_OFF_EPOCH"] || in_progress_acquisition_id).to_i # Default to only upload current run.
-
             loop do
               matching_dirs = get_pending_ingestion_dirs(acquisition_base_directory, cut_off_epoch)
               break if matching_dirs.empty? # Stop if no matching directories are left
@@ -100,7 +98,7 @@ module OpencBot
               rename_to_archive(matching_dir) # Archive the processed directory
             end
 
-          elsif !is_parakeet_bot?(update_data_results)
+          elsif !is_parakeet_bot
             bot_output_location = "#{db_location}"
             unix_time_stamp = end_time.to_i
             s3_date_folder_prefix = DateTime.parse(end_time.to_s).strftime("%Y/%m/%d")
