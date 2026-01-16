@@ -36,7 +36,7 @@ module OpencBot
       @statsd_namespace ||= begin
         bot_env = ENV.fetch("FETCHER_BOT_ENV", "development").to_sym
         StatsD.mode = bot_env
-        StatsD.server = "sys1:8125"
+        StatsD.server = "prod-statsd.opencorporates.io:8125"
         StatsD.logger = Logger.new("/dev/null") if bot_env != :production
 
         if respond_to?(:output_stream)
