@@ -206,5 +206,22 @@ describe "A module that extends CompanyFetcherBot" do
       expect(TestCompaniesFetcher).to receive(:_analysis_http_post).with("#{OpencBot::CompanyFetcherBot::ANALYSIS_HOST}/runs", expected_params)
       TestCompaniesFetcher.run
     end
+
+    context "when update_data raises an error" do
+      let(:exception) { RuntimeError.new("something went wrong") }
+
+      before do
+        allow(TestCompaniesFetcher).to receive(:update_data).and_raise(exception)
+      end
+
+      it "raises the original error" do
+        expect { TestCompaniesFetcher.run }.to raise_error(RuntimeError, "something went wrong")
+      end
+
+      it "does not report the run as successful" do
+        expect(TestCompaniesFetcher).not_to receive(:report_run_results)
+        expect { TestCompaniesFetcher.run }.to raise_error(RuntimeError, "something went wrong")
+      end
+    end
   end
 end
