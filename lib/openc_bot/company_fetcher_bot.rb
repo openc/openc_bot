@@ -111,7 +111,7 @@ module OpencBot
         end
 
         update_data_results = { output: update_data_results.to_s } unless update_data_results.is_a?(Hash)
-        report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1"))
+        report_run_results(update_data_results.merge(started_at: start_time, ended_at: Time.now, status_code: "1")) if ok
 
         raise error unless error.nil?
         LOGGER.info({service: "company_fetcher_bot", event:"run_end", ok: ok, bot_name: bot_name, bot_run_id: bot_run_id, duration_s: "#{(Time.now - start_time).round(2)}s"}.to_json)
