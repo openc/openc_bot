@@ -23,4 +23,11 @@ context "when a module that includes PseudoMachineParser" do
   it "return's fetcher" do
     expect(ModuleThatIncludesPseudoMachineParser.input_stream).to eq("fetcher")
   end
+
+  it "prepares JSONL checkpoint output before running" do
+    expect(ModuleThatIncludesPseudoMachineParser).to receive(:prepare_output_for_stage!)
+    allow(ModuleThatIncludesPseudoMachineParser).to receive(:jsonl_records_written).and_return(0)
+    allow(ModuleThatIncludesPseudoMachineParser).to receive(:input_data)
+    ModuleThatIncludesPseudoMachineParser.run
+  end
 end

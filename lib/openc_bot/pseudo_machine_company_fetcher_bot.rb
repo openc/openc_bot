@@ -74,10 +74,12 @@ module OpencBot
       end
       unless processing_states.include?("parser")
         res.merge!(bot_namespace::Parser.run)
+        bot_namespace::Parser.finalize_output_stream! if bot_namespace::Parser.respond_to?(:finalize_output_stream!)
         processing_states << "parser"
       end
       unless @processing_states.include?("transformer")
         res.merge!(bot_namespace::Transformer.run)
+        bot_namespace::Transformer.finalize_output_stream! if bot_namespace::Transformer.respond_to?(:finalize_output_stream!)
         processing_states << "transformer"
       end
       if res[:no_transformed_data]
