@@ -24,8 +24,9 @@ module OpencBot
       end
 
       def run
-        counter = 0
         start_time = Time.now.utc
+        prepare_output_for_stage!
+        counter = jsonl_records_written
         input_data do |json_data|
           entity_datum = encapsulate_as_per_schema(json_data)
           unless entity_datum.blank?

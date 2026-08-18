@@ -27,4 +27,11 @@ context "when a module that includes PseudoMachineTransformer" do
   it "return's parser" do
     expect(ModuleThatIncludesPseudoMachineTransformer.input_stream).to eq("parser")
   end
+
+  it "prepares JSONL checkpoint output before running" do
+    expect(ModuleThatIncludesPseudoMachineTransformer).to receive(:prepare_output_for_stage!)
+    allow(ModuleThatIncludesPseudoMachineTransformer).to receive(:jsonl_records_written).and_return(0)
+    allow(ModuleThatIncludesPseudoMachineTransformer).to receive(:input_data)
+    ModuleThatIncludesPseudoMachineTransformer.run
+  end
 end

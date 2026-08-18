@@ -22,7 +22,8 @@ module OpencBot
 
       def run
         start_time = Time.now.utc
-        counter = 0
+        prepare_output_for_stage!
+        counter = jsonl_records_written
         input_data do |fetched_datum|
           yielded = false
           # the parse method can use yield
