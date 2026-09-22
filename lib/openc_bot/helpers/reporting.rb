@@ -33,7 +33,14 @@ module OpencBot
       def send_error_report(exception, options = {})
         subject_details = options[:subject_details] || exception
         subject = "Error running #{name}: #{subject_details}"
-        body = "Error details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
+        raw_body = "Error details: #{exception.inspect}.\nBacktrace:\n#{exception.backtrace}"
+        # Truncate to prevent SMTP/HTTP rejection when exception messages are very
+        # large (e.g. sqlite3 .import emitting thousands of column-mismatch lines).
+        body = if raw_body.length > 5_000
+                 "#{raw_body[0, 5_000]}\n\n[... truncated — #{raw_body.length} total chars]"
+               else
+                 raw_body
+               end
         send_report(subject: subject, body: body)
         report_run_to_analysis_app(output: body, status_code: "0", ended_at: Time.now.to_s, started_at: options[:started_at])
       end
